@@ -1,171 +1,61 @@
 "use client";
 
 import {
-  ChangeEvent,
-  FormEvent,
+  type FormEvent,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import type { CSSProperties } from "react";
-import Image from "next/image";
 
+import {
+  cancelRenderJob,
+  createProject,
+  getAnalysisStatus,
+  getFeatureFlags,
+  getProject,
+  getRenderStatus,
+  getSpectrum,
+  getTemplates,
+  getWaveform,
+  patchProject,
+  postPreviewMetric,
+  retryRenderJob,
+  startRenderJob,
+  startTrackAnalysis,
+  uploadPosterAsset,
+  uploadTrackAsset,
+} from "@/app/editor/api";
+import {
+  createDefaultClientToken,
+  DEFAULT_DURATION_MS,
+  TIMELINE_WIDTH,
+} from "@/app/editor/constants";
+import { EditorPanel } from "@/app/editor/components/EditorPanel";
+import { PreviewPanel } from "./editor/components/PreviewPanel";
+import type {
+  CreateProjectPayload,
+  TimelineKeyframeParameter,
+  TimelineKeyframeTrack,
+  TimelineState,
+  TemplateItem,
+  Format,
+  Quality,
+  VisualizerType,
+} from "@/app/editor/types";
+import { normalizeTimeline, visualizerLinePath } from "@/app/editor/utils";
 import {
   applyKeyframesToEqualizer,
   clampNumber,
   getDefaultTimeline,
 } from "@/lib/domain/timeline";
-import type {
-  TimelineKeyframeParameter,
-  TimelineKeyframeTrack,
-  TimelineState,
-} from "@/lib/domain/types";
-
-type TemplateItem = {
-  id: string;
-  name: string;
-  category: string;
-  defaultPalette: string[];
-  equalizerConfig: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    color: string;
-    visualizerType?: VisualizerType;
-    barCount?: number;
-  };
-  posterConfig: {
-    cornerRadius: number;
-    blurStrength: number;
-  };
-};
-
-type Format = "tiktok" | "youtube";
-type Quality = "hd" | "fhd";
-type VisualizerType = "bars" | "line" | "dots" | "symmetricBars";
-
-type WaveformResponse = {
-  analysisId: string;
-  frameStepMs: number;
-  durationMs: number;
-  values: number[];
-};
-
-type SpectrumResponse = {
-  analysisId: string;
-  frameStepMs: number;
-  durationMs: number;
-  bars: number;
-  values: number[][];
-};
-
-const defaultClientToken = `cl_${Math.random().toString(36).slice(2, 10)}`;
-const defaultDurationMs = 120_000;
-const timelineWidth = 1000;
-const timelineHeight = 120;
-const visualizerTypeOptions: VisualizerType[] = [
-  "bars",
-  "symmetricBars",
-  "line",
-  "dots",
-];
-
-function formatMs(ms: number) {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
-function waveformPath(values: number[]) {
-  if (values.length === 0) {
-    return "";
-  }
-
-  const centerY = timelineHeight / 2;
-  const usableHeight = timelineHeight * 0.82;
-  const maxIndex = Math.max(1, values.length - 1);
-
-  return values
-    .map((value, index) => {
-      const x = (index / maxIndex) * timelineWidth;
-      const y = centerY - clampNumber(value, 0, 1) * (usableHeight / 2);
-      return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
-function visualizerLinePath(values: number[]) {
-  if (values.length === 0) {
-    return "";
-  }
-
-  const maxIndex = Math.max(1, values.length - 1);
-
-  return values
-    .map((value, index) => {
-      const x = (index / maxIndex) * 100;
-      const y = 100 - clampNumber(value, 0.02, 1) * 92;
-      return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
-function visualizerSymmetricBarHeight(value: number) {
-  return `${Math.max(6, Math.round(value * 46))}%`;
-}
-
-function normalizeTimeline(
-  input: TimelineState | null | undefined,
-  durationMs: number,
-): TimelineState {
-  const boundedDuration = Math.max(100, Math.round(durationMs));
-  const fallback = getDefaultTimeline(boundedDuration);
-
-  if (!input) {
-    return fallback;
-  }
-
-  const trimInMs = clampNumber(
-    Math.round(input.trimInMs),
-    0,
-    boundedDuration - 1,
-  );
-  const trimOutMs = clampNumber(
-    Math.round(input.trimOutMs),
-    trimInMs + 1,
-    boundedDuration,
-  );
-
-  return {
-    zoom: clampNumber(input.zoom, 0.5, 8),
-    scroll: clampNumber(input.scroll, 0, 1),
-    trimInMs,
-    trimOutMs,
-    playheadMs:
-      typeof input.playheadMs === "number"
-        ? clampNumber(Math.round(input.playheadMs), trimInMs, trimOutMs)
-        : trimInMs,
-  };
-}
 
 export default function Home() {
-  const [clientToken, setClientToken] = useState(defaultClientToken);
+  const [clientToken, setClientToken] = useState("");
   const [projectName, setProjectName] = useState("My Mix #1");
   const [format, setFormat] = useState<Format>("tiktok");
   const [quality, setQuality] = useState<Quality>("fhd");
-
-  const [trackFile, setTrackFile] = useState<File | null>(null);
-  const [posterFile, setPosterFile] = useState<File | null>(null);
-  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-  const [posterPreviewUrl, setPosterPreviewUrl] = useState<string | null>(null);
-  const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<
-    string | null
-  >(null);
-  const [trackPreviewUrl, setTrackPreviewUrl] = useState<string | null>(null);
 
   const [trackAssetId, setTrackAssetId] = useState("");
   const [posterAssetId, setPosterAssetId] = useState("");
@@ -194,14 +84,15 @@ export default function Home() {
 
   const [status, setStatus] = useState("Ready");
   const [isBusy, setIsBusy] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const [previewTimelineEnabled, setPreviewTimelineEnabled] = useState(false);
-  const [trackDurationMs, setTrackDurationMs] = useState(defaultDurationMs);
+  const [trackDurationMs, setTrackDurationMs] = useState(DEFAULT_DURATION_MS);
   const [waveformValues, setWaveformValues] = useState<number[]>([]);
   const [spectrumFrameStepMs, setSpectrumFrameStepMs] = useState(33);
   const [spectrumValues, setSpectrumValues] = useState<number[][]>([]);
   const [timeline, setTimeline] = useState<TimelineState>(() =>
-    getDefaultTimeline(defaultDurationMs),
+    getDefaultTimeline(DEFAULT_DURATION_MS),
   );
   const [keyframes, setKeyframes] = useState<TimelineKeyframeTrack[]>([]);
   const [selectedKeyframeParameter, setSelectedKeyframeParameter] =
@@ -213,7 +104,6 @@ export default function Home() {
   const [visualizerBars, setVisualizerBars] = useState<number[]>(() =>
     Array.from({ length: 32 }).map(() => 0.05),
   );
-  const [loading, setLoading] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -228,13 +118,16 @@ export default function Home() {
   const mediaSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const analyserDataRef = useRef<Uint8Array | null>(null);
-  const posterFileInputRef = useRef<HTMLInputElement | null>(null);
-  const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedTemplate = useMemo(
     () => templates.find((item) => item.id === selectedTemplateId) ?? null,
     [selectedTemplateId, templates],
   );
+
+  useEffect(() => {
+    setIsHydrated(true);
+    setClientToken((prev) => prev || createDefaultClientToken());
+  }, []);
 
   const previewAspectRatio = useMemo(() => {
     return format === "tiktok" ? "9 / 16" : "16 / 9";
@@ -260,53 +153,26 @@ export default function Home() {
     timeline,
   ]);
 
-  useEffect(() => {
-    setLoading(true);
-  }, []);
-
   const trimInX = useMemo(
-    () => (timeline.trimInMs / trackDurationMs) * timelineWidth,
+    () => (timeline.trimInMs / trackDurationMs) * TIMELINE_WIDTH,
     [timeline.trimInMs, trackDurationMs],
   );
   const trimOutX = useMemo(
-    () => (timeline.trimOutMs / trackDurationMs) * timelineWidth,
+    () => (timeline.trimOutMs / trackDurationMs) * TIMELINE_WIDTH,
     [timeline.trimOutMs, trackDurationMs],
   );
   const playheadX = useMemo(() => {
     const value = timeline.playheadMs ?? timeline.trimInMs;
-    return (value / trackDurationMs) * timelineWidth;
+    return (value / trackDurationMs) * TIMELINE_WIDTH;
   }, [timeline.playheadMs, timeline.trimInMs, trackDurationMs]);
 
   const trackPlaybackUrl = useMemo(() => {
-    if (trackPreviewUrl) {
-      return trackPreviewUrl;
-    }
     if (trackAssetId) {
       return `/api/assets/${trackAssetId}`;
     }
-    return "";
-  }, [trackAssetId, trackPreviewUrl]);
 
-  const sceneBackgroundUrl = useMemo(() => {
-    if (backgroundPreviewUrl) {
-      return backgroundPreviewUrl;
-    }
-    if (backgroundAssetId) {
-      return `/api/assets/${backgroundAssetId}`;
-    }
-    if (posterPreviewUrl) {
-      return posterPreviewUrl;
-    }
-    if (posterAssetId) {
-      return `/api/assets/${posterAssetId}`;
-    }
     return "";
-  }, [
-    backgroundAssetId,
-    backgroundPreviewUrl,
-    posterAssetId,
-    posterPreviewUrl,
-  ]);
+  }, [trackAssetId]);
 
   const normalizedVisualizerBars = useMemo(() => {
     if (visualizerBars.length === visualizerBarCount) {
@@ -331,11 +197,7 @@ export default function Home() {
       };
 
       console.info("[preview]", body);
-      void fetch("/api/system/preview-metrics", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      void postPreviewMetric(body);
     },
     [analysisId, projectId],
   );
@@ -579,12 +441,8 @@ export default function Home() {
   useEffect(() => {
     let mounted = true;
 
-    void fetch("/api/templates")
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Failed to load templates");
-        }
-        const data = (await response.json()) as { items: TemplateItem[] };
+    void getTemplates()
+      .then((data) => {
         if (mounted) {
           setTemplates(data.items);
           const first = data.items[0];
@@ -609,16 +467,8 @@ export default function Home() {
         }
       });
 
-    void fetch("/api/system/features")
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Feature flags are unavailable");
-        }
-
-        const data = (await response.json()) as {
-          flags?: { preview_timeline_v1?: boolean };
-        };
-
+    void getFeatureFlags()
+      .then((data) => {
         if (mounted) {
           setPreviewTimelineEnabled(data.flags?.preview_timeline_v1 === true);
         }
@@ -635,42 +485,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!posterFile) {
-      setPosterPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(posterFile);
-    setPosterPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [posterFile]);
-
-  useEffect(() => {
-    if (!backgroundFile) {
-      setBackgroundPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(backgroundFile);
-    setBackgroundPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [backgroundFile]);
-
-  useEffect(() => {
-    if (!trackFile) {
-      setTrackPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(trackFile);
-    setTrackPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [trackFile]);
-
-  useEffect(() => {
     if (
       !analysisId ||
       analysisStatus === "done" ||
@@ -680,12 +494,8 @@ export default function Home() {
     }
 
     const interval = window.setInterval(() => {
-      void fetch(`/api/audio/analyze/${analysisId}`)
-        .then(async (response) => {
-          if (!response.ok) {
-            throw new Error("poll error");
-          }
-          const data = (await response.json()) as { status: string };
+      void getAnalysisStatus(analysisId)
+        .then((data) => {
           setAnalysisStatus(data.status);
           if (data.status === "done") {
             setStatus("Audio analysis complete");
@@ -708,13 +518,8 @@ export default function Home() {
 
     let canceled = false;
 
-    void fetch(`/api/audio/analyze/${analysisId}/waveform?bins=900`)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("waveform unavailable");
-        }
-
-        const data = (await response.json()) as WaveformResponse;
+    void getWaveform(analysisId)
+      .then((data) => {
         if (canceled) {
           return;
         }
@@ -722,7 +527,7 @@ export default function Home() {
         setWaveformValues(data.values);
         const nextDurationMs = Math.max(
           100,
-          data.durationMs || defaultDurationMs,
+          data.durationMs || DEFAULT_DURATION_MS,
         );
         setTrackDurationMs(nextDurationMs);
         setTimeline((previous) => normalizeTimeline(previous, nextDurationMs));
@@ -745,15 +550,8 @@ export default function Home() {
 
     let canceled = false;
 
-    void fetch(
-      `/api/audio/analyze/${analysisId}/spectrum?bars=${visualizerBarCount}&maxFrames=9600`,
-    )
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("spectrum unavailable");
-        }
-
-        const data = (await response.json()) as SpectrumResponse;
+    void getSpectrum(analysisId, visualizerBarCount)
+      .then((data) => {
         if (canceled) {
           return;
         }
@@ -783,17 +581,8 @@ export default function Home() {
     }
 
     const interval = window.setInterval(() => {
-      void fetch(`/api/render/${renderJobId}/status`)
-        .then(async (response) => {
-          if (!response.ok) {
-            throw new Error("render poll error");
-          }
-
-          const data = (await response.json()) as {
-            status: string;
-            progress: number;
-          };
-
+      void getRenderStatus(renderJobId)
+        .then((data) => {
           setRenderStatus(data.status);
           setRenderProgress(data.progress);
 
@@ -825,103 +614,19 @@ export default function Home() {
     };
   }, [stopRenderLoop]);
 
-  async function uploadTrack() {
-    if (!trackFile) {
-      setStatus("Select a track first");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.set("file", trackFile);
-    const response = await fetch("/api/upload/track", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Track upload failed");
-    }
-
-    const data = (await response.json()) as { assetId: string };
+  async function uploadTrack(file: File) {
+    const data = await uploadTrackAsset(file);
     setTrackAssetId(data.assetId);
   }
 
-  async function uploadPoster(nextPosterFile?: File) {
-    const fileToUpload = nextPosterFile ?? posterFile;
-
-    if (!fileToUpload) {
-      setStatus("Select a poster first");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.set("file", fileToUpload);
-    const response = await fetch("/api/upload/poster", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Poster upload failed");
-    }
-
-    const data = (await response.json()) as { assetId: string };
+  async function uploadPoster(file: File) {
+    const data = await uploadPosterAsset(file);
     setPosterAssetId(data.assetId);
   }
 
-  async function uploadBackground(nextBackgroundFile?: File) {
-    const fileToUpload = nextBackgroundFile ?? backgroundFile;
-
-    if (!fileToUpload) {
-      setStatus("Select a background first");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.set("file", fileToUpload);
-    const response = await fetch("/api/upload/poster", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Background upload failed");
-    }
-
-    const data = (await response.json()) as { assetId: string };
+  async function uploadBackground(file: File) {
+    const data = await uploadPosterAsset(file);
     setBackgroundAssetId(data.assetId);
-  }
-
-  function openBackgroundPicker() {
-    console.log("Opening background picker");
-    backgroundFileInputRef.current?.click();
-  }
-
-  function openPosterPicker() {
-    console.log("Opening poster picker");
-    posterFileInputRef.current?.click();
-  }
-
-  function onPosterFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFile = event.target.files?.[0] ?? null;
-    if (!selectedFile) {
-      return;
-    }
-
-    setPosterFile(selectedFile);
-    void runAction(() => uploadPoster(selectedFile));
-    event.target.value = "";
-  }
-
-  function onBackgroundFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFile = event.target.files?.[0] ?? null;
-    if (!selectedFile) {
-      return;
-    }
-
-    setBackgroundFile(selectedFile);
-    void runAction(() => uploadBackground(selectedFile));
-    event.target.value = "";
   }
 
   async function analyzeTrack() {
@@ -930,25 +635,7 @@ export default function Home() {
       return;
     }
 
-    const response = await fetch("/api/audio/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        trackAssetId,
-        bands: 64,
-        frameStepMs: 33,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Analyze request failed");
-    }
-
-    const data = (await response.json()) as {
-      analysisId: string;
-      status: string;
-    };
-
+    const data = await startTrackAnalysis(trackAssetId);
     setAnalysisId(data.analysisId);
     setAnalysisStatus(data.status);
     setStatus("Audio analysis started");
@@ -967,7 +654,7 @@ export default function Home() {
       return;
     }
 
-    const payload = {
+    const payload: CreateProjectPayload = {
       clientToken,
       name: projectName,
       format,
@@ -1003,17 +690,7 @@ export default function Home() {
       keyframes,
     };
 
-    const response = await fetch("/api/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Save project failed");
-    }
-
-    const data = (await response.json()) as { projectId: string };
+    const data = await createProject(payload);
     setProjectId(data.projectId);
     setStatus("Project saved");
   }
@@ -1024,37 +701,7 @@ export default function Home() {
       return;
     }
 
-    const response = await fetch(
-      `/api/projects/${projectId.trim()}?clientToken=${encodeURIComponent(clientToken)}`,
-    );
-    if (!response.ok) {
-      throw new Error("Load project failed");
-    }
-
-    const data = (await response.json()) as {
-      name: string;
-      format: Format;
-      quality: Quality;
-      trackAssetId: string;
-      posterAssetId: string;
-      backgroundAssetId?: string | null;
-      analysisId: string;
-      templateId: string | null;
-      equalizerConfig: {
-        color: string;
-        width: number;
-        height: number;
-        y: number;
-        visualizerType?: VisualizerType;
-        barCount?: number;
-      };
-      posterConfig?: {
-        cornerRadius?: number;
-        blurStrength?: number;
-      };
-      timeline?: TimelineState | null;
-      keyframes?: TimelineKeyframeTrack[];
-    };
+    const data = await getProject(projectId.trim(), clientToken);
 
     setProjectName(data.name);
     setFormat(data.format);
@@ -1084,22 +731,14 @@ export default function Home() {
       return;
     }
 
-    const response = await fetch(`/api/projects/${projectId.trim()}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientToken,
-        timeline: {
-          ...timeline,
-          playheadMs: timeline.playheadMs ?? timeline.trimInMs,
-        },
-        keyframes,
-      }),
+    await patchProject(projectId.trim(), {
+      clientToken,
+      timeline: {
+        ...timeline,
+        playheadMs: timeline.playheadMs ?? timeline.trimInMs,
+      },
+      keyframes,
     });
-
-    if (!response.ok) {
-      throw new Error("Timeline save failed");
-    }
 
     setStatus("Timeline saved");
   }
@@ -1121,62 +760,36 @@ export default function Home() {
       return;
     }
 
-    const syncResponse = await fetch(`/api/projects/${projectId.trim()}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientToken,
-        templateId: selectedTemplateId,
-        backgroundAssetId: backgroundAssetId || null,
-        equalizerConfig: {
-          x: 0.5,
-          y: equalizerY,
-          width: equalizerWidth,
-          height: equalizerHeight,
-          color: equalizerColor,
-          visualizerType,
-          barCount: visualizerBarCount,
-        },
-        particleConfig: {
-          preset: "off",
-          density: 0,
-          speed: 0.5,
-        },
-        posterConfig: {
-          cornerRadius: posterCornerRadius,
-          blurStrength: posterBlurStrength,
-        },
-        timeline: {
-          ...timeline,
-          playheadMs: timeline.playheadMs ?? timeline.trimInMs,
-        },
-        keyframes,
-      }),
+    await patchProject(projectId.trim(), {
+      clientToken,
+      templateId: selectedTemplateId,
+      backgroundAssetId: backgroundAssetId || null,
+      equalizerConfig: {
+        x: 0.5,
+        y: equalizerY,
+        width: equalizerWidth,
+        height: equalizerHeight,
+        color: equalizerColor,
+        visualizerType,
+        barCount: visualizerBarCount,
+      },
+      particleConfig: {
+        preset: "off",
+        density: 0,
+        speed: 0.5,
+      },
+      posterConfig: {
+        cornerRadius: posterCornerRadius,
+        blurStrength: posterBlurStrength,
+      },
+      timeline: {
+        ...timeline,
+        playheadMs: timeline.playheadMs ?? timeline.trimInMs,
+      },
+      keyframes,
     });
 
-    if (!syncResponse.ok) {
-      throw new Error("Render sync failed");
-    }
-
-    const response = await fetch("/api/render", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectId: projectId.trim(),
-        clientToken,
-        forceRestart: true,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Render start failed");
-    }
-
-    const data = (await response.json()) as {
-      renderJobId: string;
-      status: string;
-      reused?: boolean;
-    };
+    const data = await startRenderJob(projectId.trim(), clientToken);
 
     setRenderJobId(data.renderJobId);
     setRenderStatus(data.status);
@@ -1195,15 +808,7 @@ export default function Home() {
       return;
     }
 
-    const response = await fetch(`/api/render/${renderJobId}/cancel`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientToken }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Cancel render failed");
-    }
+    await cancelRenderJob(renderJobId, clientToken);
 
     setRenderStatus("canceled");
     setStatus("Render canceled");
@@ -1218,20 +823,7 @@ export default function Home() {
       return;
     }
 
-    const response = await fetch(`/api/render/${renderJobId}/retry`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientToken }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Retry render failed");
-    }
-
-    const data = (await response.json()) as {
-      renderJobId: string;
-      status: string;
-    };
+    const data = await retryRenderJob(renderJobId, clientToken);
 
     setRenderJobId(data.renderJobId);
     setRenderStatus(data.status);
@@ -1411,610 +1003,118 @@ export default function Home() {
     });
   }
 
-  const sceneStyle = {
-    aspectRatio: previewAspectRatio,
-    "--scene-accent-a": selectedTemplate?.defaultPalette?.[0] ?? equalizerColor,
-    "--scene-accent-b": selectedTemplate?.defaultPalette?.[1] ?? "#11141f",
-    "--scene-accent-c": selectedTemplate?.defaultPalette?.[2] ?? "#d8e8ff",
-  } as CSSProperties;
-
-  const sceneBgStyle = {
-    backgroundImage: sceneBackgroundUrl
-      ? `url(${sceneBackgroundUrl})`
-      : undefined,
-    filter: `blur(${Math.max(8, posterBlurStrength)}px) brightness(0.52) saturate(1.05)`,
-  } as CSSProperties;
-
-  const eqStyle = {
-    left: `${(1 - liveEqualizerConfig.width) * 50}%`,
-    width: `${liveEqualizerConfig.width * 100}%`,
-    height: `${liveEqualizerConfig.height * 100}%`,
-    top: `${liveEqualizerConfig.y * 100}%`,
-  } as CSSProperties;
-
   const equalizerLineD = useMemo(
     () => visualizerLinePath(normalizedVisualizerBars),
     [normalizedVisualizerBars],
   );
 
+  if (!isHydrated) {
+    return (
+      <main className="editor-root">
+        <audio ref={audioRef} preload="auto" />
+      </main>
+    );
+  }
 
   return (
-    <main className="editor-root" >
+    <main className="editor-root">
       <audio
         ref={audioRef}
         src={trackPlaybackUrl || undefined}
         preload="auto"
       />
 
-      <section className="editor-panel">
-        <h1>Video Generator MVP</h1>
-        <p className="editor-subtitle">
-          Upload track + poster, generate equalizer analysis, then save/load
-          project.
-        </p>
+      <EditorPanel
+        clientToken={clientToken}
+        projectName={projectName}
+        format={format}
+        quality={quality}
+        selectedTemplateId={selectedTemplateId}
+        templates={templates}
+        equalizerColor={equalizerColor}
+        equalizerWidth={equalizerWidth}
+        equalizerHeight={equalizerHeight}
+        equalizerY={equalizerY}
+        visualizerType={visualizerType}
+        visualizerBarCount={visualizerBarCount}
+        posterBlurStrength={posterBlurStrength}
+        posterCornerRadius={posterCornerRadius}
+        projectId={projectId}
+        status={status}
+        isBusy={isBusy}
+        trackAssetId={trackAssetId}
+        posterAssetId={posterAssetId}
+        backgroundAssetId={backgroundAssetId}
+        analysisId={analysisId}
+        analysisStatus={analysisStatus}
+        renderJobId={renderJobId}
+        renderStatus={renderStatus}
+        renderProgress={renderProgress}
+        previewTimelineEnabled={previewTimelineEnabled}
+        previewStartupMs={previewStartupMs}
+        previewDriftMs={previewDriftMs}
+        previewFps={previewFps}
+        onClientTokenChange={setClientToken}
+        onProjectNameChange={setProjectName}
+        onFormatChange={setFormat}
+        onQualityChange={setQuality}
+        onTemplateChange={(value) => applyTemplateSettings(value, true)}
+        onEqualizerColorChange={setEqualizerColor}
+        onEqualizerWidthChange={setEqualizerWidth}
+        onEqualizerHeightChange={setEqualizerHeight}
+        onEqualizerYChange={setEqualizerY}
+        onVisualizerTypeChange={setVisualizerType}
+        onVisualizerBarCountChange={setVisualizerBarCount}
+        onPosterBlurStrengthChange={setPosterBlurStrength}
+        onPosterCornerRadiusChange={setPosterCornerRadius}
+        onSubmitProject={(event) => void runAction(() => saveProject(event))}
+        onUploadTrack={(file) => void runAction(() => uploadTrack(file))}
+        onAnalyzeTrack={() => void runAction(analyzeTrack)}
+        onStartRender={() => void runAction(startRender)}
+        onDownloadRender={downloadRender}
+        onCancelRender={() => void runAction(cancelRender)}
+        onRetryRender={() => void runAction(retryRender)}
+        onProjectIdChange={setProjectId}
+        onLoadProject={() => void runAction(loadProject)}
+        onSaveTimeline={() => void runAction(saveTimelineState)}
+      />
 
-        <form
-          className="editor-grid"
-          onSubmit={(event) => void runAction(() => saveProject(event))}
-        >
-          <label>
-            Client token
-            <input
-              value={clientToken}
-              onChange={(e) => setClientToken(e.target.value)}
-              required
-            />
-          </label>
-
-          <label>
-            Project name
-            <input
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              required
-            />
-          </label>
-
-          <label>
-            Format
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value as Format)}
-            >
-              <option value="tiktok">TikTok 9:16</option>
-              <option value="youtube">YouTube 16:9</option>
-            </select>
-          </label>
-
-          <label>
-            Quality
-            <select
-              value={quality}
-              onChange={(e) => setQuality(e.target.value as Quality)}
-            >
-              <option value="hd">HD</option>
-              <option value="fhd">FHD</option>
-            </select>
-          </label>
-
-          <label>
-            Template
-            <select
-              value={selectedTemplateId ?? ""}
-              onChange={(e) =>
-                applyTemplateSettings(e.target.value || null, true)
-              }
-            >
-              {templates.map((tpl) => (
-                <option key={tpl.id} value={tpl.id}>
-                  {tpl.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Equalizer color
-            <input
-              type="color"
-              value={equalizerColor}
-              onChange={(e) => setEqualizerColor(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Equalizer width
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.01}
-              value={equalizerWidth}
-              onChange={(e) => setEqualizerWidth(Number(e.target.value))}
-            />
-          </label>
-
-          <label>
-            Equalizer height
-            <input
-              type="range"
-              min={0.05}
-              max={0.4}
-              step={0.01}
-              value={equalizerHeight}
-              onChange={(e) => setEqualizerHeight(Number(e.target.value))}
-            />
-          </label>
-
-          <label>
-            Equalizer Y
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={equalizerY}
-              onChange={(e) => setEqualizerY(Number(e.target.value))}
-            />
-          </label>
-
-          <label>
-            Visualizer type
-            <select
-              value={visualizerType}
-              onChange={(event) =>
-                setVisualizerType(event.target.value as VisualizerType)
-              }
-            >
-              {visualizerTypeOptions.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Visualizer bar count ({visualizerBarCount})
-            <input
-              type="range"
-              min={8}
-              max={96}
-              step={1}
-              value={visualizerBarCount}
-              onChange={(event) =>
-                setVisualizerBarCount(Number(event.target.value))
-              }
-            />
-          </label>
-
-          <label>
-            Background blur
-            <input
-              type="range"
-              min={8}
-              max={36}
-              step={1}
-              value={posterBlurStrength}
-              onChange={(event) =>
-                setPosterBlurStrength(Number(event.target.value))
-              }
-            />
-          </label>
-
-          <label>
-            Poster corner radius
-            <input
-              type="range"
-              min={6}
-              max={40}
-              step={1}
-              value={posterCornerRadius}
-              onChange={(event) =>
-                setPosterCornerRadius(Number(event.target.value))
-              }
-            />
-          </label>
-
-          <label>
-            Track upload
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={(e) => setTrackFile(e.target.files?.[0] ?? null)}
-            />
-          </label>
-
-          <div className="editor-actions">
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => void runAction(uploadTrack)}
-            >
-              Upload Track
-            </button>
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => void runAction(analyzeTrack)}
-            >
-              Analyze
-            </button>
-            <button type="submit" disabled={isBusy}>
-              Save Project
-            </button>
-          </div>
-
-          <div className="editor-actions">
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => void runAction(startRender)}
-            >
-              Export MP4
-            </button>
-            <button
-              type="button"
-              disabled={isBusy || renderStatus !== "done"}
-              onClick={downloadRender}
-            >
-              Download Render
-            </button>
-            <button
-              type="button"
-              disabled={
-                isBusy ||
-                (renderStatus !== "queued" && renderStatus !== "processing")
-              }
-              onClick={() => void runAction(cancelRender)}
-            >
-              Cancel Render
-            </button>
-            <button
-              type="button"
-              disabled={
-                isBusy ||
-                (renderStatus !== "failed" && renderStatus !== "canceled")
-              }
-              onClick={() => void runAction(retryRender)}
-            >
-              Retry Render
-            </button>
-          </div>
-
-          <div className="editor-actions editor-load-row">
-            <input
-              placeholder="project id"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-            />
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => void runAction(loadProject)}
-            >
-              Load Project
-            </button>
-            {previewTimelineEnabled ? (
-              <button
-                type="button"
-                disabled={isBusy}
-                onClick={() => void runAction(saveTimelineState)}
-              >
-                Save Timeline
-              </button>
-            ) : null}
-          </div>
-        </form>
-
-        <ul className="editor-status-list">
-          <li>Status: {status}</li>
-          <li>Track asset: {trackAssetId || "-"}</li>
-          <li>Poster asset: {posterAssetId || "-"}</li>
-          <li>Background asset: {backgroundAssetId || "-"}</li>
-          <li>
-            Analysis: {analysisId ? `${analysisStatus} (${analysisId})` : "-"}
-          </li>
-          <li>Project: {projectId || "-"}</li>
-          <li>
-            Render: {renderJobId ? `${renderStatus} ${renderProgress}%` : "-"}
-          </li>
-          {previewTimelineEnabled ? (
-            <>
-              <li>Preview startup: {previewStartupMs} ms</li>
-              <li>Preview drift: {previewDriftMs} ms</li>
-              <li>Preview fps: {previewFps}</li>
-            </>
-          ) : null}
-        </ul>
-      </section>
-
-      <section className="preview-panel">
-        <h2>Layer Preview</h2>
-        <input
-          ref={backgroundFileInputRef}
-          className="scene-hidden-file-input"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          title="Select background image"
-          onChange={onBackgroundFileChange}
-        />
-        <input
-          ref={posterFileInputRef}
-          className="scene-hidden-file-input"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          title="Select poster image"
-          onChange={onPosterFileChange}
-        />
-        <div
-          onClick={openBackgroundPicker}
-          className="scene"
-          style={sceneStyle}
-        >
-          <div className="scene-bg " style={sceneBgStyle} />
-          {/* <button
-            type="button"
-            className="scene-upload-hotspot scene-upload-hotspot--bg"
-            onClick={openBackgroundPicker}
-            aria-label="Select image for background"
-            title="Select image for background"
-          >
-            <span
-              className="scene-upload-hotspot-plus w-20 h-20 items-center justify-center flex"
-              aria-hidden
-            >
-              +
-            </span>
-          </button> */}
-
-          <div className="scene-eq" style={eqStyle}>
-            {visualizerType === "line" ? (
-              <svg viewBox="0 0 100 100" className="scene-eq-line" role="img">
-                <path
-                  d={equalizerLineD}
-                  stroke={liveEqualizerConfig.color}
-                  strokeWidth="2.8"
-                  fill="none"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              </svg>
-            ) : visualizerType === "symmetricBars" ? (
-              <div className="scene-eq-symmetric-bars">
-                {normalizedVisualizerBars.map((value, index) => (
-                  <span key={index} className="scene-eq-symmetric-col">
-                    <span
-                      className="scene-eq-symmetric-segment scene-eq-symmetric-segment--top"
-                      style={{
-                        height: visualizerSymmetricBarHeight(value),
-                        backgroundColor: liveEqualizerConfig.color,
-                      }}
-                    />
-                    <span
-                      className="scene-eq-symmetric-segment scene-eq-symmetric-segment--bottom"
-                      style={{
-                        height: visualizerSymmetricBarHeight(value),
-                        backgroundColor: liveEqualizerConfig.color,
-                      }}
-                    />
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className={`scene-eq-bars scene-eq-bars--${visualizerType}`}>
-                {normalizedVisualizerBars.map((value, index) => (
-                  <span
-                    key={index}
-                    className="scene-eq-bar"
-                    style={{
-                      height: `${Math.max(8, Math.round(value * 100))}%`,
-                      backgroundColor: liveEqualizerConfig.color,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="scene-poster-wrap cursor-pointer hover:brightness-110">
-            {/* background */}
-            <div
-              className="absolute inset-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                openBackgroundPicker();
-              }}
-            ></div>
-
-            <div
-              className="relative z-10 w-60 h-60 "
-              onClick={(e) => {
-                e.stopPropagation();
-                openPosterPicker();
-              }}
-            >
-              {posterPreviewUrl ? (
-                <Image
-                  className="scene-poster object-cover w-full h-full"
-                  src={posterPreviewUrl}
-                  alt="Poster preview"
-                  width={1024}
-                  height={1024}
-                  style={{ borderRadius: `${posterCornerRadius}px` }}
-                  unoptimized
-                />
-              ) : (
-                <div className="border w-60 h-60 rounded-2xl flex items-center justify-center">
-                  +
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <p className="layer-note">
-          Layer order: blurred poster background, live equalizer, center poster.
-        </p>
-
-        {previewTimelineEnabled ? (
-          <section className="timeline-panel">
-            <div className="timeline-head">
-              <strong>Timeline v1</strong>
-              <div className="timeline-head-actions">
-                <button type="button" onClick={() => void togglePlayback()}>
-                  {isPlaying ? "Pause" : "Play"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => seekTo(timeline.trimInMs)}
-                  disabled={isPlaying}
-                >
-                  Jump Trim In
-                </button>
-              </div>
-            </div>
-
-            <div className="timeline-canvas">
-              <svg
-                viewBox={`0 0 ${timelineWidth} ${timelineHeight}`}
-                role="img"
-                aria-label="Waveform"
-              >
-                <rect
-                  x="0"
-                  y="0"
-                  width={timelineWidth}
-                  height={timelineHeight}
-                  fill="#09101a"
-                />
-                <path
-                  d={waveformPath(waveformValues)}
-                  stroke="#6ec8ff"
-                  strokeWidth="2"
-                  fill="none"
-                />
-                <rect
-                  x="0"
-                  y="0"
-                  width={trimInX}
-                  height={timelineHeight}
-                  fill="rgba(0,0,0,0.55)"
-                />
-                <rect
-                  x={trimOutX}
-                  y="0"
-                  width={Math.max(0, timelineWidth - trimOutX)}
-                  height={timelineHeight}
-                  fill="rgba(0,0,0,0.55)"
-                />
-                <line
-                  x1={trimInX}
-                  y1="0"
-                  x2={trimInX}
-                  y2={timelineHeight}
-                  stroke="#ffc066"
-                  strokeWidth="2"
-                />
-                <line
-                  x1={trimOutX}
-                  y1="0"
-                  x2={trimOutX}
-                  y2={timelineHeight}
-                  stroke="#ffc066"
-                  strokeWidth="2"
-                />
-                <line
-                  x1={playheadX}
-                  y1="0"
-                  x2={playheadX}
-                  y2={timelineHeight}
-                  stroke="#ff6d62"
-                  strokeWidth="2"
-                />
-              </svg>
-            </div>
-
-            <div className="timeline-sliders">
-              <label>
-                Playhead ({formatMs(timeline.playheadMs ?? timeline.trimInMs)})
-                <input
-                  type="range"
-                  min={timeline.trimInMs}
-                  max={timeline.trimOutMs}
-                  step={10}
-                  value={timeline.playheadMs ?? timeline.trimInMs}
-                  onChange={(event) => seekTo(Number(event.target.value))}
-                />
-              </label>
-              <label>
-                Trim in ({formatMs(timeline.trimInMs)})
-                <input
-                  type="range"
-                  min={0}
-                  max={Math.max(1, timeline.trimOutMs - 1)}
-                  step={10}
-                  value={timeline.trimInMs}
-                  onChange={(event) => {
-                    updateTrim(Number(event.target.value), timeline.trimOutMs);
-                  }}
-                />
-              </label>
-              <label>
-                Trim out ({formatMs(timeline.trimOutMs)})
-                <input
-                  type="range"
-                  min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
-                  max={trackDurationMs}
-                  step={10}
-                  value={timeline.trimOutMs}
-                  onChange={(event) => {
-                    updateTrim(timeline.trimInMs, Number(event.target.value));
-                  }}
-                />
-              </label>
-            </div>
-
-            <div className="timeline-keyframes">
-              <label>
-                Keyframe parameter
-                <select
-                  value={selectedKeyframeParameter}
-                  onChange={(event) =>
-                    setSelectedKeyframeParameter(
-                      event.target.value as TimelineKeyframeParameter,
-                    )
-                  }
-                >
-                  <option value="equalizer.width">Equalizer width</option>
-                  <option value="equalizer.height">Equalizer height</option>
-                  <option value="equalizer.y">Equalizer Y</option>
-                </select>
-              </label>
-              <button type="button" onClick={addKeyframe}>
-                Add Keyframe @ Playhead
-              </button>
-              <button type="button" onClick={clearSelectedKeyframes}>
-                Clear Selected Parameter
-              </button>
-              <ul className="keyframe-list">
-                {keyframes.length === 0 ? (
-                  <li>No keyframes yet</li>
-                ) : (
-                  keyframes.map((track) => (
-                    <li key={track.parameter}>
-                      {track.parameter}: {track.points.length} points
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </section>
-        ) : (
-          <p className="layer-note">
-            Feature flag preview_timeline_v1 is disabled.
-          </p>
-        )}
-      </section>
+      <PreviewPanel
+        previewAspectRatio={previewAspectRatio}
+        sceneAccentA={selectedTemplate?.defaultPalette?.[0] ?? equalizerColor}
+        sceneAccentB={selectedTemplate?.defaultPalette?.[1] ?? "#11141f"}
+        sceneAccentC={selectedTemplate?.defaultPalette?.[2] ?? "#d8e8ff"}
+        posterAssetId={posterAssetId}
+        backgroundAssetId={backgroundAssetId}
+        posterBlurStrength={posterBlurStrength}
+        liveEqualizerConfig={liveEqualizerConfig}
+        onPosterFileSelected={(file) =>
+          void runAction(() => uploadPoster(file))
+        }
+        onBackgroundFileSelected={(file) =>
+          void runAction(() => uploadBackground(file))
+        }
+        visualizerType={visualizerType}
+        normalizedVisualizerBars={normalizedVisualizerBars}
+        equalizerLineD={equalizerLineD}
+        posterCornerRadius={posterCornerRadius}
+        previewTimelineEnabled={previewTimelineEnabled}
+        isPlaying={isPlaying}
+        onTogglePlayback={() => void togglePlayback()}
+        onSeekTo={seekTo}
+        timeline={timeline}
+        trackDurationMs={trackDurationMs}
+        trimInX={trimInX}
+        trimOutX={trimOutX}
+        playheadX={playheadX}
+        waveformValues={waveformValues}
+        onUpdateTrim={updateTrim}
+        selectedKeyframeParameter={selectedKeyframeParameter}
+        onSelectedKeyframeParameterChange={setSelectedKeyframeParameter}
+        onAddKeyframe={addKeyframe}
+        onClearSelectedKeyframes={clearSelectedKeyframes}
+        keyframes={keyframes}
+      />
     </main>
   );
 }

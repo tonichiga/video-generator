@@ -1079,6 +1079,54 @@
       "height": 1920,
       "checksum": "prj_5rs17hyo:1774717832528",
       "createdAt": "2026-03-28T17:10:32.528Z"
+    },
+    {
+      "id": "ast_poster_sszno60g",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_sszno60g.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T17:15:07.316Z"
+    },
+    {
+      "id": "ast_track_x1lji9da",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_x1lji9da.wav",
+      "mimeType": "audio/wav",
+      "size": 35512488,
+      "durationSec": 184.96,
+      "width": null,
+      "height": null,
+      "checksum": "cabd6cddfd8738e112883866f218f86cd6d67c6dddcc80b6375dbee8bdb9e0f0",
+      "createdAt": "2026-03-28T17:15:39.724Z"
+    },
+    {
+      "id": "ast_render_qqs5o3nz",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_qqs5o3nz.mp4",
+      "mimeType": "video/mp4",
+      "size": 8848552,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_v0hg9t2h:1774718232544",
+      "createdAt": "2026-03-28T17:17:12.544Z"
+    },
+    {
+      "id": "ast_poster_e9ntrgll",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_e9ntrgll.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T17:45:38.824Z"
     }
   ],
   "analyses": [
@@ -1367,6 +1415,17 @@
       "envelopeSeriesPath": "analysis/an_rm1voxeh_envelope.json",
       "spectrumSeriesPath": "analysis/an_rm1voxeh_spectrum.json",
       "createdAt": "2026-03-28T17:08:40.363Z"
+    },
+    {
+      "id": "an_eulihyeo",
+      "trackAssetId": "ast_track_x1lji9da",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_eulihyeo_envelope.json",
+      "spectrumSeriesPath": "analysis/an_eulihyeo_spectrum.json",
+      "createdAt": "2026-03-28T17:15:40.251Z"
     }
   ],
   "projects": [
@@ -2337,6 +2396,48 @@
       "keyframes": [],
       "createdAt": "2026-03-28T17:08:44.097Z",
       "updatedAt": "2026-03-28T17:08:44.981Z"
+    },
+    {
+      "id": "prj_v0hg9t2h",
+      "clientToken": "cl_thhb12q3",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_x1lji9da",
+      "posterAssetId": "ast_poster_sszno60g",
+      "backgroundAssetId": null,
+      "analysisId": "an_eulihyeo",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.27,
+        "color": "#ffffff",
+        "visualizerType": "symmetricBars",
+        "barCount": 61
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 16712
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T17:15:44.224Z",
+      "updatedAt": "2026-03-28T17:15:45.520Z"
     }
   ],
   "renderJobs": [
@@ -2801,6 +2902,20 @@
       "finishedAt": "2026-03-28T17:10:32.528Z",
       "watermarkApplied": true,
       "createdAt": "2026-03-28T17:08:45.042Z"
+    },
+    {
+      "id": "job_tylpp75f",
+      "projectId": "prj_v0hg9t2h",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_qqs5o3nz",
+      "outputPath": "renders/ast_render_qqs5o3nz.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T17:15:45.584Z",
+      "finishedAt": "2026-03-28T17:17:12.544Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T17:15:45.527Z"
     }
   ]
 }
