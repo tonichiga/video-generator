@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChangeEvent,
   FormEvent,
   useCallback,
   useEffect,
@@ -16,9 +17,7 @@ import {
   clampNumber,
   getDefaultTimeline,
 } from "@/lib/domain/timeline";
-import { getVisualizerBarCount } from "@/lib/domain/visualizer";
 import type {
-  ParticleConfig,
   TimelineKeyframeParameter,
   TimelineKeyframeTrack,
   TimelineState,
@@ -36,11 +35,7 @@ type TemplateItem = {
     height: number;
     color: string;
     visualizerType?: VisualizerType;
-  };
-  particleConfig: {
-    preset: ParticleConfig["preset"];
-    density: number;
-    speed: number;
+    barCount?: number;
   };
   posterConfig: {
     cornerRadius: number;
@@ -50,7 +45,6 @@ type TemplateItem = {
 
 type Format = "tiktok" | "youtube";
 type Quality = "hd" | "fhd";
-type ParticlePreset = ParticleConfig["preset"];
 type VisualizerType = "bars" | "line" | "dots" | "symmetricBars";
 
 type WaveformResponse = {
@@ -72,16 +66,6 @@ const defaultClientToken = `cl_${Math.random().toString(36).slice(2, 10)}`;
 const defaultDurationMs = 120_000;
 const timelineWidth = 1000;
 const timelineHeight = 120;
-const particlePresetOptions: ParticlePreset[] = [
-  "off",
-  "fire",
-  "geometric",
-  "neon",
-  "dust",
-  "stardust",
-  "pulse",
-  "retro",
-];
 const visualizerTypeOptions: VisualizerType[] = [
   "bars",
   "symmetricBars",
@@ -168,28 +152,6 @@ function normalizeTimeline(
   };
 }
 
-function seededParticles(count: number, seed: string) {
-  let state = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    state = (state * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-
-  const next = () => {
-    state = (1664525 * state + 1013904223) >>> 0;
-    return state / 4294967295;
-  };
-
-  return Array.from({ length: count }).map((_, index) => ({
-    id: `${seed}_${index}`,
-    x: `${Math.round(next() * 1000) / 10}%`,
-    y: `${Math.round(next() * 1000) / 10}%`,
-    size: `${6 + Math.round(next() * 24)}px`,
-    delay: `${Math.round(next() * 2400)}ms`,
-    duration: `${3800 + Math.round(next() * 7200)}ms`,
-    driftX: `${-26 + Math.round(next() * 52)}px`,
-  }));
-}
-
 export default function Home() {
   const [clientToken, setClientToken] = useState(defaultClientToken);
   const [projectName, setProjectName] = useState("My Mix #1");
@@ -198,11 +160,16 @@ export default function Home() {
 
   const [trackFile, setTrackFile] = useState<File | null>(null);
   const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [posterPreviewUrl, setPosterPreviewUrl] = useState<string | null>(null);
+  const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<
+    string | null
+  >(null);
   const [trackPreviewUrl, setTrackPreviewUrl] = useState<string | null>(null);
 
   const [trackAssetId, setTrackAssetId] = useState("");
   const [posterAssetId, setPosterAssetId] = useState("");
+  const [backgroundAssetId, setBackgroundAssetId] = useState("");
   const [analysisId, setAnalysisId] = useState("");
   const [analysisStatus, setAnalysisStatus] = useState("idle");
   const [projectId, setProjectId] = useState("");
@@ -220,10 +187,7 @@ export default function Home() {
   const [equalizerHeight, setEqualizerHeight] = useState(0.18);
   const [equalizerY, setEqualizerY] = useState(0.8);
   const [visualizerType, setVisualizerType] = useState<VisualizerType>("bars");
-
-  const [particlePreset, setParticlePreset] = useState<ParticlePreset>("neon");
-  const [particleDensity, setParticleDensity] = useState(0.55);
-  const [particleSpeed, setParticleSpeed] = useState(0.5);
+  const [visualizerBarCount, setVisualizerBarCount] = useState(36);
 
   const [posterCornerRadius, setPosterCornerRadius] = useState(20);
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
@@ -263,16 +227,12 @@ export default function Home() {
   const mediaSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const analyserDataRef = useRef<Uint8Array | null>(null);
+  const posterFileInputRef = useRef<HTMLInputElement | null>(null);
+  const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedTemplate = useMemo(
     () => templates.find((item) => item.id === selectedTemplateId) ?? null,
     [selectedTemplateId, templates],
-  );
-
-  const visualizerBarCount = useMemo(
-    () =>
-      getVisualizerBarCount(particlePreset, selectedTemplate?.category ?? ""),
-    [particlePreset, selectedTemplate?.category],
   );
 
   const previewAspectRatio = useMemo(() => {
@@ -322,21 +282,26 @@ export default function Home() {
     return "";
   }, [trackAssetId, trackPreviewUrl]);
 
-  const particleCount = useMemo(() => {
-    if (particlePreset === "off") {
-      return 0;
+  const sceneBackgroundUrl = useMemo(() => {
+    if (backgroundPreviewUrl) {
+      return backgroundPreviewUrl;
     }
-    return Math.max(8, Math.round(12 + particleDensity * 44));
-  }, [particleDensity, particlePreset]);
-
-  const particleSprites = useMemo(
-    () =>
-      seededParticles(
-        particleCount,
-        `${particlePreset}_${selectedTemplateId ?? "default"}`,
-      ),
-    [particleCount, particlePreset, selectedTemplateId],
-  );
+    if (backgroundAssetId) {
+      return `/api/assets/${backgroundAssetId}`;
+    }
+    if (posterPreviewUrl) {
+      return posterPreviewUrl;
+    }
+    if (posterAssetId) {
+      return `/api/assets/${posterAssetId}`;
+    }
+    return "";
+  }, [
+    backgroundAssetId,
+    backgroundPreviewUrl,
+    posterAssetId,
+    posterPreviewUrl,
+  ]);
 
   const normalizedVisualizerBars = useMemo(() => {
     if (visualizerBars.length === visualizerBarCount) {
@@ -490,10 +455,9 @@ export default function Home() {
       setEqualizerHeight(template.equalizerConfig.height);
       setEqualizerY(template.equalizerConfig.y);
       setVisualizerType(template.equalizerConfig.visualizerType ?? "bars");
-
-      setParticlePreset(template.particleConfig.preset);
-      setParticleDensity(template.particleConfig.density);
-      setParticleSpeed(template.particleConfig.speed);
+      setVisualizerBarCount(
+        Math.round(template.equalizerConfig.barCount ?? 36),
+      );
 
       setPosterCornerRadius(template.posterConfig.cornerRadius);
       setPosterBlurStrength(template.posterConfig.blurStrength);
@@ -501,7 +465,6 @@ export default function Home() {
       if (emitEvent) {
         emitPreviewMetric("template_change", {
           templateId,
-          particlePreset: template.particleConfig.preset,
         });
       }
     },
@@ -627,9 +590,9 @@ export default function Home() {
             setEqualizerHeight(first.equalizerConfig.height);
             setEqualizerY(first.equalizerConfig.y);
             setVisualizerType(first.equalizerConfig.visualizerType ?? "bars");
-            setParticlePreset(first.particleConfig.preset);
-            setParticleDensity(first.particleConfig.density);
-            setParticleSpeed(first.particleConfig.speed);
+            setVisualizerBarCount(
+              Math.round(first.equalizerConfig.barCount ?? 36),
+            );
             setPosterCornerRadius(first.posterConfig.cornerRadius);
             setPosterBlurStrength(first.posterConfig.blurStrength);
           }
@@ -677,6 +640,18 @@ export default function Home() {
 
     return () => URL.revokeObjectURL(objectUrl);
   }, [posterFile]);
+
+  useEffect(() => {
+    if (!backgroundFile) {
+      setBackgroundPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(backgroundFile);
+    setBackgroundPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [backgroundFile]);
 
   useEffect(() => {
     if (!trackFile) {
@@ -866,14 +841,16 @@ export default function Home() {
     setTrackAssetId(data.assetId);
   }
 
-  async function uploadPoster() {
-    if (!posterFile) {
+  async function uploadPoster(nextPosterFile?: File) {
+    const fileToUpload = nextPosterFile ?? posterFile;
+
+    if (!fileToUpload) {
       setStatus("Select a poster first");
       return;
     }
 
     const formData = new FormData();
-    formData.set("file", posterFile);
+    formData.set("file", fileToUpload);
     const response = await fetch("/api/upload/poster", {
       method: "POST",
       body: formData,
@@ -885,6 +862,59 @@ export default function Home() {
 
     const data = (await response.json()) as { assetId: string };
     setPosterAssetId(data.assetId);
+  }
+
+  async function uploadBackground(nextBackgroundFile?: File) {
+    const fileToUpload = nextBackgroundFile ?? backgroundFile;
+
+    if (!fileToUpload) {
+      setStatus("Select a background first");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("file", fileToUpload);
+    const response = await fetch("/api/upload/poster", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Background upload failed");
+    }
+
+    const data = (await response.json()) as { assetId: string };
+    setBackgroundAssetId(data.assetId);
+  }
+
+  function openBackgroundPicker() {
+    backgroundFileInputRef.current?.click();
+  }
+
+  function openPosterPicker() {
+    posterFileInputRef.current?.click();
+  }
+
+  function onPosterFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFile = event.target.files?.[0] ?? null;
+    if (!selectedFile) {
+      return;
+    }
+
+    setPosterFile(selectedFile);
+    void runAction(() => uploadPoster(selectedFile));
+    event.target.value = "";
+  }
+
+  function onBackgroundFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFile = event.target.files?.[0] ?? null;
+    if (!selectedFile) {
+      return;
+    }
+
+    setBackgroundFile(selectedFile);
+    void runAction(() => uploadBackground(selectedFile));
+    event.target.value = "";
   }
 
   async function analyzeTrack() {
@@ -938,6 +968,7 @@ export default function Home() {
       fps: 30,
       trackAssetId,
       posterAssetId,
+      backgroundAssetId: backgroundAssetId || null,
       analysisId,
       templateId: selectedTemplateId,
       equalizerConfig: {
@@ -947,11 +978,12 @@ export default function Home() {
         height: equalizerHeight,
         color: equalizerColor,
         visualizerType,
+        barCount: visualizerBarCount,
       },
       particleConfig: {
-        preset: particlePreset,
-        density: particleDensity,
-        speed: particleSpeed,
+        preset: "off",
+        density: 0,
+        speed: 0.5,
       },
       posterConfig: {
         cornerRadius: posterCornerRadius,
@@ -998,6 +1030,7 @@ export default function Home() {
       quality: Quality;
       trackAssetId: string;
       posterAssetId: string;
+      backgroundAssetId?: string | null;
       analysisId: string;
       templateId: string | null;
       equalizerConfig: {
@@ -1006,11 +1039,7 @@ export default function Home() {
         height: number;
         y: number;
         visualizerType?: VisualizerType;
-      };
-      particleConfig?: {
-        preset?: ParticlePreset;
-        density?: number;
-        speed?: number;
+        barCount?: number;
       };
       posterConfig?: {
         cornerRadius?: number;
@@ -1025,6 +1054,7 @@ export default function Home() {
     setQuality(data.quality);
     setTrackAssetId(data.trackAssetId);
     setPosterAssetId(data.posterAssetId);
+    setBackgroundAssetId(data.backgroundAssetId ?? "");
     setAnalysisId(data.analysisId);
     setAnalysisStatus("done");
     setSelectedTemplateId(data.templateId);
@@ -1033,9 +1063,7 @@ export default function Home() {
     setEqualizerHeight(data.equalizerConfig.height);
     setEqualizerY(data.equalizerConfig.y);
     setVisualizerType(data.equalizerConfig.visualizerType ?? "bars");
-    setParticlePreset(data.particleConfig?.preset ?? "neon");
-    setParticleDensity(data.particleConfig?.density ?? 0.55);
-    setParticleSpeed(data.particleConfig?.speed ?? 0.5);
+    setVisualizerBarCount(Math.round(data.equalizerConfig.barCount ?? 36));
     setPosterCornerRadius(data.posterConfig?.cornerRadius ?? 20);
     setPosterBlurStrength(data.posterConfig?.blurStrength ?? 20);
     setTimeline(normalizeTimeline(data.timeline, trackDurationMs));
@@ -1092,6 +1120,7 @@ export default function Home() {
       body: JSON.stringify({
         clientToken,
         templateId: selectedTemplateId,
+        backgroundAssetId: backgroundAssetId || null,
         equalizerConfig: {
           x: 0.5,
           y: equalizerY,
@@ -1099,11 +1128,12 @@ export default function Home() {
           height: equalizerHeight,
           color: equalizerColor,
           visualizerType,
+          barCount: visualizerBarCount,
         },
         particleConfig: {
-          preset: particlePreset,
-          density: particleDensity,
-          speed: particleSpeed,
+          preset: "off",
+          density: 0,
+          speed: 0.5,
         },
         posterConfig: {
           cornerRadius: posterCornerRadius,
@@ -1382,7 +1412,9 @@ export default function Home() {
   } as CSSProperties;
 
   const sceneBgStyle = {
-    backgroundImage: posterPreviewUrl ? `url(${posterPreviewUrl})` : undefined,
+    backgroundImage: sceneBackgroundUrl
+      ? `url(${sceneBackgroundUrl})`
+      : undefined,
     filter: `blur(${Math.max(8, posterBlurStrength)}px) brightness(0.52) saturate(1.05)`,
   } as CSSProperties;
 
@@ -1535,44 +1567,16 @@ export default function Home() {
           </label>
 
           <label>
-            Particle mode
-            <select
-              value={particlePreset}
-              onChange={(event) =>
-                setParticlePreset(event.target.value as ParticlePreset)
-              }
-            >
-              {particlePresetOptions.map((preset) => (
-                <option key={preset} value={preset}>
-                  {preset}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Particle density
+            Visualizer bar count ({visualizerBarCount})
             <input
               type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={particleDensity}
+              min={8}
+              max={96}
+              step={1}
+              value={visualizerBarCount}
               onChange={(event) =>
-                setParticleDensity(Number(event.target.value))
+                setVisualizerBarCount(Number(event.target.value))
               }
-            />
-          </label>
-
-          <label>
-            Particle speed
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.01}
-              value={particleSpeed}
-              onChange={(event) => setParticleSpeed(Number(event.target.value))}
             />
           </label>
 
@@ -1613,15 +1617,6 @@ export default function Home() {
             />
           </label>
 
-          <label>
-            Poster upload
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => setPosterFile(e.target.files?.[0] ?? null)}
-            />
-          </label>
-
           <div className="editor-actions">
             <button
               type="button"
@@ -1629,13 +1624,6 @@ export default function Home() {
               onClick={() => void runAction(uploadTrack)}
             >
               Upload Track
-            </button>
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => void runAction(uploadPoster)}
-            >
-              Upload Poster
             </button>
             <button
               type="button"
@@ -1715,6 +1703,7 @@ export default function Home() {
           <li>Status: {status}</li>
           <li>Track asset: {trackAssetId || "-"}</li>
           <li>Poster asset: {posterAssetId || "-"}</li>
+          <li>Background asset: {backgroundAssetId || "-"}</li>
           <li>
             Analysis: {analysisId ? `${analysisStatus} (${analysisId})` : "-"}
           </li>
@@ -1734,34 +1723,38 @@ export default function Home() {
 
       <section className="preview-panel">
         <h2>Layer Preview</h2>
+        <input
+          ref={backgroundFileInputRef}
+          className="scene-hidden-file-input"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          title="Select background image"
+          onChange={onBackgroundFileChange}
+        />
+        <input
+          ref={posterFileInputRef}
+          className="scene-hidden-file-input"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          title="Select poster image"
+          onChange={onPosterFileChange}
+        />
         <div className="scene" style={sceneStyle}>
           <div className="scene-bg" style={sceneBgStyle} />
-          <div
-            className={`scene-particles scene-particles--${particlePreset}`}
-            style={
-              {
-                "--particle-speed-multiplier": `${particleSpeed}`,
-              } as CSSProperties
-            }
+          <button
+            type="button"
+            className="scene-upload-hotspot scene-upload-hotspot--bg"
+            onClick={openBackgroundPicker}
+            aria-label="Select image for background"
+            title="Select image for background"
           >
-            {particleSprites.map((particle) => (
-              <span
-                key={particle.id}
-                className="scene-particle"
-                style={
-                  {
-                    left: particle.x,
-                    top: particle.y,
-                    width: particle.size,
-                    height: particle.size,
-                    animationDelay: particle.delay,
-                    animationDuration: particle.duration,
-                    "--particle-drift-x": particle.driftX,
-                  } as CSSProperties
-                }
-              />
-            ))}
-          </div>
+            <span
+              className="scene-upload-hotspot-plus w-20 h-20 items-center justify-center flex"
+              aria-hidden
+            >
+              +
+            </span>
+          </button>
 
           <div className="scene-eq" style={eqStyle}>
             {visualizerType === "line" ? (
@@ -1797,9 +1790,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div
-                className={`scene-eq-bars scene-eq-bars--${particlePreset} scene-eq-bars--${visualizerType}`}
-              >
+              <div className={`scene-eq-bars scene-eq-bars--${visualizerType}`}>
                 {normalizedVisualizerBars.map((value, index) => (
                   <span
                     key={index}
@@ -1826,18 +1817,22 @@ export default function Home() {
                 unoptimized
               />
             ) : (
-              <div
-                className="scene-poster scene-poster-placeholder"
-                style={{ borderRadius: `${posterCornerRadius}px` }}
+              <button
+                type="button"
+                className="scene-upload-hotspot h-60! w-60!"
+                onClick={openPosterPicker}
+                aria-label="Select image for poster"
+                title="Select image for poster"
               >
-                Poster
-              </div>
+                <span className="scene-upload-hotspot-plus" aria-hidden>
+                  +
+                </span>
+              </button>
             )}
           </div>
         </div>
         <p className="layer-note">
-          Layer order: blurred poster background, particles, live equalizer,
-          center poster.
+          Layer order: blurred poster background, live equalizer, center poster.
         </p>
 
         {previewTimelineEnabled ? (

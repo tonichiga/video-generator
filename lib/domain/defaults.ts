@@ -17,6 +17,7 @@ export const defaultEqualizerConfig: EqualizerConfig = {
   height: 0.18,
   color: "#FFFFFF",
   visualizerType: "bars",
+  barCount: 36,
 };
 
 export const defaultPosterConfig: PosterConfig = {

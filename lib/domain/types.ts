@@ -32,6 +32,7 @@ export interface EqualizerConfig {
   height: number;
   color: string;
   visualizerType?: "bars" | "line" | "dots" | "symmetricBars";
+  barCount?: number;
 }
 
 export interface PosterConfig {
@@ -79,6 +80,7 @@ export interface Project {
   templateId: string | null;
   trackAssetId: string;
   posterAssetId: string;
+  backgroundAssetId: string | null;
   analysisId: string;
   timeline?: TimelineState;
   keyframes?: TimelineKeyframeTrack[];

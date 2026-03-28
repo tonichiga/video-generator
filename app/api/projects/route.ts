@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       fps?: unknown;
       trackAssetId?: unknown;
       posterAssetId?: unknown;
+      backgroundAssetId?: unknown;
       analysisId?: unknown;
       templateId?: unknown;
       particleConfig?: unknown;
@@ -120,6 +121,24 @@ export async function POST(request: Request) {
     getAnalysisById(payload.analysisId),
   ]);
 
+  const backgroundAssetId =
+    typeof payload.backgroundAssetId === "string" &&
+    payload.backgroundAssetId.length > 0
+      ? payload.backgroundAssetId
+      : null;
+
+  let backgroundAsset: Awaited<ReturnType<typeof getAssetById>> = null;
+  if (backgroundAssetId) {
+    backgroundAsset = await getAssetById(backgroundAssetId);
+    if (!backgroundAsset || backgroundAsset.kind !== "poster") {
+      return errorResponse(
+        404,
+        "PROJECT_BACKGROUND_NOT_FOUND",
+        "Background asset not found",
+      );
+    }
+  }
+
   if (!trackAsset || trackAsset.kind !== "track") {
     return errorResponse(
       404,
@@ -166,6 +185,8 @@ export async function POST(request: Request) {
     const width = parseNumberInRange(next.width, 0.1, 1);
     const height = parseNumberInRange(next.height, 0.05, 0.4);
     const color = parseHexColor(next.color);
+    const barCountRaw = parseNumberInRange(next.barCount, 8, 96);
+    const barCount = barCountRaw === null ? null : Math.round(barCountRaw);
     const visualizerType =
       parseVisualizerType(next.visualizerType) ??
       defaultEqualizerConfig.visualizerType ??
@@ -192,6 +213,7 @@ export async function POST(request: Request) {
       height,
       color,
       visualizerType,
+      barCount: barCount ?? defaultEqualizerConfig.barCount,
     };
   }
 
@@ -240,6 +262,7 @@ export async function POST(request: Request) {
     fps: 30,
     trackAssetId: trackAsset.id,
     posterAssetId: posterAsset.id,
+    backgroundAssetId: backgroundAsset?.id ?? null,
     analysisId: analysis.id,
     templateId,
     particleConfig:

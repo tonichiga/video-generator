@@ -54,6 +54,7 @@ export async function GET(
       fps: loaded.project.fps,
       trackAssetId: loaded.project.trackAssetId,
       posterAssetId: loaded.project.posterAssetId,
+      backgroundAssetId: loaded.project.backgroundAssetId ?? null,
       analysisId: loaded.project.analysisId,
       templateId: loaded.project.templateId,
       particleConfig: loaded.project.particleConfig,
@@ -97,6 +98,7 @@ export async function PATCH(
       equalizerConfig?: unknown;
       particleConfig?: unknown;
       posterConfig?: unknown;
+      backgroundAssetId?: unknown;
       templateId?: unknown;
       watermarkEnabled?: unknown;
       timeline?: unknown;
@@ -122,6 +124,32 @@ export async function PATCH(
 
   if (typeof payload.watermarkEnabled === "boolean") {
     patch.watermarkEnabled = payload.watermarkEnabled;
+  }
+
+  if (payload.backgroundAssetId !== undefined) {
+    if (payload.backgroundAssetId === null) {
+      patch.backgroundAssetId = null;
+    } else if (
+      typeof payload.backgroundAssetId === "string" &&
+      payload.backgroundAssetId.length > 0
+    ) {
+      const backgroundAsset = await getAssetById(payload.backgroundAssetId);
+      if (!backgroundAsset || backgroundAsset.kind !== "poster") {
+        return errorResponse(
+          404,
+          "PROJECT_BACKGROUND_NOT_FOUND",
+          "Background asset not found",
+        );
+      }
+
+      patch.backgroundAssetId = backgroundAsset.id;
+    } else {
+      return errorResponse(
+        400,
+        "PROJECT_BACKGROUND_INVALID",
+        "backgroundAssetId must be null or a non-empty string",
+      );
+    }
   }
 
   const trackAsset = await getAssetById(loaded.project.trackAssetId);
@@ -186,6 +214,8 @@ export async function PATCH(
     const width = parseNumberInRange(next.width, 0.1, 1);
     const height = parseNumberInRange(next.height, 0.05, 0.4);
     const color = parseHexColor(next.color);
+    const barCountRaw = parseNumberInRange(next.barCount, 8, 96);
+    const barCount = barCountRaw === null ? null : Math.round(barCountRaw);
     const visualizerType =
       parseVisualizerType(next.visualizerType) ??
       loaded.project.equalizerConfig.visualizerType ??
@@ -212,6 +242,7 @@ export async function PATCH(
       height,
       color,
       visualizerType,
+      barCount: barCount ?? loaded.project.equalizerConfig.barCount ?? 36,
     };
   }
 

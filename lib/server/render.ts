@@ -45,7 +45,7 @@ type SpectrumSeries = {
 
 const activeRenderProcesses = new Map<string, ChildProcess>();
 const RENDER_LAYER_CACHE_VERSION =
-  "2026-03-28-viz-preview-parity-responsive-v3";
+  "2026-03-28-viz-preview-parity-no-particles-v5";
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
@@ -143,95 +143,6 @@ function getVisualizerLayerCacheFileName(input: {
     .slice(0, 16);
 
   return `viz_${hash}.mov`;
-}
-
-function getParticlesLayerCacheFileName(input: {
-  preset: string;
-  density: number;
-  speed: number;
-  width: number;
-  height: number;
-  fps: number;
-  durationSec: number;
-}) {
-  const hash = createHash("sha1")
-    .update(
-      JSON.stringify({
-        version: RENDER_LAYER_CACHE_VERSION,
-        ...input,
-      }),
-    )
-    .digest("hex")
-    .slice(0, 16);
-
-  return `particles_${hash}.mov`;
-}
-
-function buildParticleFilters(preset: string, density: number, speed: number) {
-  const normalizedDensity = Math.min(1, Math.max(0, density));
-  const normalizedSpeed = Math.min(1, Math.max(0.1, speed));
-
-  if (preset === "off") {
-    return "[psrc]null[pout]";
-  }
-
-  if (preset === "geometric") {
-    const driftA = Math.max(28, Math.round(120 * normalizedSpeed));
-    const driftB = Math.max(24, Math.round(98 * normalizedSpeed));
-    const point = Math.max(3, Math.round(2 + normalizedDensity * 4));
-
-    return [
-      `[psrc]drawbox=x='mod(t*${driftA}\\,iw)':y='mod(t*${driftB}+ih*0.2\\,ih)':w=${point}:h=${point}:color=0x79C6FF@0.52:t=fill`,
-      `drawbox=x='mod(t*${driftB}+iw*0.46\\,iw)':y='mod(t*${driftA}+ih*0.68\\,ih)':w=${point + 1}:h=${point + 1}:color=0xCDE7FF@0.36:t=fill`,
-      `drawbox=x='mod(t*${driftA + 22}+iw*0.18\\,iw)':y='mod(t*${driftB + 14}+ih*0.44\\,ih)':w=${point}:h=${point}:color=0x4AA8FF@0.28:t=fill[pout]`,
-    ].join(",");
-  }
-
-  if (preset === "fire") {
-    const speedA = Math.max(36, Math.round(130 * normalizedSpeed));
-    const speedB = Math.max(30, Math.round(110 * normalizedSpeed));
-    const sparkSize = Math.max(3, Math.round(3 + normalizedDensity * 5));
-
-    return [
-      `[psrc]drawbox=x='mod(t*${speedA}\\,iw)':y='ih*0.84+sin(t*2.4)*ih*0.1':w=${sparkSize}:h=${sparkSize}:color=0xFF7A2D@0.8:t=fill`,
-      `drawbox=x='mod(t*${speedB}+iw*0.31\\,iw)':y='ih*0.76+cos(t*1.7)*ih*0.12':w=${sparkSize + 1}:h=${sparkSize + 1}:color=0xFFD08A@0.56:t=fill`,
-      `drawbox=x='mod(t*${speedA + 42}+iw*0.68\\,iw)':y='ih*0.81+sin(t*2.1+0.7)*ih*0.09':w=${sparkSize}:h=${sparkSize}:color=0xFFB84E@0.5:t=fill[pout]`,
-    ].join(",");
-  }
-
-  if (
-    preset === "neon" ||
-    preset === "pulse" ||
-    preset === "dust" ||
-    preset === "stardust" ||
-    preset === "retro"
-  ) {
-    const speedA = Math.max(32, Math.round(118 * normalizedSpeed));
-    const speedB = Math.max(26, Math.round(96 * normalizedSpeed));
-    const size = Math.max(2, Math.round(2 + normalizedDensity * 3));
-
-    const colorA =
-      preset === "retro"
-        ? "0xFFB866"
-        : preset === "dust"
-          ? "0xD7E6FF"
-          : "0x67E6FF";
-    const colorB =
-      preset === "retro"
-        ? "0xFF6C5F"
-        : preset === "stardust"
-          ? "0xB7C6FF"
-          : "0x53A8FF";
-
-    return [
-      `[psrc]drawbox=x='mod(t*${speedA}\\,iw)':y='mod(t*${speedB}+ih*0.24\\,ih)':w=${size}:h=${size}:color=${colorA}@0.52:t=fill`,
-      `drawbox=x='mod(t*${speedB}+iw*0.31\\,iw)':y='mod(t*${speedA}+ih*0.62\\,ih)':w=${size + 1}:h=${size + 1}:color=${colorB}@0.42:t=fill`,
-      `drawbox=x='mod(t*${speedA + 18}+iw*0.57\\,iw)':y='mod(t*${speedB + 11}+ih*0.43\\,ih)':w=${size}:h=${size}:color=${colorA}@0.34:t=fill[pout]`,
-    ].join(",");
-  }
-
-  const noiseStrength = Math.max(2, Math.round(4 + normalizedDensity * 6));
-  return `[psrc]noise=alls=${noiseStrength}:allf=t+u,eq=contrast=1.04:saturation=1.08[pout]`;
 }
 
 function parseTimestampToSeconds(value: string) {
@@ -335,13 +246,80 @@ function drawRoundedBar(
   barHeight: number,
   color: { r: number; g: number; b: number },
   alpha = 240,
+  roundAt: "top" | "bottom" = "top",
 ) {
   const w = Math.max(1, Math.round(barWidth));
   const h = Math.max(1, Math.round(barHeight));
   const radius = Math.min(Math.floor(w / 2), 6, h);
 
-  const bodyTop = y + radius;
-  for (let py = bodyTop; py < y + h; py += 1) {
+  if (roundAt === "top") {
+    const bodyTop = y + radius;
+    for (let py = bodyTop; py < y + h; py += 1) {
+      for (let px = x; px < x + w; px += 1) {
+        blendPixel(
+          frame,
+          width,
+          height,
+          px,
+          py,
+          color.r,
+          color.g,
+          color.b,
+          alpha,
+        );
+      }
+    }
+
+    if (radius <= 0) {
+      return;
+    }
+
+    const leftCenterX = x + radius;
+    const rightCenterX = x + w - radius - 1;
+    const centerY = y + radius;
+
+    for (let py = y; py < y + radius; py += 1) {
+      for (let px = x; px < x + w; px += 1) {
+        const isMiddle = px >= leftCenterX && px <= rightCenterX;
+        if (isMiddle) {
+          blendPixel(
+            frame,
+            width,
+            height,
+            px,
+            py,
+            color.r,
+            color.g,
+            color.b,
+            alpha,
+          );
+          continue;
+        }
+
+        const cx = px < leftCenterX ? leftCenterX : rightCenterX;
+        const dx = px - cx;
+        const dy = py - centerY;
+        if (dx * dx + dy * dy <= radius * radius) {
+          blendPixel(
+            frame,
+            width,
+            height,
+            px,
+            py,
+            color.r,
+            color.g,
+            color.b,
+            alpha,
+          );
+        }
+      }
+    }
+
+    return;
+  }
+
+  const bodyBottom = y + h - radius;
+  for (let py = y; py < bodyBottom; py += 1) {
     for (let px = x; px < x + w; px += 1) {
       blendPixel(
         frame,
@@ -363,9 +341,9 @@ function drawRoundedBar(
 
   const leftCenterX = x + radius;
   const rightCenterX = x + w - radius - 1;
-  const centerY = y + radius;
+  const centerY = y + h - radius - 1;
 
-  for (let py = y; py < y + radius; py += 1) {
+  for (let py = bodyBottom; py < y + h; py += 1) {
     for (let px = x; px < x + w; px += 1) {
       const isMiddle = px >= leftCenterX && px <= rightCenterX;
       if (isMiddle) {
@@ -528,6 +506,9 @@ async function renderSpectrumVisualizerLayer(input: {
   const normalizedFrames = spectrumValues.map((row) =>
     normalizeSpectrumBands(row ?? [], visualizerBarCount),
   );
+  let smoothedValues = Array.from({ length: visualizerBarCount }).map(
+    () => 0.06,
+  );
   const frameCount = Math.max(1, Math.round(timeline.clipDurationSec * fps));
   const color = parseHexRgb(colorHex);
 
@@ -593,12 +574,21 @@ async function renderSpectrumVisualizerLayer(input: {
         Math.max(0, eqYCenter - Math.floor(eqH / 2)),
       );
 
-      const values = buildResponsiveSpectrumFrame({
+      const targetValues = buildResponsiveSpectrumFrame({
         frames: normalizedFrames,
         absoluteMs,
         frameStepMs: spectrumFrameStepMs,
         barCount: visualizerBarCount,
       });
+
+      const attack = 0.68;
+      const release = 0.42;
+      const values = targetValues.map((target, index) => {
+        const prev = smoothedValues[index] ?? 0.06;
+        const mix = target >= prev ? attack : release;
+        return clampNumber(prev + (target - prev) * mix, 0.01, 1);
+      });
+      smoothedValues = values;
 
       const gap = 2;
       const barWidth = Math.max(
@@ -682,6 +672,7 @@ async function renderSpectrumVisualizerLayer(input: {
             h,
             color,
             235,
+            "bottom",
           );
         }
       } else if (mode === "dots") {
@@ -850,11 +841,16 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
 
   console.info("[render] ffmpeg selected", { renderJobId, ffmpegBinary });
 
-  const [posterAsset, trackAsset, analysis] = await Promise.all([
-    getAssetById(project.posterAssetId),
-    getAssetById(project.trackAssetId),
-    getAnalysisById(project.analysisId),
-  ]);
+  const [posterAsset, trackAsset, analysis, backgroundAsset] =
+    await Promise.all([
+      getAssetById(project.posterAssetId),
+      getAssetById(project.trackAssetId),
+      getAnalysisById(project.analysisId),
+      typeof project.backgroundAssetId === "string" &&
+      project.backgroundAssetId.length > 0
+        ? getAssetById(project.backgroundAssetId)
+        : Promise.resolve(null),
+    ]);
 
   if (!posterAsset || posterAsset.kind !== "poster") {
     await updateRenderJobById(renderJobId, {
@@ -888,6 +884,11 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     });
     return;
   }
+
+  const sceneBackgroundAsset =
+    backgroundAsset && backgroundAsset.kind === "poster"
+      ? backgroundAsset
+      : posterAsset;
 
   const spectrum = await readJson<SpectrumSeries>(
     absolutePathFromRoot(analysis.spectrumSeriesPath),
@@ -926,18 +927,17 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     project.particleConfig?.preset ?? "neon",
     templateCategory,
   );
-  const particleFilter = buildParticleFilters(
-    project.particleConfig?.preset ?? "neon",
-    project.particleConfig?.density ?? 0.55,
-    project.particleConfig?.speed ?? 0.5,
+  const resolvedBarCount = clampNumber(
+    Math.round(project.equalizerConfig.barCount ?? visualizerBarCount),
+    8,
+    96,
   );
-
   const posterScaleFactor = 0.48;
   const posterW = Math.round(width * posterScaleFactor);
   const baseLayerPath = path.join(
     getStorageDirs().renders,
     getBaseLayerCacheFileName({
-      posterAssetId: posterAsset.id,
+      posterAssetId: sceneBackgroundAsset.id,
       format: project.format,
       quality: project.quality,
       width,
@@ -953,7 +953,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       analysisId: analysis.id,
       trackAssetId: trackAsset.id,
       visualizerType,
-      visualizerBarCount,
+      visualizerBarCount: resolvedBarCount,
       equalizerConfig: project.equalizerConfig,
       keyframes: project.keyframes ?? [],
       eqColor,
@@ -965,31 +965,18 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       durationSec: sceneTimeline.clipDurationSec,
     }),
   );
-  const particlesLayerPath = path.join(
-    getStorageDirs().renders,
-    getParticlesLayerCacheFileName({
-      preset: project.particleConfig?.preset ?? "neon",
-      density: project.particleConfig?.density ?? 0.55,
-      speed: project.particleConfig?.speed ?? 0.5,
-      width,
-      height,
-      fps,
-      durationSec: sceneTimeline.clipDurationSec,
-    }),
-  );
-
   const watermarkFilter = project.watermarkEnabled
     ? ",drawbox=x=iw-240:y=ih-84:w=220:h=44:color=black@0.35:t=fill"
     : "";
 
-  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(4, project.posterConfig.blurStrength * 0.72)}:steps=2,eq=brightness=-0.08:saturation=1.04${watermarkFilter}[vout]`;
+  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(6, project.posterConfig.blurStrength * 0.95)}:steps=3,eq=brightness=0.02:saturation=1.08${watermarkFilter}[vout]`;
 
   const baseLayerArgs = [
     "-y",
     "-loop",
     "1",
     "-i",
-    posterAsset.filePath,
+    sceneBackgroundAsset.filePath,
     "-filter_complex",
     baseLayerFilterGraph,
     "-map",
@@ -1016,34 +1003,6 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     `${outputAssetId}.mp4`,
   );
 
-  const particlesFilterGraph = [
-    `[0:v]format=rgba[psrc]`,
-    particleFilter,
-    `[pout]format=rgba,colorkey=0x000000:0.08:0.02[pout_alpha]`,
-  ].join(";");
-
-  const particlesArgs = [
-    "-y",
-    "-f",
-    "lavfi",
-    "-i",
-    `color=c=black@0.0:s=${width}x${height}:r=${fps}:d=${sceneTimeline.clipDurationSec}`,
-    "-filter_complex",
-    particlesFilterGraph,
-    "-map",
-    "[pout_alpha]",
-    "-an",
-    "-r",
-    String(fps),
-    "-c:v",
-    "qtrle",
-    "-pix_fmt",
-    "argb",
-    "-t",
-    String(sceneTimeline.clipDurationSec),
-    particlesLayerPath,
-  ];
-
   const posterCornerRadiusPx = Math.max(
     0,
     Math.min(180, Math.round(project.posterConfig.cornerRadius)),
@@ -1054,16 +1013,14 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const filterGraph = [
     `[0:v]null[base]`,
     `[2:v]format=rgba[vizKeyed]`,
-    `[3:v]format=rgba,colorkey=0x000000:0.08:0.02[particlesKeyed]`,
-    `[4:v]scale=${posterW}:-2,format=rgba,drawbox=x=0:y=0:w=iw:h=ih:color=white@0.2:t=${posterBorderPx}[posterFramed]`,
+    `[3:v]scale=${posterW}:-2,format=rgba,drawbox=x=0:y=0:w=iw:h=ih:color=white@0.2:t=${posterBorderPx}[posterFramed]`,
     `[posterFramed]split=2[posterColor][posterMaskSrc]`,
     `[posterMaskSrc]format=gray,geq=lum='${posterMaskExpression}'[posterMask]`,
     `[posterColor][posterMask]alphamerge[posterTop]`,
   ];
 
   filterGraph.push(
-    `[base][particlesKeyed]overlay=0:0:format=auto[scene0]`,
-    `[scene0][vizKeyed]overlay=0:0:format=auto[scene1]`,
+    `[base][vizKeyed]overlay=0:0:format=auto[scene1]`,
     `[scene1][posterTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene2]`,
     `[scene2]null[vout]`,
   );
@@ -1082,8 +1039,6 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     trackAsset.filePath,
     "-i",
     visualizerLayerPath,
-    "-i",
-    particlesLayerPath,
     "-loop",
     "1",
     "-t",
@@ -1119,13 +1074,11 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const hasCachedBaseLayer = await hasUsableCacheFile(baseLayerPath);
   const hasCachedVisualizerLayer =
     await hasUsableCacheFile(visualizerLayerPath);
-  const hasCachedParticlesLayer = await hasUsableCacheFile(particlesLayerPath);
 
   console.info("[render] layer cache", {
     renderJobId,
     base: hasCachedBaseLayer ? "hit" : "miss",
     visualizer: hasCachedVisualizerLayer ? "hit" : "miss",
-    particles: hasCachedParticlesLayer ? "hit" : "miss",
   });
 
   try {
@@ -1152,26 +1105,13 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
         fps,
         colorHex: project.equalizerConfig.color,
         visualizerType,
-        visualizerBarCount,
+        visualizerBarCount: resolvedBarCount,
         timeline: sceneTimeline,
         equalizerConfig: project.equalizerConfig,
         keyframes: project.keyframes ?? [],
         spectrumFrameStepMs: spectrum.frameStepMs,
         spectrumValues: spectrum.values ?? [],
       });
-    }
-
-    await updateRenderJobById(renderJobId, { progress: 52 });
-
-    if (!hasCachedParticlesLayer) {
-      await runFfmpeg(
-        renderJobId,
-        ffmpegBinary,
-        particlesArgs,
-        sceneTimeline.clipDurationSec,
-        52,
-        62,
-      );
     }
 
     await updateRenderJobById(renderJobId, { progress: 64 });
@@ -1191,9 +1131,6 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       if (!hasCachedVisualizerLayer) {
         await fs.unlink(visualizerLayerPath).catch(() => null);
       }
-      if (!hasCachedParticlesLayer) {
-        await fs.unlink(particlesLayerPath).catch(() => null);
-      }
       return;
     }
 
@@ -1208,9 +1145,6 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     console.error("[render] ffmpeg failed", { renderJobId, error });
     if (!hasCachedVisualizerLayer) {
       await fs.unlink(visualizerLayerPath).catch(() => null);
-    }
-    if (!hasCachedParticlesLayer) {
-      await fs.unlink(particlesLayerPath).catch(() => null);
     }
     return;
   }
