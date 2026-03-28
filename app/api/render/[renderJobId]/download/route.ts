@@ -19,12 +19,20 @@ export async function GET(
   }
 
   if (job.status !== "done" || !job.outputAssetId) {
-    return errorResponse(409, "RENDER_NOT_READY", "Render job is not finished yet");
+    return errorResponse(
+      409,
+      "RENDER_NOT_READY",
+      "Render job is not finished yet",
+    );
   }
 
   const asset = await getAssetById(job.outputAssetId);
   if (!asset) {
-    return errorResponse(404, "RENDER_OUTPUT_NOT_FOUND", "Render output asset not found");
+    return errorResponse(
+      404,
+      "RENDER_OUTPUT_NOT_FOUND",
+      "Render output asset not found",
+    );
   }
 
   const absolutePath = path.isAbsolute(asset.filePath)
@@ -33,7 +41,11 @@ export async function GET(
 
   const fileBuffer = await fs.readFile(absolutePath).catch(() => null);
   if (!fileBuffer) {
-    return errorResponse(404, "RENDER_OUTPUT_NOT_FOUND", "Render file missing on disk");
+    return errorResponse(
+      404,
+      "RENDER_OUTPUT_NOT_FOUND",
+      "Render file missing on disk",
+    );
   }
 
   return new Response(fileBuffer, {

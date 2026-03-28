@@ -19,7 +19,11 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return errorResponse(400, "RENDER_INVALID_JSON", "Request body must be valid JSON");
+    return errorResponse(
+      400,
+      "RENDER_INVALID_JSON",
+      "Request body must be valid JSON",
+    );
   }
 
   const payload =
@@ -29,8 +33,15 @@ export async function POST(request: Request) {
       forceRestart?: unknown;
     }) ?? {};
 
-  if (typeof payload.projectId !== "string" || typeof payload.clientToken !== "string") {
-    return errorResponse(400, "RENDER_PARAMS_INVALID", "projectId and clientToken are required");
+  if (
+    typeof payload.projectId !== "string" ||
+    typeof payload.clientToken !== "string"
+  ) {
+    return errorResponse(
+      400,
+      "RENDER_PARAMS_INVALID",
+      "projectId and clientToken are required",
+    );
   }
 
   const project = await getProjectById(payload.projectId);

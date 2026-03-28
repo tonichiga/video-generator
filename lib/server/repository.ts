@@ -109,7 +109,10 @@ export async function getRenderJobById(id: string) {
   return state.renderJobs.find((item) => item.id === id) ?? null;
 }
 
-export async function updateRenderJobById(id: string, patch: Partial<RenderJob>) {
+export async function updateRenderJobById(
+  id: string,
+  patch: Partial<RenderJob>,
+) {
   const state = await loadState();
   const index = state.renderJobs.findIndex((item) => item.id === id);
 

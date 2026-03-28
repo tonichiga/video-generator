@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 
 import { errorResponse } from "@/lib/server/errors";
 import { createId } from "@/lib/server/ids";
-import { getProjectById, getRenderJobById, insertRenderJob } from "@/lib/server/repository";
+import {
+  getProjectById,
+  getRenderJobById,
+  insertRenderJob,
+} from "@/lib/server/repository";
 import { runRenderJob } from "@/lib/server/render";
 
 export async function POST(
@@ -15,12 +19,20 @@ export async function POST(
   try {
     body = await request.json();
   } catch {
-    return errorResponse(400, "RETRY_INVALID_JSON", "Request body must be valid JSON");
+    return errorResponse(
+      400,
+      "RETRY_INVALID_JSON",
+      "Request body must be valid JSON",
+    );
   }
 
   const clientToken = (body as { clientToken?: unknown }).clientToken;
   if (typeof clientToken !== "string") {
-    return errorResponse(400, "RETRY_CLIENT_TOKEN_REQUIRED", "clientToken is required");
+    return errorResponse(
+      400,
+      "RETRY_CLIENT_TOKEN_REQUIRED",
+      "clientToken is required",
+    );
   }
 
   const sourceJob = await getRenderJobById(renderJobId);

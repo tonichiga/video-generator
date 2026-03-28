@@ -17,6 +17,9 @@ const profiles: Record<ProjectFormat, Record<ProjectQuality, VideoProfile>> = {
   },
 };
 
-export function getVideoProfile(format: ProjectFormat, quality: ProjectQuality): VideoProfile {
+export function getVideoProfile(
+  format: ProjectFormat,
+  quality: ProjectQuality,
+): VideoProfile {
   return profiles[format][quality];
 }

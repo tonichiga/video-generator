@@ -9,7 +9,9 @@ type CleanupResult = {
 };
 
 async function walk(dirPath: string): Promise<string[]> {
-  const entries = await fs.readdir(dirPath, { withFileTypes: true }).catch(() => []);
+  const entries = await fs
+    .readdir(dirPath, { withFileTypes: true })
+    .catch(() => []);
   const files: string[] = [];
 
   for (const entry of entries) {
@@ -25,10 +27,17 @@ async function walk(dirPath: string): Promise<string[]> {
   return files;
 }
 
-export async function cleanupOldArtifacts(retentionHours: number): Promise<CleanupResult> {
+export async function cleanupOldArtifacts(
+  retentionHours: number,
+): Promise<CleanupResult> {
   const cutoff = Date.now() - retentionHours * 60 * 60 * 1000;
   const dirs = getStorageDirs();
-  const roots = [dirs.analysis, dirs.renders, dirs.uploadsTrack, dirs.uploadsPoster];
+  const roots = [
+    dirs.analysis,
+    dirs.renders,
+    dirs.uploadsTrack,
+    dirs.uploadsPoster,
+  ];
 
   let deletedFiles = 0;
   let freedBytes = 0;
