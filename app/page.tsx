@@ -34,6 +34,7 @@ import {
 } from "@/app/editor/constants";
 import { EditorPanel } from "@/app/editor/components/EditorPanel";
 import { PreviewPanel } from "./editor/components/PreviewPanel";
+import { PreviewTimelinePanel } from "./editor/components/PreviewPanel";
 import type {
   CreateProjectPayload,
   TimelineKeyframeParameter,
@@ -1098,6 +1099,9 @@ export default function Home() {
         normalizedVisualizerBars={normalizedVisualizerBars}
         equalizerLineD={equalizerLineD}
         posterCornerRadius={posterCornerRadius}
+      />
+
+      <PreviewTimelinePanel
         previewTimelineEnabled={previewTimelineEnabled}
         isPlaying={isPlaying}
         onTogglePlayback={() => void togglePlayback()}

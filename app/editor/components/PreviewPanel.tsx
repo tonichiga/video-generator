@@ -41,6 +41,9 @@ type PreviewPanelProps = {
   normalizedVisualizerBars: number[];
   equalizerLineD: string;
   posterCornerRadius: number;
+};
+
+type PreviewTimelinePanelProps = {
   previewTimelineEnabled: boolean;
   isPlaying: boolean;
   onTogglePlayback: () => void;
@@ -74,22 +77,6 @@ export function PreviewPanel({
   normalizedVisualizerBars,
   equalizerLineD,
   posterCornerRadius,
-  previewTimelineEnabled,
-  isPlaying,
-  onTogglePlayback,
-  onSeekTo,
-  timeline,
-  trackDurationMs,
-  trimInX,
-  trimOutX,
-  playheadX,
-  waveformValues,
-  onUpdateTrim,
-  selectedKeyframeParameter,
-  onSelectedKeyframeParameterChange,
-  onAddKeyframe,
-  onClearSelectedKeyframes,
-  keyframes,
 }: PreviewPanelProps) {
   const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
   const posterFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -300,165 +287,190 @@ export function PreviewPanel({
       <p className="layer-note">
         Layer order: blurred poster background, live equalizer, center poster.
       </p>
+    </section>
+  );
+}
 
-      {previewTimelineEnabled ? (
-        <section className="timeline-panel">
-          <div className="timeline-head">
-            <strong>Timeline v1</strong>
-            <div className="timeline-head-actions">
-              <button type="button" onClick={onTogglePlayback}>
-                {isPlaying ? "Pause" : "Play"}
-              </button>
-              <button
-                type="button"
-                onClick={() => onSeekTo(timeline.trimInMs)}
-                disabled={isPlaying}
-              >
-                Jump Trim In
-              </button>
-            </div>
-          </div>
-
-          <div className="timeline-canvas">
-            <svg
-              viewBox={`0 0 ${TIMELINE_WIDTH} ${TIMELINE_HEIGHT}`}
-              role="img"
-              aria-label="Waveform"
-            >
-              <rect
-                x="0"
-                y="0"
-                width={TIMELINE_WIDTH}
-                height={TIMELINE_HEIGHT}
-                fill="#09101a"
-              />
-              <path
-                d={waveformPath(waveformValues)}
-                stroke="#6ec8ff"
-                strokeWidth="2"
-                fill="none"
-              />
-              <rect
-                x="0"
-                y="0"
-                width={trimInX}
-                height={TIMELINE_HEIGHT}
-                fill="rgba(0,0,0,0.55)"
-              />
-              <rect
-                x={trimOutX}
-                y="0"
-                width={Math.max(0, TIMELINE_WIDTH - trimOutX)}
-                height={TIMELINE_HEIGHT}
-                fill="rgba(0,0,0,0.55)"
-              />
-              <line
-                x1={trimInX}
-                y1="0"
-                x2={trimInX}
-                y2={TIMELINE_HEIGHT}
-                stroke="#ffc066"
-                strokeWidth="2"
-              />
-              <line
-                x1={trimOutX}
-                y1="0"
-                x2={trimOutX}
-                y2={TIMELINE_HEIGHT}
-                stroke="#ffc066"
-                strokeWidth="2"
-              />
-              <line
-                x1={playheadX}
-                y1="0"
-                x2={playheadX}
-                y2={TIMELINE_HEIGHT}
-                stroke="#ff6d62"
-                strokeWidth="2"
-              />
-            </svg>
-          </div>
-
-          <div className="timeline-sliders">
-            <label>
-              Playhead ({formatMs(timeline.playheadMs ?? timeline.trimInMs)})
-              <input
-                type="range"
-                min={timeline.trimInMs}
-                max={timeline.trimOutMs}
-                step={10}
-                value={timeline.playheadMs ?? timeline.trimInMs}
-                onChange={(event) => onSeekTo(Number(event.target.value))}
-              />
-            </label>
-            <label>
-              Trim in ({formatMs(timeline.trimInMs)})
-              <input
-                type="range"
-                min={0}
-                max={Math.max(1, timeline.trimOutMs - 1)}
-                step={10}
-                value={timeline.trimInMs}
-                onChange={(event) => {
-                  onUpdateTrim(Number(event.target.value), timeline.trimOutMs);
-                }}
-              />
-            </label>
-            <label>
-              Trim out ({formatMs(timeline.trimOutMs)})
-              <input
-                type="range"
-                min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
-                max={trackDurationMs}
-                step={10}
-                value={timeline.trimOutMs}
-                onChange={(event) => {
-                  onUpdateTrim(timeline.trimInMs, Number(event.target.value));
-                }}
-              />
-            </label>
-          </div>
-
-          <div className="timeline-keyframes">
-            <label>
-              Keyframe parameter
-              <select
-                value={selectedKeyframeParameter}
-                onChange={(event) =>
-                  onSelectedKeyframeParameterChange(
-                    event.target.value as TimelineKeyframeParameter,
-                  )
-                }
-              >
-                <option value="equalizer.width">Equalizer width</option>
-                <option value="equalizer.height">Equalizer height</option>
-                <option value="equalizer.y">Equalizer Y</option>
-              </select>
-            </label>
-            <button type="button" onClick={onAddKeyframe}>
-              Add Keyframe @ Playhead
-            </button>
-            <button type="button" onClick={onClearSelectedKeyframes}>
-              Clear Selected Parameter
-            </button>
-            <ul className="keyframe-list">
-              {keyframes.length === 0 ? (
-                <li>No keyframes yet</li>
-              ) : (
-                keyframes.map((track) => (
-                  <li key={track.parameter}>
-                    {track.parameter}: {track.points.length} points
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
-        </section>
-      ) : (
+export function PreviewTimelinePanel({
+  previewTimelineEnabled,
+  isPlaying,
+  onTogglePlayback,
+  onSeekTo,
+  timeline,
+  trackDurationMs,
+  trimInX,
+  trimOutX,
+  playheadX,
+  waveformValues,
+  onUpdateTrim,
+  selectedKeyframeParameter,
+  onSelectedKeyframeParameterChange,
+  onAddKeyframe,
+  onClearSelectedKeyframes,
+  keyframes,
+}: PreviewTimelinePanelProps) {
+  if (!previewTimelineEnabled) {
+    return (
+      <section className="timeline-panel timeline-panel--dock">
         <p className="layer-note">
           Feature flag preview_timeline_v1 is disabled.
         </p>
-      )}
+      </section>
+    );
+  }
+
+  return (
+    <section className="timeline-panel timeline-panel--dock">
+      <div className="timeline-head">
+        <strong>Timeline v1</strong>
+        <div className="timeline-head-actions">
+          <button type="button" onClick={onTogglePlayback}>
+            {isPlaying ? "Pause" : "Play"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onSeekTo(timeline.trimInMs)}
+            disabled={isPlaying}
+          >
+            Jump Trim In
+          </button>
+        </div>
+      </div>
+
+      <div className="timeline-canvas">
+        <svg
+          viewBox={`0 0 ${TIMELINE_WIDTH} ${TIMELINE_HEIGHT}`}
+          role="img"
+          aria-label="Waveform"
+        >
+          <rect
+            x="0"
+            y="0"
+            width={TIMELINE_WIDTH}
+            height={TIMELINE_HEIGHT}
+            fill="#09101a"
+          />
+          <path
+            d={waveformPath(waveformValues)}
+            stroke="#6ec8ff"
+            strokeWidth="2"
+            fill="none"
+          />
+          <rect
+            x="0"
+            y="0"
+            width={trimInX}
+            height={TIMELINE_HEIGHT}
+            fill="rgba(0,0,0,0.55)"
+          />
+          <rect
+            x={trimOutX}
+            y="0"
+            width={Math.max(0, TIMELINE_WIDTH - trimOutX)}
+            height={TIMELINE_HEIGHT}
+            fill="rgba(0,0,0,0.55)"
+          />
+          <line
+            x1={trimInX}
+            y1="0"
+            x2={trimInX}
+            y2={TIMELINE_HEIGHT}
+            stroke="#ffc066"
+            strokeWidth="2"
+          />
+          <line
+            x1={trimOutX}
+            y1="0"
+            x2={trimOutX}
+            y2={TIMELINE_HEIGHT}
+            stroke="#ffc066"
+            strokeWidth="2"
+          />
+          <line
+            x1={playheadX}
+            y1="0"
+            x2={playheadX}
+            y2={TIMELINE_HEIGHT}
+            stroke="#ff6d62"
+            strokeWidth="2"
+          />
+        </svg>
+      </div>
+
+      <div className="timeline-sliders">
+        <label>
+          Playhead ({formatMs(timeline.playheadMs ?? timeline.trimInMs)})
+          <input
+            type="range"
+            min={timeline.trimInMs}
+            max={timeline.trimOutMs}
+            step={10}
+            value={timeline.playheadMs ?? timeline.trimInMs}
+            onChange={(event) => onSeekTo(Number(event.target.value))}
+          />
+        </label>
+        <label>
+          Trim in ({formatMs(timeline.trimInMs)})
+          <input
+            type="range"
+            min={0}
+            max={Math.max(1, timeline.trimOutMs - 1)}
+            step={10}
+            value={timeline.trimInMs}
+            onChange={(event) => {
+              onUpdateTrim(Number(event.target.value), timeline.trimOutMs);
+            }}
+          />
+        </label>
+        <label>
+          Trim out ({formatMs(timeline.trimOutMs)})
+          <input
+            type="range"
+            min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
+            max={trackDurationMs}
+            step={10}
+            value={timeline.trimOutMs}
+            onChange={(event) => {
+              onUpdateTrim(timeline.trimInMs, Number(event.target.value));
+            }}
+          />
+        </label>
+      </div>
+
+      <div className="timeline-keyframes">
+        <label>
+          Keyframe parameter
+          <select
+            value={selectedKeyframeParameter}
+            onChange={(event) =>
+              onSelectedKeyframeParameterChange(
+                event.target.value as TimelineKeyframeParameter,
+              )
+            }
+          >
+            <option value="equalizer.width">Equalizer width</option>
+            <option value="equalizer.height">Equalizer height</option>
+            <option value="equalizer.y">Equalizer Y</option>
+          </select>
+        </label>
+        <button type="button" onClick={onAddKeyframe}>
+          Add Keyframe @ Playhead
+        </button>
+        <button type="button" onClick={onClearSelectedKeyframes}>
+          Clear Selected Parameter
+        </button>
+        <ul className="keyframe-list">
+          {keyframes.length === 0 ? (
+            <li>No keyframes yet</li>
+          ) : (
+            keyframes.map((track) => (
+              <li key={track.parameter}>
+                {track.parameter}: {track.points.length} points
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
     </section>
   );
 }
