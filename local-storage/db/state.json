@@ -851,6 +851,234 @@
       "height": 1920,
       "checksum": "prj_8uhkmyhy:1774716831571",
       "createdAt": "2026-03-28T16:53:51.571Z"
+    },
+    {
+      "id": "ast_poster_ry6tpyqp",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ry6tpyqp.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:00:48.000Z"
+    },
+    {
+      "id": "ast_poster_988sm0pv",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_988sm0pv.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:00:59.902Z"
+    },
+    {
+      "id": "ast_poster_ahqowzkc",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ahqowzkc.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:01:02.451Z"
+    },
+    {
+      "id": "ast_poster_0hllbz0q",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_0hllbz0q.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:03:42.214Z"
+    },
+    {
+      "id": "ast_poster_mnpvqou0",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_mnpvqou0.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:03:44.106Z"
+    },
+    {
+      "id": "ast_poster_wjpfrr1c",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_wjpfrr1c.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:04:14.487Z"
+    },
+    {
+      "id": "ast_poster_ib4lmaiv",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ib4lmaiv.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:04:16.305Z"
+    },
+    {
+      "id": "ast_poster_h6kglq55",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_h6kglq55.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:04:18.421Z"
+    },
+    {
+      "id": "ast_poster_6zqgfos1",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_6zqgfos1.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:04:36.667Z"
+    },
+    {
+      "id": "ast_poster_u0o0k31e",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_u0o0k31e.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:04:38.820Z"
+    },
+    {
+      "id": "ast_poster_h0ugjcyp",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_h0ugjcyp.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:05:13.142Z"
+    },
+    {
+      "id": "ast_poster_s34la0av",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_s34la0av.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:05:51.267Z"
+    },
+    {
+      "id": "ast_poster_i5cc24ti",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_i5cc24ti.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:05:53.444Z"
+    },
+    {
+      "id": "ast_poster_ch0y6erd",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ch0y6erd.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:06:10.821Z"
+    },
+    {
+      "id": "ast_poster_dd2qwozp",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_dd2qwozp.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:06:39.228Z"
+    },
+    {
+      "id": "ast_poster_md2sxa4n",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_md2sxa4n.png",
+      "mimeType": "image/png",
+      "size": 1485665,
+      "durationSec": null,
+      "width": 966,
+      "height": 1652,
+      "checksum": "35189e82f09e57a2c32cb3ba7470ed8cc8dc885ca843aebed2b2921de62a8ef5",
+      "createdAt": "2026-03-28T17:07:34.071Z"
+    },
+    {
+      "id": "ast_poster_0ytc8u3w",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_0ytc8u3w.png",
+      "mimeType": "image/png",
+      "size": 837506,
+      "durationSec": null,
+      "width": 776,
+      "height": 1382,
+      "checksum": "4b0b87c7d5386c12043090787eb70fa782492f42feca037c20496a16a4ecf699",
+      "createdAt": "2026-03-28T17:07:36.539Z"
+    },
+    {
+      "id": "ast_track_lu4gemou",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_lu4gemou.wav",
+      "mimeType": "audio/wav",
+      "size": 35512488,
+      "durationSec": 184.96,
+      "width": null,
+      "height": null,
+      "checksum": "cabd6cddfd8738e112883866f218f86cd6d67c6dddcc80b6375dbee8bdb9e0f0",
+      "createdAt": "2026-03-28T17:08:39.813Z"
+    },
+    {
+      "id": "ast_render_1don63pa",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_1don63pa.mp4",
+      "mimeType": "video/mp4",
+      "size": 8455877,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_5rs17hyo:1774717832528",
+      "createdAt": "2026-03-28T17:10:32.528Z"
     }
   ],
   "analyses": [
@@ -1128,6 +1356,17 @@
       "envelopeSeriesPath": "analysis/an_k0hm06th_envelope.json",
       "spectrumSeriesPath": "analysis/an_k0hm06th_spectrum.json",
       "createdAt": "2026-03-28T16:52:28.134Z"
+    },
+    {
+      "id": "an_rm1voxeh",
+      "trackAssetId": "ast_track_lu4gemou",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_rm1voxeh_envelope.json",
+      "spectrumSeriesPath": "analysis/an_rm1voxeh_spectrum.json",
+      "createdAt": "2026-03-28T17:08:40.363Z"
     }
   ],
   "projects": [
@@ -2056,6 +2295,48 @@
       "keyframes": [],
       "createdAt": "2026-03-28T16:52:32.282Z",
       "updatedAt": "2026-03-28T16:52:33.547Z"
+    },
+    {
+      "id": "prj_5rs17hyo",
+      "clientToken": "cl_iksakea5",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_lu4gemou",
+      "posterAssetId": "ast_poster_md2sxa4n",
+      "backgroundAssetId": "ast_poster_0ytc8u3w",
+      "analysisId": "an_rm1voxeh",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.27,
+        "color": "#f7f7f7",
+        "visualizerType": "symmetricBars",
+        "barCount": 68
+      },
+      "posterConfig": {
+        "cornerRadius": 29,
+        "blurStrength": 9
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 42618
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T17:08:44.097Z",
+      "updatedAt": "2026-03-28T17:08:44.981Z"
     }
   ],
   "renderJobs": [
@@ -2506,6 +2787,20 @@
       "finishedAt": "2026-03-28T16:53:51.572Z",
       "watermarkApplied": true,
       "createdAt": "2026-03-28T16:52:33.570Z"
+    },
+    {
+      "id": "job_letnmjx2",
+      "projectId": "prj_5rs17hyo",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_1don63pa",
+      "outputPath": "renders/ast_render_1don63pa.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T17:08:45.090Z",
+      "finishedAt": "2026-03-28T17:10:32.528Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T17:08:45.042Z"
     }
   ]
 }

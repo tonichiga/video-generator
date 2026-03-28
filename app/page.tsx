@@ -213,6 +213,7 @@ export default function Home() {
   const [visualizerBars, setVisualizerBars] = useState<number[]>(() =>
     Array.from({ length: 32 }).map(() => 0.05),
   );
+  const [loading, setLoading] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -258,6 +259,10 @@ export default function Home() {
     keyframes,
     timeline,
   ]);
+
+  useEffect(() => {
+    setLoading(true);
+  }, []);
 
   const trimInX = useMemo(
     () => (timeline.trimInMs / trackDurationMs) * timelineWidth,
@@ -888,10 +893,12 @@ export default function Home() {
   }
 
   function openBackgroundPicker() {
+    console.log("Opening background picker");
     backgroundFileInputRef.current?.click();
   }
 
   function openPosterPicker() {
+    console.log("Opening poster picker");
     posterFileInputRef.current?.click();
   }
 
@@ -1430,8 +1437,9 @@ export default function Home() {
     [normalizedVisualizerBars],
   );
 
+
   return (
-    <main className="editor-root">
+    <main className="editor-root" >
       <audio
         ref={audioRef}
         src={trackPlaybackUrl || undefined}
@@ -1739,9 +1747,13 @@ export default function Home() {
           title="Select poster image"
           onChange={onPosterFileChange}
         />
-        <div className="scene" style={sceneStyle}>
-          <div className="scene-bg" style={sceneBgStyle} />
-          <button
+        <div
+          onClick={openBackgroundPicker}
+          className="scene"
+          style={sceneStyle}
+        >
+          <div className="scene-bg " style={sceneBgStyle} />
+          {/* <button
             type="button"
             className="scene-upload-hotspot scene-upload-hotspot--bg"
             onClick={openBackgroundPicker}
@@ -1754,7 +1766,7 @@ export default function Home() {
             >
               +
             </span>
-          </button>
+          </button> */}
 
           <div className="scene-eq" style={eqStyle}>
             {visualizerType === "line" ? (
@@ -1805,30 +1817,39 @@ export default function Home() {
             )}
           </div>
 
-          <div className="scene-poster-wrap">
-            {posterPreviewUrl ? (
-              <Image
-                className="scene-poster"
-                src={posterPreviewUrl}
-                alt="Poster preview"
-                width={1024}
-                height={1024}
-                style={{ borderRadius: `${posterCornerRadius}px` }}
-                unoptimized
-              />
-            ) : (
-              <button
-                type="button"
-                className="scene-upload-hotspot h-60! w-60!"
-                onClick={openPosterPicker}
-                aria-label="Select image for poster"
-                title="Select image for poster"
-              >
-                <span className="scene-upload-hotspot-plus" aria-hidden>
+          <div className="scene-poster-wrap cursor-pointer hover:brightness-110">
+            {/* background */}
+            <div
+              className="absolute inset-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                openBackgroundPicker();
+              }}
+            ></div>
+
+            <div
+              className="relative z-10 w-60 h-60 "
+              onClick={(e) => {
+                e.stopPropagation();
+                openPosterPicker();
+              }}
+            >
+              {posterPreviewUrl ? (
+                <Image
+                  className="scene-poster object-cover w-full h-full"
+                  src={posterPreviewUrl}
+                  alt="Poster preview"
+                  width={1024}
+                  height={1024}
+                  style={{ borderRadius: `${posterCornerRadius}px` }}
+                  unoptimized
+                />
+              ) : (
+                <div className="border w-60 h-60 rounded-2xl flex items-center justify-center">
                   +
-                </span>
-              </button>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <p className="layer-note">

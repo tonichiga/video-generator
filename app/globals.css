@@ -320,8 +320,6 @@ body {
 }
 
 .scene-poster {
-  width: 45%;
-  max-height: 62%;
   object-fit: cover;
   border: 1px solid rgba(220, 235, 255, 0.26);
   box-shadow:
