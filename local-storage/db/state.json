@@ -1,0 +1,1273 @@
+{
+  "assets": [
+    {
+      "id": "ast_track_en8q9v2i",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_en8q9v2i.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-28T10:51:49.696Z"
+    },
+    {
+      "id": "ast_track_ykqkn9tg",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_ykqkn9tg.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-28T11:07:38.361Z"
+    },
+    {
+      "id": "ast_poster_xf0h1458",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_xf0h1458.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:07:39.963Z"
+    },
+    {
+      "id": "ast_track_ihjm7hsg",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_ihjm7hsg.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-28T11:11:12.363Z"
+    },
+    {
+      "id": "ast_poster_9sxj30qn",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_9sxj30qn.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:11:12.662Z"
+    },
+    {
+      "id": "ast_poster_jucd266l",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_jucd266l.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:11:42.865Z"
+    },
+    {
+      "id": "ast_track_8ub5kp17",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_8ub5kp17.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-28T11:11:43.406Z"
+    },
+    {
+      "id": "ast_track_5nyk4v5x",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_5nyk4v5x.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-28T11:14:54.858Z"
+    },
+    {
+      "id": "ast_poster_01c2vv4h",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_01c2vv4h.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:14:55.076Z"
+    },
+    {
+      "id": "ast_render_56pit1gd",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_56pit1gd.mp4",
+      "mimeType": "video/mp4",
+      "size": 56536032,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_thuh5lwa:1774696515653",
+      "createdAt": "2026-03-28T11:15:15.653Z"
+    },
+    {
+      "id": "ast_render_cjty5q0p",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_cjty5q0p.mp4",
+      "mimeType": "video/mp4",
+      "size": 56536032,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_pzauft15:1774696588256",
+      "createdAt": "2026-03-28T11:16:28.256Z"
+    },
+    {
+      "id": "ast_render_1yaf148l",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_1yaf148l.mp4",
+      "mimeType": "video/mp4",
+      "size": 56536032,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_pzauft15:1774696705963",
+      "createdAt": "2026-03-28T11:18:25.963Z"
+    },
+    {
+      "id": "ast_track_pdyuooof",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_pdyuooof.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-28T11:19:05.437Z"
+    },
+    {
+      "id": "ast_poster_hdd52dni",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_hdd52dni.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:19:05.930Z"
+    },
+    {
+      "id": "ast_render_rq5ppjxt",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_rq5ppjxt.mp4",
+      "mimeType": "video/mp4",
+      "size": 29748136,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_edcqvks6:1774696822931",
+      "createdAt": "2026-03-28T11:20:22.931Z"
+    },
+    {
+      "id": "ast_track_9ohk1a2n",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_9ohk1a2n.wav",
+      "mimeType": "audio/wav",
+      "size": 30259368,
+      "durationSec": 157.6,
+      "width": null,
+      "height": null,
+      "checksum": "35d898b745d552499bc1933dacc5c7e5fb5a8a26b661dc6388cb5d104939fc9f",
+      "createdAt": "2026-03-28T11:36:05.707Z"
+    },
+    {
+      "id": "ast_poster_i0kn1vd9",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_i0kn1vd9.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:36:06.217Z"
+    },
+    {
+      "id": "ast_render_c2bfuzxy",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_c2bfuzxy.mp4",
+      "mimeType": "video/mp4",
+      "size": 27710635,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_ixuqlc57:1774697829609",
+      "createdAt": "2026-03-28T11:37:09.609Z"
+    },
+    {
+      "id": "ast_track_iifwd7nd",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_iifwd7nd.wav",
+      "mimeType": "audio/wav",
+      "size": 30259368,
+      "durationSec": 157.6,
+      "width": null,
+      "height": null,
+      "checksum": "35d898b745d552499bc1933dacc5c7e5fb5a8a26b661dc6388cb5d104939fc9f",
+      "createdAt": "2026-03-28T11:44:22.808Z"
+    },
+    {
+      "id": "ast_poster_apv6yaim",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_apv6yaim.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:44:23.499Z"
+    },
+    {
+      "id": "ast_render_emd35v4i",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_emd35v4i.mp4",
+      "mimeType": "video/mp4",
+      "size": 10347784,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_s2worhbg:1774698319789",
+      "createdAt": "2026-03-28T11:45:19.789Z"
+    },
+    {
+      "id": "ast_render_iaerz6ny",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_iaerz6ny.mp4",
+      "mimeType": "video/mp4",
+      "size": 10347784,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_s2worhbg:1774698425053",
+      "createdAt": "2026-03-28T11:47:05.053Z"
+    },
+    {
+      "id": "ast_track_vtnda9kc",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_vtnda9kc.wav",
+      "mimeType": "audio/wav",
+      "size": 30259368,
+      "durationSec": 157.6,
+      "width": null,
+      "height": null,
+      "checksum": "35d898b745d552499bc1933dacc5c7e5fb5a8a26b661dc6388cb5d104939fc9f",
+      "createdAt": "2026-03-28T11:50:06.138Z"
+    },
+    {
+      "id": "ast_poster_eb6h99qb",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_eb6h99qb.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:50:06.615Z"
+    },
+    {
+      "id": "ast_track_21if3jh7",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_21if3jh7.wav",
+      "mimeType": "audio/wav",
+      "size": 30259368,
+      "durationSec": 157.6,
+      "width": null,
+      "height": null,
+      "checksum": "35d898b745d552499bc1933dacc5c7e5fb5a8a26b661dc6388cb5d104939fc9f",
+      "createdAt": "2026-03-28T11:55:18.224Z"
+    },
+    {
+      "id": "ast_poster_9nufecna",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_9nufecna.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T11:55:18.690Z"
+    },
+    {
+      "id": "ast_render_147seohq",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_147seohq.mp4",
+      "mimeType": "video/mp4",
+      "size": 18807395,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_9ua3xegw:1774698978921",
+      "createdAt": "2026-03-28T11:56:18.921Z"
+    },
+    {
+      "id": "ast_track_kvnjo9zd",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_kvnjo9zd.wav",
+      "mimeType": "audio/wav",
+      "size": 30259368,
+      "durationSec": 157.6,
+      "width": null,
+      "height": null,
+      "checksum": "35d898b745d552499bc1933dacc5c7e5fb5a8a26b661dc6388cb5d104939fc9f",
+      "createdAt": "2026-03-28T12:01:20.921Z"
+    },
+    {
+      "id": "ast_poster_ywf0fa5c",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ywf0fa5c.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T12:01:21.423Z"
+    },
+    {
+      "id": "ast_render_q7yvcxmw",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_q7yvcxmw.mp4",
+      "mimeType": "video/mp4",
+      "size": 12985242,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_tw46noqx:1774699331979",
+      "createdAt": "2026-03-28T12:02:11.979Z"
+    }
+  ],
+  "analyses": [
+    {
+      "id": "an_zcjppg5v",
+      "trackAssetId": "ast_track_en8q9v2i",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_zcjppg5v_envelope.json",
+      "spectrumSeriesPath": "analysis/an_zcjppg5v_spectrum.json",
+      "createdAt": "2026-03-28T10:51:58.095Z"
+    },
+    {
+      "id": "an_va4ra49o",
+      "trackAssetId": "ast_track_ykqkn9tg",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_va4ra49o_envelope.json",
+      "spectrumSeriesPath": "analysis/an_va4ra49o_spectrum.json",
+      "createdAt": "2026-03-28T11:07:41.022Z"
+    },
+    {
+      "id": "an_d60bldgp",
+      "trackAssetId": "ast_track_ihjm7hsg",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_d60bldgp_envelope.json",
+      "spectrumSeriesPath": "analysis/an_d60bldgp_spectrum.json",
+      "createdAt": "2026-03-28T11:11:14.680Z"
+    },
+    {
+      "id": "an_yy8oo5uj",
+      "trackAssetId": "ast_track_8ub5kp17",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_yy8oo5uj_envelope.json",
+      "spectrumSeriesPath": "analysis/an_yy8oo5uj_spectrum.json",
+      "createdAt": "2026-03-28T11:11:43.874Z"
+    },
+    {
+      "id": "an_bdfstxfk",
+      "trackAssetId": "ast_track_5nyk4v5x",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_bdfstxfk_envelope.json",
+      "spectrumSeriesPath": "analysis/an_bdfstxfk_spectrum.json",
+      "createdAt": "2026-03-28T11:14:56.295Z"
+    },
+    {
+      "id": "an_aocg4qw6",
+      "trackAssetId": "ast_track_5nyk4v5x",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_aocg4qw6_envelope.json",
+      "spectrumSeriesPath": "analysis/an_aocg4qw6_spectrum.json",
+      "createdAt": "2026-03-28T11:17:36.484Z"
+    },
+    {
+      "id": "an_s9l18ily",
+      "trackAssetId": "ast_track_pdyuooof",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_s9l18ily_envelope.json",
+      "spectrumSeriesPath": "analysis/an_s9l18ily_spectrum.json",
+      "createdAt": "2026-03-28T11:19:06.649Z"
+    },
+    {
+      "id": "an_l0dsuwaw",
+      "trackAssetId": "ast_track_pdyuooof",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_l0dsuwaw_envelope.json",
+      "spectrumSeriesPath": "analysis/an_l0dsuwaw_spectrum.json",
+      "createdAt": "2026-03-28T11:19:08.380Z"
+    },
+    {
+      "id": "an_8ddwu7re",
+      "trackAssetId": "ast_track_pdyuooof",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_8ddwu7re_envelope.json",
+      "spectrumSeriesPath": "analysis/an_8ddwu7re_spectrum.json",
+      "createdAt": "2026-03-28T11:19:38.788Z"
+    },
+    {
+      "id": "an_k4hya29s",
+      "trackAssetId": "ast_track_9ohk1a2n",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_k4hya29s_envelope.json",
+      "spectrumSeriesPath": "analysis/an_k4hya29s_spectrum.json",
+      "createdAt": "2026-03-28T11:36:07.139Z"
+    },
+    {
+      "id": "an_yx5vvi6n",
+      "trackAssetId": "ast_track_iifwd7nd",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_yx5vvi6n_envelope.json",
+      "spectrumSeriesPath": "analysis/an_yx5vvi6n_spectrum.json",
+      "createdAt": "2026-03-28T11:44:24.414Z"
+    },
+    {
+      "id": "an_1wjswqmf",
+      "trackAssetId": "ast_track_vtnda9kc",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_1wjswqmf_envelope.json",
+      "spectrumSeriesPath": "analysis/an_1wjswqmf_spectrum.json",
+      "createdAt": "2026-03-28T11:50:07.375Z"
+    },
+    {
+      "id": "an_ozppj8cs",
+      "trackAssetId": "ast_track_21if3jh7",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_ozppj8cs_envelope.json",
+      "spectrumSeriesPath": "analysis/an_ozppj8cs_spectrum.json",
+      "createdAt": "2026-03-28T11:55:19.204Z"
+    },
+    {
+      "id": "an_heu7hj10",
+      "trackAssetId": "ast_track_kvnjo9zd",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_heu7hj10_envelope.json",
+      "spectrumSeriesPath": "analysis/an_heu7hj10_spectrum.json",
+      "createdAt": "2026-03-28T12:01:22.082Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "prj_thuh5lwa",
+      "clientToken": "cl_ll4nm44u",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_ykqkn9tg",
+      "posterAssetId": "ast_poster_xf0h1458",
+      "analysisId": "an_va4ra49o",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.8,
+        "width": 0.7,
+        "height": 0.18,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:07:48.420Z",
+      "updatedAt": "2026-03-28T11:07:48.420Z"
+    },
+    {
+      "id": "prj_7nutnvf5",
+      "clientToken": "cl_m33vnw8e",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_ihjm7hsg",
+      "posterAssetId": "ast_poster_9sxj30qn",
+      "analysisId": "an_d60bldgp",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.8,
+        "width": 0.7,
+        "height": 0.18,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:11:17.788Z",
+      "updatedAt": "2026-03-28T11:11:17.788Z"
+    },
+    {
+      "id": "prj_tjif1za4",
+      "clientToken": "cl_pcigqn5u",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_8ub5kp17",
+      "posterAssetId": "ast_poster_jucd266l",
+      "analysisId": "an_yy8oo5uj",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.8,
+        "width": 0.7,
+        "height": 0.18,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:11:45.815Z",
+      "updatedAt": "2026-03-28T11:11:45.815Z"
+    },
+    {
+      "id": "prj_pzauft15",
+      "clientToken": "cl_cjfpg6nk",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_5nyk4v5x",
+      "posterAssetId": "ast_poster_01c2vv4h",
+      "analysisId": "an_bdfstxfk",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.8,
+        "width": 0.7,
+        "height": 0.18,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 34210,
+        "trimOutMs": 162611,
+        "playheadMs": 67042
+      },
+      "keyframes": [
+        {
+          "parameter": "equalizer.height",
+          "points": [
+            {
+              "timeMs": 47184,
+              "value": 0.18,
+              "easing": "easeInOut"
+            }
+          ]
+        }
+      ],
+      "createdAt": "2026-03-28T11:15:38.529Z",
+      "updatedAt": "2026-03-28T11:15:38.529Z"
+    },
+    {
+      "id": "prj_h5kcjifi",
+      "clientToken": "cl_lkdpttya",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_pdyuooof",
+      "posterAssetId": "ast_poster_hdd52dni",
+      "analysisId": "an_l0dsuwaw",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.8,
+        "width": 0.7,
+        "height": 0.18,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:19:12.067Z",
+      "updatedAt": "2026-03-28T11:19:13.994Z"
+    },
+    {
+      "id": "prj_5851d7rt",
+      "clientToken": "cl_lkdpttya",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_pdyuooof",
+      "posterAssetId": "ast_poster_hdd52dni",
+      "analysisId": "an_l0dsuwaw",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.51,
+        "width": 1,
+        "height": 0.16,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:19:25.382Z",
+      "updatedAt": "2026-03-28T11:19:25.382Z"
+    },
+    {
+      "id": "prj_edcqvks6",
+      "clientToken": "cl_lkdpttya",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_pdyuooof",
+      "posterAssetId": "ast_poster_hdd52dni",
+      "analysisId": "an_l0dsuwaw",
+      "templateId": "tpl_amber_wave",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.55,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.51,
+        "width": 1,
+        "height": 0.16,
+        "color": "#FFFFFF"
+      },
+      "posterConfig": {
+        "cornerRadius": 20,
+        "blurStrength": 20
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:19:30.056Z",
+      "updatedAt": "2026-03-28T11:19:36.043Z"
+    },
+    {
+      "id": "prj_ixuqlc57",
+      "clientToken": "cl_tqtgp6xf",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_9ohk1a2n",
+      "posterAssetId": "ast_poster_i0kn1vd9",
+      "analysisId": "an_k4hya29s",
+      "templateId": "tpl_sunset_drive",
+      "particleConfig": {
+        "preset": "geometric",
+        "density": 0.25,
+        "speed": 1
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.2,
+        "color": "#FF6B6B"
+      },
+      "posterConfig": {
+        "cornerRadius": 10,
+        "blurStrength": 26
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 116611
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:36:13.541Z",
+      "updatedAt": "2026-03-28T11:36:13.541Z"
+    },
+    {
+      "id": "prj_s2worhbg",
+      "clientToken": "cl_jyeot4xw",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_iifwd7nd",
+      "posterAssetId": "ast_poster_apv6yaim",
+      "analysisId": "an_yx5vvi6n",
+      "templateId": "tpl_cobalt_grid",
+      "particleConfig": {
+        "preset": "geometric",
+        "density": 0.35,
+        "speed": 0.3
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.13,
+        "color": "#5AA9FF",
+        "visualizerType": "dots"
+      },
+      "posterConfig": {
+        "cornerRadius": 8,
+        "blurStrength": 14
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 96645
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:44:26.949Z",
+      "updatedAt": "2026-03-28T11:44:28.439Z"
+    },
+    {
+      "id": "prj_p0ila3hj",
+      "clientToken": "cl_jol5o2gl",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_vtnda9kc",
+      "posterAssetId": "ast_poster_eb6h99qb",
+      "analysisId": "an_1wjswqmf",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.6,
+        "speed": 0.7
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.2,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars"
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 11621
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:50:09.759Z",
+      "updatedAt": "2026-03-28T11:50:10.702Z"
+    },
+    {
+      "id": "prj_9ua3xegw",
+      "clientToken": "cl_skh0nefj",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_21if3jh7",
+      "posterAssetId": "ast_poster_9nufecna",
+      "analysisId": "an_ozppj8cs",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "geometric",
+        "density": 0.42,
+        "speed": 0.7
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.29,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars"
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 54912
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T11:55:21.221Z",
+      "updatedAt": "2026-03-28T11:55:22.134Z"
+    },
+    {
+      "id": "prj_tw46noqx",
+      "clientToken": "cl_40f3so9s",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_kvnjo9zd",
+      "posterAssetId": "ast_poster_ywf0fa5c",
+      "analysisId": "an_heu7hj10",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "neon",
+        "density": 0.6,
+        "speed": 0.7
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.2,
+        "color": "#ffffff",
+        "visualizerType": "symmetricBars"
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T12:01:23.646Z",
+      "updatedAt": "2026-03-28T12:01:33.250Z"
+    }
+  ],
+  "renderJobs": [
+    {
+      "id": "job_tpihi2dq",
+      "projectId": "prj_thuh5lwa",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "FFMPEG_NOT_AVAILABLE",
+      "errorMessage": "ffmpeg is not installed or not available in PATH",
+      "startedAt": null,
+      "finishedAt": "2026-03-28T11:07:52.705Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:07:52.696Z"
+    },
+    {
+      "id": "job_8t8be3er",
+      "projectId": "prj_thuh5lwa",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "FFMPEG_NOT_AVAILABLE",
+      "errorMessage": "ffmpeg is not installed or not available in PATH",
+      "startedAt": null,
+      "finishedAt": "2026-03-28T11:08:03.795Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:08:03.792Z"
+    },
+    {
+      "id": "job_ra9nxxdm",
+      "projectId": "prj_7nutnvf5",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "FFMPEG_NOT_AVAILABLE",
+      "errorMessage": "ffmpeg is not installed or not available in PATH",
+      "startedAt": null,
+      "finishedAt": "2026-03-28T11:11:18.873Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:11:18.870Z"
+    },
+    {
+      "id": "job_nmrdtc0g",
+      "projectId": "prj_tjif1za4",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "FFMPEG_NOT_AVAILABLE",
+      "errorMessage": "ffmpeg is not installed or not available in PATH",
+      "startedAt": null,
+      "finishedAt": "2026-03-28T11:11:46.660Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:11:46.656Z"
+    },
+    {
+      "id": "job_be2zz5dw",
+      "projectId": "prj_tjif1za4",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "FFMPEG_NOT_AVAILABLE",
+      "errorMessage": "ffmpeg is not installed or not available in PATH",
+      "startedAt": null,
+      "finishedAt": "2026-03-28T11:12:04.163Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:12:04.159Z"
+    },
+    {
+      "id": "job_ue90m9jh",
+      "projectId": "prj_thuh5lwa",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "FFMPEG_NOT_AVAILABLE",
+      "errorMessage": "ffmpeg is not installed or not available in PATH",
+      "startedAt": null,
+      "finishedAt": "2026-03-28T11:12:11.588Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:12:11.586Z"
+    },
+    {
+      "id": "job_6yku5d72",
+      "projectId": "prj_thuh5lwa",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "RENDER_FFMPEG_FAILED",
+      "errorMessage": "ffmpeg exited with code 234: awbox_7 @ 0x760c0e340] [Eval @ 0x16b8f4d40] Undefined constant or missing '(' in 'W-240'\n[Parsed_drawbox_7 @ 0x760c0e340] [Eval @ 0x16b8f4d40] Undefined constant or missing '(' in 'H-84'\n[Parsed_drawbox_7 @ 0x760c0e340] [Eval @ 0x16b8f4d40] Undefined constant or missing '(' in 'W-240'\n[Parsed_drawbox_7 @ 0x760c0e340] Error when evaluating the expression 'W-240'.\n[Parsed_drawbox_7 @ 0x760c0e340] Failed to configure input pad on Parsed_drawbox_7\n[fc#0 @ 0x760c18000] Error reinitializing filters!\n[fc#0 @ 0x760c18000] Task finished with error code: -22 (Invalid argument)\n[fc#0 @ 0x760c18000] Terminating thread with return code -22 (Invalid argument)\n[vost#0:0/libx264 @ 0x761108000] [enc:libx264 @ 0x760c09420] Could not open encoder before EOF\n[vost#0:0/libx264 @ 0x761108000] Task finished with error code: -22 (Invalid argument)\n[vost#0:0/libx264 @ 0x761108000] Terminating thread with return code -22 (Invalid argument)\n[out#0/mp4 @ 0x760c0c780] Nothing was written into output file, because at least one of its streams received no packets.\nframe=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.05    \n[aac @ 0x761041880] Qavg: 285.342\nConversion failed!\n",
+      "startedAt": "2026-03-28T11:14:05.554Z",
+      "finishedAt": "2026-03-28T11:14:05.867Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:14:05.509Z"
+    },
+    {
+      "id": "job_5d6zanuo",
+      "projectId": "prj_thuh5lwa",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_56pit1gd",
+      "outputPath": "renders/ast_render_56pit1gd.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:14:28.568Z",
+      "finishedAt": "2026-03-28T11:15:15.654Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:14:28.537Z"
+    },
+    {
+      "id": "job_ebtfxfqg",
+      "projectId": "prj_pzauft15",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_cjty5q0p",
+      "outputPath": "renders/ast_render_cjty5q0p.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:15:40.784Z",
+      "finishedAt": "2026-03-28T11:16:28.257Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:15:40.753Z"
+    },
+    {
+      "id": "job_5tzdq16o",
+      "projectId": "prj_pzauft15",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_1yaf148l",
+      "outputPath": "renders/ast_render_1yaf148l.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:17:43.278Z",
+      "finishedAt": "2026-03-28T11:18:25.965Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:17:43.248Z"
+    },
+    {
+      "id": "job_n1psf2mz",
+      "projectId": "prj_edcqvks6",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_rq5ppjxt",
+      "outputPath": "renders/ast_render_rq5ppjxt.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:19:41.576Z",
+      "finishedAt": "2026-03-28T11:20:22.931Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:19:41.547Z"
+    },
+    {
+      "id": "job_uuc4rxk8",
+      "projectId": "prj_ixuqlc57",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_c2bfuzxy",
+      "outputPath": "renders/ast_render_c2bfuzxy.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:36:14.823Z",
+      "finishedAt": "2026-03-28T11:37:09.610Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:36:14.777Z"
+    },
+    {
+      "id": "job_foljcoga",
+      "projectId": "prj_s2worhbg",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_emd35v4i",
+      "outputPath": "renders/ast_render_emd35v4i.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:44:28.521Z",
+      "finishedAt": "2026-03-28T11:45:19.789Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:44:28.473Z"
+    },
+    {
+      "id": "job_5rxkrmc0",
+      "projectId": "prj_s2worhbg",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_iaerz6ny",
+      "outputPath": "renders/ast_render_iaerz6ny.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:46:21.406Z",
+      "finishedAt": "2026-03-28T11:47:05.054Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:46:21.379Z"
+    },
+    {
+      "id": "job_r3e69akj",
+      "projectId": "prj_p0ila3hj",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "RENDER_FFMPEG_FAILED",
+      "errorMessage": "ffmpeg exited with code 234: eam #0:0 (png) -> scale:default\n  Stream #0:0 (png) -> scale:default\n  Stream #0:0 (png) -> vstack\n  Stream #1:0 (pcm_s16le) -> showwaves:default\n  drawbox:default -> Stream #0:0 (libx264)\n  Stream #1:0 -> #0:1 (pcm_s16le (native) -> aac (native))\nPress [q] to stop, [?] for help\n[Parsed_vstack_6 @ 0x804c25c80] Input 1 width 1080 does not match input 0 width 1024.\n[Parsed_vstack_6 @ 0x804c25c80] Failed to configure output pad on Parsed_vstack_6\n[fc#0 @ 0x804c18000] Error reinitializing filters!\n[fc#0 @ 0x804c18000] Task finished with error code: -22 (Invalid argument)\n[fc#0 @ 0x804c18000] Terminating thread with return code -22 (Invalid argument)\n[vost#0:0/libx264 @ 0x805190000] [enc:libx264 @ 0x804c4c1c0] Could not open encoder before EOF\n[vost#0:0/libx264 @ 0x805190000] Task finished with error code: -22 (Invalid argument)\n[vost#0:0/libx264 @ 0x805190000] Terminating thread with return code -22 (Invalid argument)\n[out#0/mp4 @ 0x804c24180] Nothing was written into output file, because at least one of its streams received no packets.\nframe=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.07    \n[aac @ 0x80502d880] Qavg: 219.154\nConversion failed!\n",
+      "startedAt": "2026-03-28T11:50:10.787Z",
+      "finishedAt": "2026-03-28T11:50:11.167Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:50:10.739Z"
+    },
+    {
+      "id": "job_n8mc4xlv",
+      "projectId": "prj_p0ila3hj",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "RENDER_FFMPEG_FAILED",
+      "errorMessage": "ffmpeg exited with code 234: eam #0:0 (png) -> scale:default\n  Stream #0:0 (png) -> scale:default\n  Stream #0:0 (png) -> vstack\n  Stream #1:0 (pcm_s16le) -> showwaves:default\n  drawbox:default -> Stream #0:0 (libx264)\n  Stream #1:0 -> #0:1 (pcm_s16le (native) -> aac (native))\nPress [q] to stop, [?] for help\n[Parsed_vstack_6 @ 0xc4ec19c80] Input 1 width 1080 does not match input 0 width 1024.\n[Parsed_vstack_6 @ 0xc4ec19c80] Failed to configure output pad on Parsed_vstack_6\n[fc#0 @ 0xc4f01c000] Error reinitializing filters!\n[fc#0 @ 0xc4f01c000] Task finished with error code: -22 (Invalid argument)\n[fc#0 @ 0xc4f01c000] Terminating thread with return code -22 (Invalid argument)\n[vost#0:0/libx264 @ 0xc4ecbc000] [enc:libx264 @ 0xc4ec241c0] Could not open encoder before EOF\n[vost#0:0/libx264 @ 0xc4ecbc000] Task finished with error code: -22 (Invalid argument)\n[vost#0:0/libx264 @ 0xc4ecbc000] Terminating thread with return code -22 (Invalid argument)\n[out#0/mp4 @ 0xc4ec18180] Nothing was written into output file, because at least one of its streams received no packets.\nframe=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.06    \n[aac @ 0xc4ec2d880] Qavg: 219.154\nConversion failed!\n",
+      "startedAt": "2026-03-28T11:50:49.235Z",
+      "finishedAt": "2026-03-28T11:50:49.588Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:50:49.205Z"
+    },
+    {
+      "id": "job_hny1ug7v",
+      "projectId": "prj_p0ila3hj",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "RENDER_FFMPEG_FAILED",
+      "errorMessage": "ffmpeg exited with code 234: eam #0:0 (png) -> scale:default\n  Stream #0:0 (png) -> scale:default\n  Stream #0:0 (png) -> vstack\n  Stream #1:0 (pcm_s16le) -> showwaves:default\n  drawbox:default -> Stream #0:0 (libx264)\n  Stream #1:0 -> #0:1 (pcm_s16le (native) -> aac (native))\nPress [q] to stop, [?] for help\n[Parsed_vstack_6 @ 0x8dac0e280] Input 1 width 1080 does not match input 0 width 1024.\n[Parsed_vstack_6 @ 0x8dac0e280] Failed to configure output pad on Parsed_vstack_6\n[fc#0 @ 0x8dac1c000] Error reinitializing filters!\n[fc#0 @ 0x8dac1c000] Task finished with error code: -22 (Invalid argument)\n[fc#0 @ 0x8dac1c000] Terminating thread with return code -22 (Invalid argument)\n[vost#0:0/libx264 @ 0x8db06c000] [enc:libx264 @ 0x8dac09420] Could not open encoder before EOF\n[vost#0:0/libx264 @ 0x8db06c000] Task finished with error code: -22 (Invalid argument)\n[vost#0:0/libx264 @ 0x8db06c000] Terminating thread with return code -22 (Invalid argument)\n[out#0/mp4 @ 0x8dac0c780] Nothing was written into output file, because at least one of its streams received no packets.\nframe=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.06    \n[aac @ 0x8db045880] Qavg: 219.154\nConversion failed!\n",
+      "startedAt": "2026-03-28T11:51:22.329Z",
+      "finishedAt": "2026-03-28T11:51:22.697Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:51:22.279Z"
+    },
+    {
+      "id": "job_dbbbqbj4",
+      "projectId": "prj_9ua3xegw",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_147seohq",
+      "outputPath": "renders/ast_render_147seohq.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T11:55:22.221Z",
+      "finishedAt": "2026-03-28T11:56:18.922Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T11:55:22.172Z"
+    },
+    {
+      "id": "job_rka54opq",
+      "projectId": "prj_tw46noqx",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_q7yvcxmw",
+      "outputPath": "renders/ast_render_q7yvcxmw.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T12:01:24.490Z",
+      "finishedAt": "2026-03-28T12:02:11.979Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T12:01:24.445Z"
+    }
+  ]
+}
