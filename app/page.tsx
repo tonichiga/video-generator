@@ -16,6 +16,7 @@ import {
   clampNumber,
   getDefaultTimeline,
 } from "@/lib/domain/timeline";
+import { getVisualizerBarCount } from "@/lib/domain/visualizer";
 import type {
   ParticleConfig,
   TimelineKeyframeParameter,
@@ -57,6 +58,14 @@ type WaveformResponse = {
   frameStepMs: number;
   durationMs: number;
   values: number[];
+};
+
+type SpectrumResponse = {
+  analysisId: string;
+  frameStepMs: number;
+  durationMs: number;
+  bars: number;
+  values: number[][];
 };
 
 const defaultClientToken = `cl_${Math.random().toString(36).slice(2, 10)}`;
@@ -181,19 +190,6 @@ function seededParticles(count: number, seed: string) {
   }));
 }
 
-function getVisualizerBarCount(preset: ParticlePreset, category: string) {
-  if (preset === "geometric" || category === "tech") {
-    return 32;
-  }
-  if (preset === "fire") {
-    return 40;
-  }
-  if (preset === "off") {
-    return 24;
-  }
-  return 36;
-}
-
 export default function Home() {
   const [clientToken, setClientToken] = useState(defaultClientToken);
   const [projectName, setProjectName] = useState("My Mix #1");
@@ -238,6 +234,8 @@ export default function Home() {
   const [previewTimelineEnabled, setPreviewTimelineEnabled] = useState(false);
   const [trackDurationMs, setTrackDurationMs] = useState(defaultDurationMs);
   const [waveformValues, setWaveformValues] = useState<number[]>([]);
+  const [spectrumFrameStepMs, setSpectrumFrameStepMs] = useState(33);
+  const [spectrumValues, setSpectrumValues] = useState<number[][]>([]);
   const [timeline, setTimeline] = useState<TimelineState>(() =>
     getDefaultTimeline(defaultDurationMs),
   );
@@ -423,6 +421,21 @@ export default function Home() {
 
   const updateVisualizerBars = useCallback(
     (now: number) => {
+      const audio = audioRef.current;
+      if (audio && spectrumValues.length > 0 && spectrumFrameStepMs > 0) {
+        const frameIndex = clampNumber(
+          Math.floor((audio.currentTime * 1000) / spectrumFrameStepMs),
+          0,
+          spectrumValues.length - 1,
+        );
+
+        const frame = spectrumValues[frameIndex];
+        if (Array.isArray(frame) && frame.length > 0) {
+          setVisualizerBars(frame.map((value) => clampNumber(value, 0.04, 1)));
+          return;
+        }
+      }
+
       const analyser = analyserRef.current;
       const data = analyserDataRef.current;
 
@@ -456,7 +469,7 @@ export default function Home() {
 
       setVisualizerBars(bars);
     },
-    [visualizerBarCount],
+    [spectrumFrameStepMs, spectrumValues, visualizerBarCount],
   );
 
   const applyTemplateSettings = useCallback(
@@ -709,6 +722,7 @@ export default function Home() {
 
   useEffect(() => {
     if (analysisStatus !== "done" || !analysisId) {
+      setSpectrumValues([]);
       return;
     }
 
@@ -743,6 +757,40 @@ export default function Home() {
       canceled = true;
     };
   }, [analysisId, analysisStatus]);
+
+  useEffect(() => {
+    if (analysisStatus !== "done" || !analysisId) {
+      return;
+    }
+
+    let canceled = false;
+
+    void fetch(
+      `/api/audio/analyze/${analysisId}/spectrum?bars=${visualizerBarCount}&maxFrames=9600`,
+    )
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("spectrum unavailable");
+        }
+
+        const data = (await response.json()) as SpectrumResponse;
+        if (canceled) {
+          return;
+        }
+
+        setSpectrumFrameStepMs(Math.max(1, Math.round(data.frameStepMs || 33)));
+        setSpectrumValues(Array.isArray(data.values) ? data.values : []);
+      })
+      .catch(() => {
+        if (!canceled) {
+          setSpectrumValues([]);
+        }
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [analysisId, analysisStatus, visualizerBarCount]);
 
   useEffect(() => {
     if (
@@ -1061,6 +1109,11 @@ export default function Home() {
           cornerRadius: posterCornerRadius,
           blurStrength: posterBlurStrength,
         },
+        timeline: {
+          ...timeline,
+          playheadMs: timeline.playheadMs ?? timeline.trimInMs,
+        },
+        keyframes,
       }),
     });
 
