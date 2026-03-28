@@ -44,7 +44,8 @@ type SpectrumSeries = {
 };
 
 const activeRenderProcesses = new Map<string, ChildProcess>();
-const RENDER_LAYER_CACHE_VERSION = "2026-03-28-viz-preview-parity-softglow-v2";
+const RENDER_LAYER_CACHE_VERSION =
+  "2026-03-28-viz-preview-parity-responsive-v3";
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
@@ -445,6 +446,52 @@ function drawLine(
   }
 }
 
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
+function buildResponsiveSpectrumFrame(input: {
+  frames: number[][];
+  absoluteMs: number;
+  frameStepMs: number;
+  barCount: number;
+}) {
+  const { frames, absoluteMs, frameStepMs, barCount } = input;
+
+  if (frames.length === 0) {
+    return Array.from({ length: barCount }).map(() => 0.07);
+  }
+
+  const safeStepMs = Math.max(1, frameStepMs);
+  const baseIndex = spectrumFrameIndexAtMs(
+    absoluteMs,
+    safeStepMs,
+    frames.length,
+  );
+  const nextIndex = Math.min(frames.length - 1, baseIndex + 1);
+  const prevIndex = Math.max(0, baseIndex - 1);
+  const localT = clampNumber((absoluteMs % safeStepMs) / safeStepMs, 0, 1);
+
+  const current = frames[baseIndex] ?? [];
+  const next = frames[nextIndex] ?? current;
+  const prev = frames[prevIndex] ?? current;
+
+  return Array.from({ length: barCount }).map((_, index) => {
+    const from = clampNumber(current[index] ?? 0, 0, 1);
+    const to = clampNumber(next[index] ?? from, 0, 1);
+    const previous = clampNumber(prev[index] ?? from, 0, 1);
+
+    const interpolated = lerp(from, to, localT);
+    const transient = Math.max(0, from - previous) * 0.4;
+    const emphasized = Math.pow(
+      clampNumber(interpolated + transient, 0, 1),
+      0.82,
+    );
+
+    return clampNumber(emphasized, 0.015, 1);
+  });
+}
+
 async function renderSpectrumVisualizerLayer(input: {
   renderJobId: string;
   ffmpegBinary: string;
@@ -546,14 +593,12 @@ async function renderSpectrumVisualizerLayer(input: {
         Math.max(0, eqYCenter - Math.floor(eqH / 2)),
       );
 
-      const spectrumIndex = spectrumFrameIndexAtMs(
+      const values = buildResponsiveSpectrumFrame({
+        frames: normalizedFrames,
         absoluteMs,
-        spectrumFrameStepMs,
-        normalizedFrames.length,
-      );
-      const values =
-        normalizedFrames[spectrumIndex] ??
-        Array.from({ length: visualizerBarCount }).map(() => 0.06);
+        frameStepMs: spectrumFrameStepMs,
+        barCount: visualizerBarCount,
+      });
 
       const gap = 2;
       const barWidth = Math.max(
@@ -611,7 +656,7 @@ async function renderSpectrumVisualizerLayer(input: {
       ) {
         const half = Math.max(4, Math.floor(eqH / 2));
         for (let index = 0; index < values.length; index += 1) {
-          const value = clampNumber(values[index], 0.04, 1);
+          const value = clampNumber(values[index], 0.015, 1);
           const h = Math.max(2, Math.round(value * (half - 2)));
           const x = startX + index * (barWidth + gap);
           const yTop = eqY + half - h;
@@ -642,7 +687,7 @@ async function renderSpectrumVisualizerLayer(input: {
       } else if (mode === "dots") {
         const radius = Math.max(2, Math.floor(barWidth * 0.45));
         for (let index = 0; index < values.length; index += 1) {
-          const value = clampNumber(values[index], 0.04, 1);
+          const value = clampNumber(values[index], 0.015, 1);
           const x =
             startX + index * (barWidth + gap) + Math.floor(barWidth / 2);
           const y = eqY + eqH - Math.round(value * eqH);
@@ -650,7 +695,7 @@ async function renderSpectrumVisualizerLayer(input: {
         }
       } else {
         for (let index = 0; index < values.length; index += 1) {
-          const value = clampNumber(values[index], 0.04, 1);
+          const value = clampNumber(values[index], 0.015, 1);
           const x = startX + index * (barWidth + gap);
           const h = Math.max(3, Math.round(value * eqH));
           const y = eqY + eqH - h;
@@ -937,7 +982,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     ? ",drawbox=x=iw-240:y=ih-84:w=220:h=44:color=black@0.35:t=fill"
     : "";
 
-  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(4, project.posterConfig.blurStrength * 0.65)}:steps=2,eq=brightness=-0.24:saturation=1.05${watermarkFilter}[vout]`;
+  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(4, project.posterConfig.blurStrength * 0.72)}:steps=2,eq=brightness=-0.08:saturation=1.04${watermarkFilter}[vout]`;
 
   const baseLayerArgs = [
     "-y",
