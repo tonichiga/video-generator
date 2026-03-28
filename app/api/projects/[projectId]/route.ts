@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { defaultTrackTextConfig } from "@/lib/domain/defaults";
 import { errorResponse } from "@/lib/server/errors";
 import {
   getAssetById,
@@ -12,6 +13,7 @@ import {
   parseTimelineState,
 } from "@/lib/server/timeline-validation";
 import {
+  parseTextAlign,
   parseHexColor,
   parseNumberInRange,
   parseVisualizerType,
@@ -60,6 +62,10 @@ export async function GET(
       particleConfig: loaded.project.particleConfig,
       equalizerConfig: loaded.project.equalizerConfig,
       posterConfig: loaded.project.posterConfig,
+      trackTextConfig: {
+        ...defaultTrackTextConfig,
+        ...(loaded.project.trackTextConfig ?? {}),
+      },
       watermarkEnabled: loaded.project.watermarkEnabled,
       timeline: loaded.project.timeline ?? null,
       keyframes: loaded.project.keyframes ?? [],
@@ -98,6 +104,7 @@ export async function PATCH(
       equalizerConfig?: unknown;
       particleConfig?: unknown;
       posterConfig?: unknown;
+      trackTextConfig?: unknown;
       backgroundAssetId?: unknown;
       templateId?: unknown;
       watermarkEnabled?: unknown;
@@ -254,6 +261,53 @@ export async function PATCH(
   if (payload.posterConfig && typeof payload.posterConfig === "object") {
     patch.posterConfig =
       payload.posterConfig as typeof loaded.project.posterConfig;
+  }
+
+  if (payload.trackTextConfig && typeof payload.trackTextConfig === "object") {
+    const next = payload.trackTextConfig as Record<string, unknown>;
+    const artist =
+      typeof next.artist === "string" ? next.artist.trim().slice(0, 120) : "";
+    const songName =
+      typeof next.songName === "string"
+        ? next.songName.trim().slice(0, 120)
+        : "";
+    const color = parseHexColor(next.color);
+    const x = parseNumberInRange(next.x, 0, 1);
+    const y = parseNumberInRange(next.y, 0, 1);
+    const size = parseNumberInRange(next.size, 14, 120);
+    const gap =
+      next.gap === undefined
+        ? defaultTrackTextConfig.gap
+        : parseNumberInRange(next.gap, 0, 120);
+    const align = parseTextAlign(next.align);
+
+    if (
+      !artist ||
+      !songName ||
+      color === null ||
+      x === null ||
+      y === null ||
+      size === null ||
+      gap === null ||
+      !align
+    ) {
+      return errorResponse(
+        400,
+        "PROJECT_TRACK_TEXT_INVALID",
+        "trackTextConfig values are invalid",
+      );
+    }
+
+    patch.trackTextConfig = {
+      artist,
+      songName,
+      color,
+      x,
+      y,
+      size,
+      gap,
+      align,
+    };
   }
 
   const updated = await updateProjectById(projectId, patch);

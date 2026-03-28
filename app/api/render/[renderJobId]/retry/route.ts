@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { errorResponse } from "@/lib/server/errors";
+import { renderWatermarkConfig } from "@/lib/server/env";
 import { createId } from "@/lib/server/ids";
 import {
   getProjectById,
   getRenderJobById,
   insertRenderJob,
+  updateRenderJobById,
 } from "@/lib/server/repository";
 import { runRenderJob } from "@/lib/server/render";
 
@@ -50,6 +52,8 @@ export async function POST(
   }
 
   const nextRenderJobId = createId("job");
+  const watermarkApplied =
+    project.watermarkEnabled && renderWatermarkConfig.enabled;
   await insertRenderJob({
     id: nextRenderJobId,
     projectId: sourceJob.projectId,
@@ -61,11 +65,25 @@ export async function POST(
     errorMessage: null,
     startedAt: null,
     finishedAt: null,
-    watermarkApplied: project.watermarkEnabled,
+    watermarkApplied,
     createdAt: new Date().toISOString(),
   });
 
-  void runRenderJob({ renderJobId: nextRenderJobId });
+  void runRenderJob({ renderJobId: nextRenderJobId }).catch((error) => {
+    console.error("[render] retry bootstrap failed", {
+      renderJobId: nextRenderJobId,
+      sourceRenderJobId: renderJobId,
+      error,
+    });
+    void updateRenderJobById(nextRenderJobId, {
+      status: "failed",
+      progress: 100,
+      errorCode: "RENDER_BOOTSTRAP_FAILED",
+      errorMessage:
+        error instanceof Error ? error.message : "Render job bootstrap failed",
+      finishedAt: new Date().toISOString(),
+    });
+  });
 
   return NextResponse.json(
     {

@@ -60,6 +60,17 @@ export type PosterConfigPayload = {
   blurStrength: number;
 };
 
+export type TrackTextConfigPayload = {
+  artist: string;
+  songName: string;
+  color: string;
+  x: number;
+  y: number;
+  size: number;
+  gap: number;
+  align: "left" | "center" | "right";
+};
+
 export type ProjectPersistencePayload = {
   clientToken: string;
   templateId: string | null;
@@ -71,6 +82,7 @@ export type ProjectPersistencePayload = {
     speed: number;
   };
   posterConfig: PosterConfigPayload;
+  trackTextConfig: TrackTextConfigPayload;
   timeline: TimelineState;
   keyframes: TimelineKeyframeTrack[];
 };
@@ -105,6 +117,16 @@ export type LoadProjectResponse = {
   posterConfig?: {
     cornerRadius?: number;
     blurStrength?: number;
+  };
+  trackTextConfig?: {
+    artist?: string;
+    songName?: string;
+    color?: string;
+    x?: number;
+    y?: number;
+    size?: number;
+    gap?: number;
+    align?: "left" | "center" | "right";
   };
   timeline?: TimelineState | null;
   keyframes?: TimelineKeyframeTrack[];

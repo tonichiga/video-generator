@@ -40,6 +40,17 @@ export interface PosterConfig {
   blurStrength: number;
 }
 
+export interface TrackTextConfig {
+  artist: string;
+  songName: string;
+  color: string;
+  x: number;
+  y: number;
+  size: number;
+  gap: number;
+  align: "left" | "center" | "right";
+}
+
 export type TimelineKeyframeParameter =
   | "equalizer.width"
   | "equalizer.height"
@@ -76,6 +87,7 @@ export interface Project {
   particleConfig: ParticleConfig;
   equalizerConfig: EqualizerConfig;
   posterConfig: PosterConfig;
+  trackTextConfig: TrackTextConfig;
   watermarkEnabled: boolean;
   templateId: string | null;
   trackAssetId: string;

@@ -82,6 +82,16 @@ export default function Home() {
 
   const [posterCornerRadius, setPosterCornerRadius] = useState(20);
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
+  const [artistName, setArtistName] = useState("Unknown Artist");
+  const [songName, setSongName] = useState("Untitled Track");
+  const [trackTextColor, setTrackTextColor] = useState("#FFFFFF");
+  const [trackTextX, setTrackTextX] = useState(0.5);
+  const [trackTextY, setTrackTextY] = useState(0.82);
+  const [trackTextSize, setTrackTextSize] = useState(34);
+  const [trackTextGap, setTrackTextGap] = useState(10);
+  const [trackTextAlign, setTrackTextAlign] = useState<
+    "left" | "center" | "right"
+  >("center");
 
   const [status, setStatus] = useState("Ready");
   const [isBusy, setIsBusy] = useState(false);
@@ -133,6 +143,18 @@ export default function Home() {
   const previewAspectRatio = useMemo(() => {
     return format === "tiktok" ? "9 / 16" : "16 / 9";
   }, [format]);
+
+  const renderResolution = useMemo(() => {
+    if (format === "tiktok") {
+      return quality === "hd"
+        ? { width: 720, height: 1280 }
+        : { width: 1080, height: 1920 };
+    }
+
+    return quality === "hd"
+      ? { width: 1280, height: 720 }
+      : { width: 1920, height: 1080 };
+  }, [format, quality]);
 
   const liveEqualizerConfig = useMemo(() => {
     const baseConfig = {
@@ -684,6 +706,16 @@ export default function Home() {
         cornerRadius: posterCornerRadius,
         blurStrength: posterBlurStrength,
       },
+      trackTextConfig: {
+        artist: artistName.trim() || "Unknown Artist",
+        songName: songName.trim() || "Untitled Track",
+        color: trackTextColor,
+        x: trackTextX,
+        y: trackTextY,
+        size: trackTextSize,
+        gap: trackTextGap,
+        align: trackTextAlign,
+      },
       timeline: {
         ...timeline,
         playheadMs: timeline.playheadMs ?? timeline.trimInMs,
@@ -721,6 +753,14 @@ export default function Home() {
     setVisualizerBarCount(Math.round(data.equalizerConfig.barCount ?? 36));
     setPosterCornerRadius(data.posterConfig?.cornerRadius ?? 20);
     setPosterBlurStrength(data.posterConfig?.blurStrength ?? 20);
+    setArtistName(data.trackTextConfig?.artist ?? "Unknown Artist");
+    setSongName(data.trackTextConfig?.songName ?? "Untitled Track");
+    setTrackTextColor(data.trackTextConfig?.color ?? "#FFFFFF");
+    setTrackTextX(data.trackTextConfig?.x ?? 0.5);
+    setTrackTextY(data.trackTextConfig?.y ?? 0.82);
+    setTrackTextSize(data.trackTextConfig?.size ?? 34);
+    setTrackTextGap(data.trackTextConfig?.gap ?? 10);
+    setTrackTextAlign(data.trackTextConfig?.align ?? "center");
     setTimeline(normalizeTimeline(data.timeline, trackDurationMs));
     setKeyframes(Array.isArray(data.keyframes) ? data.keyframes : []);
     setStatus("Project loaded");
@@ -782,6 +822,16 @@ export default function Home() {
       posterConfig: {
         cornerRadius: posterCornerRadius,
         blurStrength: posterBlurStrength,
+      },
+      trackTextConfig: {
+        artist: artistName.trim() || "Unknown Artist",
+        songName: songName.trim() || "Untitled Track",
+        color: trackTextColor,
+        x: trackTextX,
+        y: trackTextY,
+        size: trackTextSize,
+        gap: trackTextGap,
+        align: trackTextAlign,
       },
       timeline: {
         ...timeline,
@@ -1018,88 +1068,115 @@ export default function Home() {
   }
 
   return (
-    <main className="editor-root">
+    <main className="editor-root ">
       <audio
         ref={audioRef}
         src={trackPlaybackUrl || undefined}
         preload="auto"
       />
 
-      <EditorPanel
-        clientToken={clientToken}
-        projectName={projectName}
-        format={format}
-        quality={quality}
-        selectedTemplateId={selectedTemplateId}
-        templates={templates}
-        equalizerColor={equalizerColor}
-        equalizerWidth={equalizerWidth}
-        equalizerHeight={equalizerHeight}
-        equalizerY={equalizerY}
-        visualizerType={visualizerType}
-        visualizerBarCount={visualizerBarCount}
-        posterBlurStrength={posterBlurStrength}
-        posterCornerRadius={posterCornerRadius}
-        projectId={projectId}
-        status={status}
-        isBusy={isBusy}
-        trackAssetId={trackAssetId}
-        posterAssetId={posterAssetId}
-        backgroundAssetId={backgroundAssetId}
-        analysisId={analysisId}
-        analysisStatus={analysisStatus}
-        renderJobId={renderJobId}
-        renderStatus={renderStatus}
-        renderProgress={renderProgress}
-        previewTimelineEnabled={previewTimelineEnabled}
-        previewStartupMs={previewStartupMs}
-        previewDriftMs={previewDriftMs}
-        previewFps={previewFps}
-        onClientTokenChange={setClientToken}
-        onProjectNameChange={setProjectName}
-        onFormatChange={setFormat}
-        onQualityChange={setQuality}
-        onTemplateChange={(value) => applyTemplateSettings(value, true)}
-        onEqualizerColorChange={setEqualizerColor}
-        onEqualizerWidthChange={setEqualizerWidth}
-        onEqualizerHeightChange={setEqualizerHeight}
-        onEqualizerYChange={setEqualizerY}
-        onVisualizerTypeChange={setVisualizerType}
-        onVisualizerBarCountChange={setVisualizerBarCount}
-        onPosterBlurStrengthChange={setPosterBlurStrength}
-        onPosterCornerRadiusChange={setPosterCornerRadius}
-        onSubmitProject={(event) => void runAction(() => saveProject(event))}
-        onUploadTrack={(file) => void runAction(() => uploadTrack(file))}
-        onAnalyzeTrack={() => void runAction(analyzeTrack)}
-        onStartRender={() => void runAction(startRender)}
-        onDownloadRender={downloadRender}
-        onCancelRender={() => void runAction(cancelRender)}
-        onRetryRender={() => void runAction(retryRender)}
-        onProjectIdChange={setProjectId}
-        onLoadProject={() => void runAction(loadProject)}
-        onSaveTimeline={() => void runAction(saveTimelineState)}
-      />
+      <div className="grid grid-cols-2 w-full justify-between">
+        <EditorPanel
+          clientToken={clientToken}
+          projectName={projectName}
+          format={format}
+          quality={quality}
+          selectedTemplateId={selectedTemplateId}
+          templates={templates}
+          equalizerColor={equalizerColor}
+          equalizerWidth={equalizerWidth}
+          equalizerHeight={equalizerHeight}
+          equalizerY={equalizerY}
+          visualizerType={visualizerType}
+          visualizerBarCount={visualizerBarCount}
+          posterBlurStrength={posterBlurStrength}
+          posterCornerRadius={posterCornerRadius}
+          artistName={artistName}
+          songName={songName}
+          trackTextColor={trackTextColor}
+          trackTextX={trackTextX}
+          trackTextY={trackTextY}
+          trackTextSize={trackTextSize}
+          trackTextGap={trackTextGap}
+          trackTextAlign={trackTextAlign}
+          projectId={projectId}
+          status={status}
+          isBusy={isBusy}
+          trackAssetId={trackAssetId}
+          posterAssetId={posterAssetId}
+          backgroundAssetId={backgroundAssetId}
+          analysisId={analysisId}
+          analysisStatus={analysisStatus}
+          renderJobId={renderJobId}
+          renderStatus={renderStatus}
+          renderProgress={renderProgress}
+          previewTimelineEnabled={previewTimelineEnabled}
+          previewStartupMs={previewStartupMs}
+          previewDriftMs={previewDriftMs}
+          previewFps={previewFps}
+          onClientTokenChange={setClientToken}
+          onProjectNameChange={setProjectName}
+          onFormatChange={setFormat}
+          onQualityChange={setQuality}
+          onTemplateChange={(value) => applyTemplateSettings(value, true)}
+          onEqualizerColorChange={setEqualizerColor}
+          onEqualizerWidthChange={setEqualizerWidth}
+          onEqualizerHeightChange={setEqualizerHeight}
+          onEqualizerYChange={setEqualizerY}
+          onVisualizerTypeChange={setVisualizerType}
+          onVisualizerBarCountChange={setVisualizerBarCount}
+          onPosterBlurStrengthChange={setPosterBlurStrength}
+          onPosterCornerRadiusChange={setPosterCornerRadius}
+          onArtistNameChange={setArtistName}
+          onSongNameChange={setSongName}
+          onTrackTextColorChange={setTrackTextColor}
+          onTrackTextXChange={setTrackTextX}
+          onTrackTextYChange={setTrackTextY}
+          onTrackTextSizeChange={setTrackTextSize}
+          onTrackTextGapChange={setTrackTextGap}
+          onTrackTextAlignChange={setTrackTextAlign}
+          onSubmitProject={(event) => void runAction(() => saveProject(event))}
+          onUploadTrack={(file) => void runAction(() => uploadTrack(file))}
+          onAnalyzeTrack={() => void runAction(analyzeTrack)}
+          onStartRender={() => void runAction(startRender)}
+          onDownloadRender={downloadRender}
+          onCancelRender={() => void runAction(cancelRender)}
+          onRetryRender={() => void runAction(retryRender)}
+          onProjectIdChange={setProjectId}
+          onLoadProject={() => void runAction(loadProject)}
+          onSaveTimeline={() => void runAction(saveTimelineState)}
+        />
 
-      <PreviewPanel
-        previewAspectRatio={previewAspectRatio}
-        sceneAccentA={selectedTemplate?.defaultPalette?.[0] ?? equalizerColor}
-        sceneAccentB={selectedTemplate?.defaultPalette?.[1] ?? "#11141f"}
-        sceneAccentC={selectedTemplate?.defaultPalette?.[2] ?? "#d8e8ff"}
-        posterAssetId={posterAssetId}
-        backgroundAssetId={backgroundAssetId}
-        posterBlurStrength={posterBlurStrength}
-        liveEqualizerConfig={liveEqualizerConfig}
-        onPosterFileSelected={(file) =>
-          void runAction(() => uploadPoster(file))
-        }
-        onBackgroundFileSelected={(file) =>
-          void runAction(() => uploadBackground(file))
-        }
-        visualizerType={visualizerType}
-        normalizedVisualizerBars={normalizedVisualizerBars}
-        equalizerLineD={equalizerLineD}
-        posterCornerRadius={posterCornerRadius}
-      />
+        <PreviewPanel
+          previewAspectRatio={previewAspectRatio}
+          sceneAccentA={selectedTemplate?.defaultPalette?.[0] ?? equalizerColor}
+          sceneAccentB={selectedTemplate?.defaultPalette?.[1] ?? "#11141f"}
+          sceneAccentC={selectedTemplate?.defaultPalette?.[2] ?? "#d8e8ff"}
+          posterAssetId={posterAssetId}
+          backgroundAssetId={backgroundAssetId}
+          posterBlurStrength={posterBlurStrength}
+          liveEqualizerConfig={liveEqualizerConfig}
+          onPosterFileSelected={(file) =>
+            void runAction(() => uploadPoster(file))
+          }
+          onBackgroundFileSelected={(file) =>
+            void runAction(() => uploadBackground(file))
+          }
+          visualizerType={visualizerType}
+          normalizedVisualizerBars={normalizedVisualizerBars}
+          equalizerLineD={equalizerLineD}
+          posterCornerRadius={posterCornerRadius}
+          artistName={artistName}
+          songName={songName}
+          trackTextColor={trackTextColor}
+          trackTextX={trackTextX}
+          trackTextY={trackTextY}
+          trackTextSize={trackTextSize}
+          trackTextGap={trackTextGap}
+          trackTextAlign={trackTextAlign}
+          renderHeight={renderResolution.height}
+        />
+      </div>
 
       <PreviewTimelinePanel
         previewTimelineEnabled={previewTimelineEnabled}

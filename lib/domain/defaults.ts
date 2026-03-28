@@ -2,6 +2,7 @@ import type {
   EqualizerConfig,
   ParticleConfig,
   PosterConfig,
+  TrackTextConfig,
 } from "@/lib/domain/types";
 
 export const defaultParticleConfig: ParticleConfig = {
@@ -23,4 +24,15 @@ export const defaultEqualizerConfig: EqualizerConfig = {
 export const defaultPosterConfig: PosterConfig = {
   cornerRadius: 20,
   blurStrength: 20,
+};
+
+export const defaultTrackTextConfig: TrackTextConfig = {
+  artist: "Unknown Artist",
+  songName: "Untitled Track",
+  color: "#FFFFFF",
+  x: 0.5,
+  y: 0.82,
+  size: 34,
+  gap: 10,
+  align: "center",
 };

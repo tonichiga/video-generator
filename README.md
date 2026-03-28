@@ -29,3 +29,13 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 - Technical Doc (Realtime Preview + Timeline v1): `docs/technical/TECHSPEC-realtime-preview-timeline-v1.md`
 - Prompt for Senior Fullstack Skill (Realtime Preview + Timeline v1): `docs/planning/prompt-senior-fullstack-realtime-preview-timeline-v1.md`
 - Developer Start Handoff: `docs/DEVELOPER-START-HANDOFF.md`
+
+## Render Watermark Env Config
+
+- `RENDER_WATERMARK_ENABLED=true|false`: global switch for watermark overlay in final render.
+- `RENDER_WATERMARK_TEXT="Your text"`: watermark label text.
+- `RENDER_WATERMARK_FONT_SIZE=16`: watermark label font size in px (range `10..72`).
+
+Backward compatibility:
+
+- `WATERMARK_ENABLED` is still supported as a legacy fallback when `RENDER_WATERMARK_ENABLED` is not set.

@@ -4,6 +4,7 @@ import {
   defaultEqualizerConfig,
   defaultParticleConfig,
   defaultPosterConfig,
+  defaultTrackTextConfig,
 } from "@/lib/domain/defaults";
 import { builtInTemplates } from "@/lib/domain/templates";
 import type { Project } from "@/lib/domain/types";
@@ -22,6 +23,7 @@ import {
   parseHexColor,
   parseNumberInRange,
   parseQuality,
+  parseTextAlign,
   parseVisualizerType,
 } from "@/lib/server/validation";
 import {
@@ -61,6 +63,7 @@ export async function POST(request: Request) {
       particleConfig?: unknown;
       equalizerConfig?: unknown;
       posterConfig?: unknown;
+      trackTextConfig?: unknown;
       watermarkEnabled?: unknown;
       timeline?: unknown;
       keyframes?: unknown;
@@ -217,6 +220,54 @@ export async function POST(request: Request) {
     };
   }
 
+  let trackTextConfig = defaultTrackTextConfig;
+  if (payload.trackTextConfig && typeof payload.trackTextConfig === "object") {
+    const next = payload.trackTextConfig as Record<string, unknown>;
+    const artist =
+      typeof next.artist === "string" ? next.artist.trim().slice(0, 120) : "";
+    const songName =
+      typeof next.songName === "string"
+        ? next.songName.trim().slice(0, 120)
+        : "";
+    const color = parseHexColor(next.color);
+    const x = parseNumberInRange(next.x, 0, 1);
+    const y = parseNumberInRange(next.y, 0, 1);
+    const size = parseNumberInRange(next.size, 14, 120);
+    const gap =
+      next.gap === undefined
+        ? defaultTrackTextConfig.gap
+        : parseNumberInRange(next.gap, 0, 120);
+    const align = parseTextAlign(next.align);
+
+    if (
+      !artist ||
+      !songName ||
+      color === null ||
+      x === null ||
+      y === null ||
+      size === null ||
+      gap === null ||
+      !align
+    ) {
+      return errorResponse(
+        400,
+        "PROJECT_TRACK_TEXT_INVALID",
+        "trackTextConfig values are invalid",
+      );
+    }
+
+    trackTextConfig = {
+      artist,
+      songName,
+      color,
+      x,
+      y,
+      size,
+      gap,
+      align,
+    };
+  }
+
   const now = new Date().toISOString();
   const trackDurationMs = Math.max(
     100,
@@ -271,6 +322,7 @@ export async function POST(request: Request) {
     equalizerConfig,
     posterConfig:
       (payload.posterConfig as Project["posterConfig"]) ?? defaultPosterConfig,
+    trackTextConfig,
     watermarkEnabled:
       typeof payload.watermarkEnabled === "boolean"
         ? payload.watermarkEnabled

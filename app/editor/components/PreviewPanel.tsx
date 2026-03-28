@@ -41,6 +41,15 @@ type PreviewPanelProps = {
   normalizedVisualizerBars: number[];
   equalizerLineD: string;
   posterCornerRadius: number;
+  artistName: string;
+  songName: string;
+  trackTextColor: string;
+  trackTextX: number;
+  trackTextY: number;
+  trackTextSize: number;
+  trackTextGap: number;
+  trackTextAlign: "left" | "center" | "right";
+  renderHeight: number;
 };
 
 type PreviewTimelinePanelProps = {
@@ -77,13 +86,40 @@ export function PreviewPanel({
   normalizedVisualizerBars,
   equalizerLineD,
   posterCornerRadius,
+  artistName,
+  songName,
+  trackTextColor,
+  trackTextX,
+  trackTextY,
+  trackTextSize,
+  trackTextGap,
+  trackTextAlign,
+  renderHeight,
 }: PreviewPanelProps) {
+  const sceneRef = useRef<HTMLDivElement | null>(null);
   const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
   const posterFileInputRef = useRef<HTMLInputElement | null>(null);
   const [posterPreviewUrl, setPosterPreviewUrl] = useState<string | null>(null);
   const [backgroundPreviewUrl, setBackgroundPreviewUrl] = useState<
     string | null
   >(null);
+  const [sceneHeightPx, setSceneHeightPx] = useState(0);
+
+  useEffect(() => {
+    if (!sceneRef.current || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setSceneHeightPx(Math.max(1, Math.round(entry.contentRect.height)));
+      }
+    });
+
+    observer.observe(sceneRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -137,6 +173,40 @@ export function PreviewPanel({
     width: `${liveEqualizerConfig.width * 100}%`,
     height: `${liveEqualizerConfig.height * 100}%`,
     top: `${liveEqualizerConfig.y * 100}%`,
+  } as CSSProperties;
+
+  const trackTextStyle = {
+    left: `${trackTextX * 100}%`,
+    top: `${trackTextY * 100}%`,
+    color: trackTextColor,
+    textAlign: trackTextAlign,
+    transform:
+      trackTextAlign === "center"
+        ? "translateX(-50%)"
+        : trackTextAlign === "right"
+          ? "translateX(-100%)"
+          : "translateX(0)",
+  } as CSSProperties;
+
+  const previewScale =
+    sceneHeightPx > 0 ? sceneHeightPx / Math.max(1, renderHeight) : 1;
+  const previewSongSizePx = Math.max(
+    14,
+    Math.round(trackTextSize * previewScale),
+  );
+  const previewArtistSizePx = Math.max(
+    12,
+    Math.round(previewSongSizePx * 0.72),
+  );
+  const previewGapPx = Math.max(0, Math.round(trackTextGap * previewScale));
+
+  const trackArtistStyle = {
+    fontSize: `${previewArtistSizePx}px`,
+  } as CSSProperties;
+
+  const trackSongStyle = {
+    fontSize: `${previewSongSizePx}px`,
+    marginTop: `${previewGapPx}px`,
   } as CSSProperties;
 
   function openBackgroundPicker() {
@@ -198,7 +268,12 @@ export function PreviewPanel({
         title="Select poster image"
         onChange={handlePosterChange}
       />
-      <div onClick={openBackgroundPicker} className="scene" style={sceneStyle}>
+      <div
+        ref={sceneRef}
+        onClick={openBackgroundPicker}
+        className="scene"
+        style={sceneStyle}
+      >
         <div className="scene-bg " style={sceneBgStyle} />
 
         <div className="scene-eq" style={eqStyle}>
@@ -260,7 +335,7 @@ export function PreviewPanel({
           />
 
           <div
-            className="relative z-10 w-60 h-60 "
+            className="relative z-10 w-[320px] h-[320px] "
             onClick={(event) => {
               event.stopPropagation();
               openPosterPicker();
@@ -277,11 +352,23 @@ export function PreviewPanel({
                 unoptimized
               />
             ) : (
-              <div className="border w-60 h-60 rounded-2xl flex items-center justify-center">
+              <div className="border w-[320px] h-[320px] rounded-2xl flex items-center justify-center">
                 +
               </div>
             )}
           </div>
+        </div>
+
+        <div className="scene-track-text" style={trackTextStyle}>
+          <p className="scene-track-text-artist" style={trackArtistStyle}>
+            {artistName || "Unknown Artist"}
+          </p>
+          <p
+            className="scene-track-text-song text-nowrap"
+            style={trackSongStyle}
+          >
+            {songName || "Untitled Track"}
+          </p>
         </div>
       </div>
       <p className="layer-note">
@@ -309,6 +396,15 @@ export function PreviewTimelinePanel({
   onClearSelectedKeyframes,
   keyframes,
 }: PreviewTimelinePanelProps) {
+  function toClampedNumber(input: string, min: number, max: number) {
+    const parsed = Number(input);
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+
+    return Math.min(max, Math.max(min, parsed));
+  }
+
   if (!previewTimelineEnabled) {
     return (
       <section className="timeline-panel timeline-panel--dock">
@@ -400,40 +496,97 @@ export function PreviewTimelinePanel({
       <div className="timeline-sliders">
         <label>
           Playhead ({formatMs(timeline.playheadMs ?? timeline.trimInMs)})
-          <input
-            type="range"
-            min={timeline.trimInMs}
-            max={timeline.trimOutMs}
-            step={10}
-            value={timeline.playheadMs ?? timeline.trimInMs}
-            onChange={(event) => onSeekTo(Number(event.target.value))}
-          />
+          <div className="timeline-slider-row">
+            <input
+              type="range"
+              min={timeline.trimInMs}
+              max={timeline.trimOutMs}
+              step={10}
+              value={timeline.playheadMs ?? timeline.trimInMs}
+              onChange={(event) => onSeekTo(Number(event.target.value))}
+            />
+            <input
+              type="number"
+              min={timeline.trimInMs}
+              max={timeline.trimOutMs}
+              step={10}
+              value={timeline.playheadMs ?? timeline.trimInMs}
+              onChange={(event) => {
+                const next = toClampedNumber(
+                  event.target.value,
+                  timeline.trimInMs,
+                  timeline.trimOutMs,
+                );
+                if (next !== null) {
+                  onSeekTo(next);
+                }
+              }}
+            />
+          </div>
         </label>
         <label>
           Trim in ({formatMs(timeline.trimInMs)})
-          <input
-            type="range"
-            min={0}
-            max={Math.max(1, timeline.trimOutMs - 1)}
-            step={10}
-            value={timeline.trimInMs}
-            onChange={(event) => {
-              onUpdateTrim(Number(event.target.value), timeline.trimOutMs);
-            }}
-          />
+          <div className="timeline-slider-row">
+            <input
+              type="range"
+              min={0}
+              max={Math.max(1, timeline.trimOutMs - 1)}
+              step={10}
+              value={timeline.trimInMs}
+              onChange={(event) => {
+                onUpdateTrim(Number(event.target.value), timeline.trimOutMs);
+              }}
+            />
+            <input
+              type="number"
+              min={0}
+              max={Math.max(1, timeline.trimOutMs - 1)}
+              step={10}
+              value={timeline.trimInMs}
+              onChange={(event) => {
+                const next = toClampedNumber(
+                  event.target.value,
+                  0,
+                  Math.max(1, timeline.trimOutMs - 1),
+                );
+                if (next !== null) {
+                  onUpdateTrim(next, timeline.trimOutMs);
+                }
+              }}
+            />
+          </div>
         </label>
         <label>
           Trim out ({formatMs(timeline.trimOutMs)})
-          <input
-            type="range"
-            min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
-            max={trackDurationMs}
-            step={10}
-            value={timeline.trimOutMs}
-            onChange={(event) => {
-              onUpdateTrim(timeline.trimInMs, Number(event.target.value));
-            }}
-          />
+          <div className="timeline-slider-row">
+            <input
+              type="range"
+              min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
+              max={trackDurationMs}
+              step={10}
+              value={timeline.trimOutMs}
+              onChange={(event) => {
+                onUpdateTrim(timeline.trimInMs, Number(event.target.value));
+              }}
+            />
+            <input
+              type="number"
+              min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
+              max={trackDurationMs}
+              step={10}
+              value={timeline.trimOutMs}
+              onChange={(event) => {
+                const next = toClampedNumber(
+                  event.target.value,
+                  Math.min(trackDurationMs, timeline.trimInMs + 1),
+                  trackDurationMs,
+                );
+                if (next !== null) {
+                  onUpdateTrim(timeline.trimInMs, next);
+                }
+              }}
+            />
+          </div>
         </label>
       </div>
 

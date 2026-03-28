@@ -36,8 +36,6 @@ body {
 .editor-root {
   width: min(1380px, 100% - 2rem);
   margin: 1.2rem auto 2rem;
-  display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
   gap: 1rem;
 }
 
@@ -77,6 +75,18 @@ body {
   gap: 0.35rem;
   font-size: 0.87rem;
   color: var(--ink-soft);
+}
+
+.editor-range-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.editor-range-row input[type="number"] {
+  text-align: right;
+  padding-right: 0.45rem;
 }
 
 .editor-grid input,
@@ -334,6 +344,36 @@ body {
   place-items: center;
 }
 
+.scene-track-text {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  gap: 0;
+  max-width: 72%;
+  text-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.scene-track-text-artist,
+.scene-track-text-song {
+  margin: 0;
+  line-height: 1.05;
+}
+
+.scene-track-text-artist {
+  font-size: clamp(0.78rem, 1.5vw, 1.05rem);
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.scene-track-text-song {
+  font-size: clamp(0.95rem, 1.9vw, 1.34rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 .layer-note {
   margin: 0;
   color: var(--ink-soft);
@@ -393,6 +433,18 @@ body {
 .timeline-sliders {
   display: grid;
   gap: 0.35rem;
+}
+
+.timeline-slider-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-slider-row input[type="number"] {
+  text-align: right;
+  padding-right: 0.45rem;
 }
 
 .timeline-sliders label,

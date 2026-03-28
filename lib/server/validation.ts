@@ -71,3 +71,13 @@ export function parseVisualizerType(
   }
   return null;
 }
+
+export function parseTextAlign(
+  value: unknown,
+): "left" | "center" | "right" | null {
+  if (value === "left" || value === "center" || value === "right") {
+    return value;
+  }
+
+  return null;
+}

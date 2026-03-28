@@ -1127,6 +1127,174 @@
       "height": 1024,
       "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
       "createdAt": "2026-03-28T17:45:38.824Z"
+    },
+    {
+      "id": "ast_poster_ms16jdib",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ms16jdib.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T18:47:40.602Z"
+    },
+    {
+      "id": "ast_track_62lr1zw4",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_62lr1zw4.wav",
+      "mimeType": "audio/wav",
+      "size": 57600124,
+      "durationSec": 200,
+      "width": null,
+      "height": null,
+      "checksum": "360cdba5d6d080863effa614288b1de7431251e73dc3c0ec780f79b1fa17605d",
+      "createdAt": "2026-03-28T18:49:49.983Z"
+    },
+    {
+      "id": "ast_render_kybnfx1u",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_kybnfx1u.mp4",
+      "mimeType": "video/mp4",
+      "size": 9997090,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_x7eq3hf3:1774724081395",
+      "createdAt": "2026-03-28T18:54:41.395Z"
+    },
+    {
+      "id": "ast_poster_kru0q9jf",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_kru0q9jf.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T18:55:45.277Z"
+    },
+    {
+      "id": "ast_poster_ryxal2q1",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_ryxal2q1.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T19:01:14.100Z"
+    },
+    {
+      "id": "ast_track_h3dky6hf",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_h3dky6hf.wav",
+      "mimeType": "audio/wav",
+      "size": 57600124,
+      "durationSec": 200,
+      "width": null,
+      "height": null,
+      "checksum": "360cdba5d6d080863effa614288b1de7431251e73dc3c0ec780f79b1fa17605d",
+      "createdAt": "2026-03-28T19:03:15.689Z"
+    },
+    {
+      "id": "ast_render_0tq7byff",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_0tq7byff.mp4",
+      "mimeType": "video/mp4",
+      "size": 8590629,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_0jywta8m:1774724692493",
+      "createdAt": "2026-03-28T19:04:52.493Z"
+    },
+    {
+      "id": "ast_poster_hgj9w0ii",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_hgj9w0ii.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T19:11:46.407Z"
+    },
+    {
+      "id": "ast_track_imnwoefr",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_imnwoefr.wav",
+      "mimeType": "audio/wav",
+      "size": 37033128,
+      "durationSec": 192.88,
+      "width": null,
+      "height": null,
+      "checksum": "c61ccd7846c54efbe4ababe5518182ce0fe934c5d5c0e7e44019fb6a69c14dab",
+      "createdAt": "2026-03-28T19:12:04.661Z"
+    },
+    {
+      "id": "ast_poster_s31z4b1h",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_s31z4b1h.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T19:13:22.344Z"
+    },
+    {
+      "id": "ast_track_up3eiiy3",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_up3eiiy3.wav",
+      "mimeType": "audio/wav",
+      "size": 42201768,
+      "durationSec": 219.8,
+      "width": null,
+      "height": null,
+      "checksum": "4d618646f3e2fcdce5e6cdc1ed7a6bbfc48deb9f23d040338efad310a9af0d0f",
+      "createdAt": "2026-03-28T19:13:24.030Z"
+    },
+    {
+      "id": "ast_poster_4wtr0ksg",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_4wtr0ksg.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-28T19:17:40.804Z"
+    },
+    {
+      "id": "ast_track_0g8axa78",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_0g8axa78.wav",
+      "mimeType": "audio/wav",
+      "size": 42201768,
+      "durationSec": 219.8,
+      "width": null,
+      "height": null,
+      "checksum": "4d618646f3e2fcdce5e6cdc1ed7a6bbfc48deb9f23d040338efad310a9af0d0f",
+      "createdAt": "2026-03-28T19:17:56.537Z"
+    },
+    {
+      "id": "ast_render_4h82gos9",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_4h82gos9.mp4",
+      "mimeType": "video/mp4",
+      "size": 6695840,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_ysxfo6kz:1774725572001",
+      "createdAt": "2026-03-28T19:19:32.001Z"
     }
   ],
   "analyses": [
@@ -1426,6 +1594,61 @@
       "envelopeSeriesPath": "analysis/an_eulihyeo_envelope.json",
       "spectrumSeriesPath": "analysis/an_eulihyeo_spectrum.json",
       "createdAt": "2026-03-28T17:15:40.251Z"
+    },
+    {
+      "id": "an_jyoncdep",
+      "trackAssetId": "ast_track_62lr1zw4",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_jyoncdep_envelope.json",
+      "spectrumSeriesPath": "analysis/an_jyoncdep_spectrum.json",
+      "createdAt": "2026-03-28T18:49:55.333Z"
+    },
+    {
+      "id": "an_em8xln0a",
+      "trackAssetId": "ast_track_h3dky6hf",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_em8xln0a_envelope.json",
+      "spectrumSeriesPath": "analysis/an_em8xln0a_spectrum.json",
+      "createdAt": "2026-03-28T19:03:17.532Z"
+    },
+    {
+      "id": "an_kwacxb8p",
+      "trackAssetId": "ast_track_imnwoefr",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_kwacxb8p_envelope.json",
+      "spectrumSeriesPath": "analysis/an_kwacxb8p_spectrum.json",
+      "createdAt": "2026-03-28T19:12:05.716Z"
+    },
+    {
+      "id": "an_exfhmgwk",
+      "trackAssetId": "ast_track_up3eiiy3",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_exfhmgwk_envelope.json",
+      "spectrumSeriesPath": "analysis/an_exfhmgwk_spectrum.json",
+      "createdAt": "2026-03-28T19:13:24.699Z"
+    },
+    {
+      "id": "an_t51kxsar",
+      "trackAssetId": "ast_track_0g8axa78",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_t51kxsar_envelope.json",
+      "spectrumSeriesPath": "analysis/an_t51kxsar_spectrum.json",
+      "createdAt": "2026-03-28T19:17:58.344Z"
     }
   ],
   "projects": [
@@ -2438,6 +2661,265 @@
       "keyframes": [],
       "createdAt": "2026-03-28T17:15:44.224Z",
       "updatedAt": "2026-03-28T17:15:45.520Z"
+    },
+    {
+      "id": "prj_x7eq3hf3",
+      "clientToken": "cl_fbrw6nsb",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_62lr1zw4",
+      "posterAssetId": "ast_poster_ms16jdib",
+      "backgroundAssetId": null,
+      "analysisId": "an_jyoncdep",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.27,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars",
+        "barCount": 59
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overpass",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.64,
+        "size": 33,
+        "align": "center"
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T18:50:02.779Z",
+      "updatedAt": "2026-03-28T18:50:03.865Z"
+    },
+    {
+      "id": "prj_0jywta8m",
+      "clientToken": "cl_wt9uh9fk",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_h3dky6hf",
+      "posterAssetId": "ast_poster_ryxal2q1",
+      "backgroundAssetId": null,
+      "analysisId": "an_em8xln0a",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.2,
+        "color": "#ffffff",
+        "visualizerType": "symmetricBars",
+        "barCount": 63
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overpass",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.68,
+        "size": 62,
+        "gap": 10,
+        "align": "center"
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T19:03:21.714Z",
+      "updatedAt": "2026-03-28T19:09:18.844Z"
+    },
+    {
+      "id": "prj_o2itrn8x",
+      "clientToken": "cl_451p0qj3",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_imnwoefr",
+      "posterAssetId": "ast_poster_hgj9w0ii",
+      "backgroundAssetId": null,
+      "analysisId": "an_kwacxb8p",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.2,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars",
+        "barCount": 62
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "trackTextConfig": {
+        "artist": "Unknown Artist",
+        "songName": "Untitled Track",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.82,
+        "size": 34,
+        "gap": 10,
+        "align": "center"
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T19:12:09.328Z",
+      "updatedAt": "2026-03-28T19:12:10.103Z"
+    },
+    {
+      "id": "prj_v3v1sfnl",
+      "clientToken": "cl_tnti6852",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_up3eiiy3",
+      "posterAssetId": "ast_poster_s31z4b1h",
+      "backgroundAssetId": null,
+      "analysisId": "an_exfhmgwk",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.82,
+        "width": 0.74,
+        "height": 0.2,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars",
+        "barCount": 36
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "trackTextConfig": {
+        "artist": "Unknown Artist",
+        "songName": "Untitled Track",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.82,
+        "size": 34,
+        "gap": 10,
+        "align": "center"
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T19:13:28.831Z",
+      "updatedAt": "2026-03-28T19:13:30.546Z"
+    },
+    {
+      "id": "prj_ysxfo6kz",
+      "clientToken": "cl_v1e2grj5",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_0g8axa78",
+      "posterAssetId": "ast_poster_4wtr0ksg",
+      "backgroundAssetId": null,
+      "analysisId": "an_t51kxsar",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 0.74,
+        "height": 0.2,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars",
+        "barCount": 36
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "trackTextConfig": {
+        "artist": "Unknown Artist",
+        "songName": "Untitled Track",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.82,
+        "size": 34,
+        "gap": 10,
+        "align": "center"
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-28T19:18:02.810Z",
+      "updatedAt": "2026-03-28T19:18:07.903Z"
     }
   ],
   "renderJobs": [
@@ -2916,6 +3398,104 @@
       "finishedAt": "2026-03-28T17:17:12.544Z",
       "watermarkApplied": true,
       "createdAt": "2026-03-28T17:15:45.527Z"
+    },
+    {
+      "id": "job_wucrmbgt",
+      "projectId": "prj_x7eq3hf3",
+      "status": "failed",
+      "progress": 100,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": "RENDER_FFMPEG_FAILED",
+      "errorMessage": "ffmpeg exited with code 8: ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      60. 26.100 / 60. 26.100\n  libavcodec     62. 28.100 / 62. 28.100\n  libavformat    62. 12.100 / 62. 12.100\n  libavdevice    62.  3.100 / 62.  3.100\n  libavfilter    11. 14.100 / 11. 14.100\n  libswscale      9.  5.100 /  9.  5.100\n  libswresample   6.  3.100 /  6.  3.100\n[AVFilterGraph @ 0xb55018000] No such filter: 'drawtext'\nError : Filter not found\n",
+      "startedAt": "2026-03-28T18:50:03.934Z",
+      "finishedAt": "2026-03-28T18:50:55.322Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T18:50:03.886Z"
+    },
+    {
+      "id": "job_7giho20d",
+      "projectId": "prj_x7eq3hf3",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_kybnfx1u",
+      "outputPath": "renders/ast_render_kybnfx1u.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T18:53:53.019Z",
+      "finishedAt": "2026-03-28T18:54:41.395Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T18:53:52.982Z"
+    },
+    {
+      "id": "job_ebcli3xe",
+      "projectId": "prj_0jywta8m",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_0tq7byff",
+      "outputPath": "renders/ast_render_0tq7byff.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T19:03:22.948Z",
+      "finishedAt": "2026-03-28T19:04:52.494Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T19:03:22.906Z"
+    },
+    {
+      "id": "job_rckypvnp",
+      "projectId": "prj_0jywta8m",
+      "status": "queued",
+      "progress": 0,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T19:09:18.877Z"
+    },
+    {
+      "id": "job_e8019z60",
+      "projectId": "prj_o2itrn8x",
+      "status": "queued",
+      "progress": 0,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T19:12:10.117Z"
+    },
+    {
+      "id": "job_3td3e1pv",
+      "projectId": "prj_v3v1sfnl",
+      "status": "queued",
+      "progress": 0,
+      "outputAssetId": null,
+      "outputPath": null,
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T19:13:30.570Z"
+    },
+    {
+      "id": "job_qjs0chqi",
+      "projectId": "prj_ysxfo6kz",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_4h82gos9",
+      "outputPath": "renders/ast_render_4h82gos9.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-28T19:18:07.966Z",
+      "finishedAt": "2026-03-28T19:19:32.001Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-28T19:18:07.924Z"
     }
   ]
 }

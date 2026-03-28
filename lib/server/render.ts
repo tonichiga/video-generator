@@ -3,9 +3,12 @@ import fs from "node:fs/promises";
 import { ChildProcess, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import ffmpegStatic from "ffmpeg-static";
+import sharp from "sharp";
 
 import { resolveSceneTimeline } from "@/lib/domain/scene";
 import { applyKeyframesToEqualizer, clampNumber } from "@/lib/domain/timeline";
+import { defaultTrackTextConfig } from "@/lib/domain/defaults";
+import { renderWatermarkConfig } from "@/lib/server/env";
 import {
   normalizeSpectrumBands,
   spectrumFrameIndexAtMs,
@@ -92,6 +95,94 @@ async function resolveFfmpegBinary() {
 
 function parseHexForFfmpeg(color: string) {
   return color.startsWith("#") ? `0x${color.slice(1)}` : "0xFFFFFF";
+}
+
+function escapeSvgText(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+async function renderTrackTextOverlay(input: {
+  outputPath: string;
+  width: number;
+  height: number;
+  artist: string;
+  songName: string;
+  color: string;
+  x: number;
+  y: number;
+  size: number;
+  gap: number;
+  align: "left" | "center" | "right";
+  watermarkEnabled: boolean;
+  watermarkText: string;
+  watermarkFontSize: number;
+}) {
+  const {
+    outputPath,
+    width,
+    height,
+    artist,
+    songName,
+    color,
+    x,
+    y,
+    size,
+    gap,
+    align,
+    watermarkEnabled,
+    watermarkText,
+    watermarkFontSize,
+  } = input;
+
+  const songFontSize = Math.round(clampNumber(size, 14, 120));
+  const artistFontSize = Math.max(12, Math.round(songFontSize * 0.72));
+  const gapPx = Math.round(clampNumber(gap, 0, 120));
+  const songOffsetY = Math.round(artistFontSize * 1.05) + gapPx;
+  const xPx = Math.round(width * clampNumber(x, 0, 1));
+  const yPx = Math.round(height * clampNumber(y, 0, 1));
+  const anchor =
+    align === "center" ? "middle" : align === "right" ? "end" : "start";
+
+  const safeArtist = escapeSvgText(artist.trim());
+  const safeSongName = escapeSvgText(songName.trim());
+
+  const safeWatermarkText = escapeSvgText(watermarkText.trim());
+  const wmFontSize = Math.round(clampNumber(watermarkFontSize, 10, 72));
+  const wmPaddingX = Math.max(8, Math.round(wmFontSize * 0.62));
+  const wmPaddingY = Math.max(6, Math.round(wmFontSize * 0.38));
+  const wmTextWidth = Math.round(safeWatermarkText.length * wmFontSize * 0.56);
+  const wmBoxW = Math.min(
+    Math.max(90, wmTextWidth + wmPaddingX * 2),
+    Math.max(100, width - 24),
+  );
+  const wmBoxH = Math.max(28, Math.round(wmFontSize + wmPaddingY * 2));
+  const wmX = Math.max(12, width - wmBoxW - 16);
+  const wmY = Math.max(12, height - wmBoxH - 16);
+
+  const watermarkSvg =
+    watermarkEnabled && safeWatermarkText.length > 0
+      ? `<g>
+      <rect x="${wmX}" y="${wmY}" width="${wmBoxW}" height="${wmBoxH}" rx="8" ry="8" fill="black" fill-opacity="0.35" />
+      <text x="${wmX + wmPaddingX}" y="${wmY + wmPaddingY}" dominant-baseline="hanging" font-size="${wmFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="600" fill="white" fill-opacity="0.95">${safeWatermarkText}</text>
+    </g>`
+      : "";
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <g text-anchor="${anchor}" fill="${color}">
+    <text x="${xPx}" y="${yPx + 2}" dominant-baseline="hanging" font-size="${artistFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="500" fill="black" fill-opacity="0.62">${safeArtist}</text>
+    <text x="${xPx}" y="${yPx}" dominant-baseline="hanging" font-size="${artistFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="500">${safeArtist}</text>
+    <text x="${xPx}" y="${yPx + songOffsetY + 3}" dominant-baseline="hanging" font-size="${songFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="black" fill-opacity="0.7">${safeSongName}</text>
+    <text x="${xPx}" y="${yPx + songOffsetY}" dominant-baseline="hanging" font-size="${songFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="700">${safeSongName}</text>
+  </g>
+  ${watermarkSvg}
+</svg>`;
+
+  await sharp(Buffer.from(svg)).png().toFile(outputPath);
 }
 
 function getBaseLayerCacheFileName(input: {
@@ -885,6 +976,9 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     return;
   }
 
+  const watermarkEnabled =
+    project.watermarkEnabled && renderWatermarkConfig.enabled;
+
   const sceneBackgroundAsset =
     backgroundAsset && backgroundAsset.kind === "poster"
       ? backgroundAsset
@@ -903,7 +997,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     status: "processing",
     startedAt: new Date().toISOString(),
     progress: 10,
-    watermarkApplied: project.watermarkEnabled,
+    watermarkApplied: watermarkEnabled,
   });
 
   await sleep(200);
@@ -944,7 +1038,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       height,
       fps,
       blurStrength: project.posterConfig.blurStrength,
-      watermarkEnabled: project.watermarkEnabled,
+      watermarkEnabled,
     }),
   );
   const visualizerLayerPath = path.join(
@@ -965,11 +1059,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       durationSec: sceneTimeline.clipDurationSec,
     }),
   );
-  const watermarkFilter = project.watermarkEnabled
-    ? ",drawbox=x=iw-240:y=ih-84:w=220:h=44:color=black@0.35:t=fill"
-    : "";
-
-  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(6, project.posterConfig.blurStrength * 0.95)}:steps=3,eq=brightness=0.02:saturation=1.08${watermarkFilter}[vout]`;
+  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(6, project.posterConfig.blurStrength * 0.95)}:steps=3,eq=brightness=0.02:saturation=1.08[vout]`;
 
   const baseLayerArgs = [
     "-y",
@@ -1002,6 +1092,10 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     getStorageDirs().renders,
     `${outputAssetId}.mp4`,
   );
+  const textOverlayPath = path.join(
+    getStorageDirs().renders,
+    `${outputAssetId}_text_overlay.png`,
+  );
 
   const posterCornerRadiusPx = Math.max(
     0,
@@ -1010,6 +1104,28 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const posterBorderPx = 2;
   const posterMaskExpression = `if(gt(abs(W/2-X),W/2-${posterCornerRadiusPx})*gt(abs(H/2-Y),H/2-${posterCornerRadiusPx}),if(lte(pow(abs(W/2-X)-(W/2-${posterCornerRadiusPx}),2)+pow(abs(H/2-Y)-(H/2-${posterCornerRadiusPx}),2),pow(${posterCornerRadiusPx},2)),255,0),255)`;
 
+  const trackTextConfig = {
+    ...defaultTrackTextConfig,
+    ...(project.trackTextConfig ?? {}),
+  };
+
+  await renderTrackTextOverlay({
+    outputPath: textOverlayPath,
+    width,
+    height,
+    artist: trackTextConfig.artist || defaultTrackTextConfig.artist,
+    songName: trackTextConfig.songName || defaultTrackTextConfig.songName,
+    color: trackTextConfig.color || defaultTrackTextConfig.color,
+    x: trackTextConfig.x,
+    y: trackTextConfig.y,
+    size: trackTextConfig.size,
+    gap: trackTextConfig.gap,
+    align: trackTextConfig.align,
+    watermarkEnabled,
+    watermarkText: renderWatermarkConfig.text,
+    watermarkFontSize: renderWatermarkConfig.fontSize,
+  });
+
   const filterGraph = [
     `[0:v]null[base]`,
     `[2:v]format=rgba[vizKeyed]`,
@@ -1017,12 +1133,13 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     `[posterFramed]split=2[posterColor][posterMaskSrc]`,
     `[posterMaskSrc]format=gray,geq=lum='${posterMaskExpression}'[posterMask]`,
     `[posterColor][posterMask]alphamerge[posterTop]`,
+    `[4:v]format=rgba[textOverlay]`,
   ];
 
   filterGraph.push(
     `[base][vizKeyed]overlay=0:0:format=auto[scene1]`,
     `[scene1][posterTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene2]`,
-    `[scene2]null[vout]`,
+    `[scene2][textOverlay]overlay=0:0:format=auto[vout]`,
   );
 
   const filterComplex = filterGraph.join(";");
@@ -1045,6 +1162,12 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     String(sceneTimeline.clipDurationSec),
     "-i",
     posterAsset.filePath,
+    "-loop",
+    "1",
+    "-t",
+    String(sceneTimeline.clipDurationSec),
+    "-i",
+    textOverlayPath,
     "-filter_complex",
     filterComplex,
     "-map",
@@ -1131,6 +1254,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       if (!hasCachedVisualizerLayer) {
         await fs.unlink(visualizerLayerPath).catch(() => null);
       }
+      await fs.unlink(textOverlayPath).catch(() => null);
       return;
     }
 
@@ -1146,6 +1270,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     if (!hasCachedVisualizerLayer) {
       await fs.unlink(visualizerLayerPath).catch(() => null);
     }
+    await fs.unlink(textOverlayPath).catch(() => null);
     return;
   }
 
@@ -1153,6 +1278,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const latest = await getRenderJobById(renderJobId);
   if (latest?.status === "canceled") {
     await fs.unlink(outputPath).catch(() => null);
+    await fs.unlink(textOverlayPath).catch(() => null);
     console.info("[render] output removed after cancel", { renderJobId });
     return;
   }
@@ -1166,6 +1292,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       errorMessage: "Rendered output file is missing after ffmpeg run",
       finishedAt: new Date().toISOString(),
     });
+    await fs.unlink(textOverlayPath).catch(() => null);
     return;
   }
 
@@ -1189,6 +1316,8 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     outputPath: relativePathFromRoot(outputPath),
     finishedAt: new Date().toISOString(),
   });
+
+  await fs.unlink(textOverlayPath).catch(() => null);
 
   console.info("[render] job completed", { renderJobId, outputAssetId });
 }
