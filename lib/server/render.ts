@@ -7,7 +7,10 @@ import sharp from "sharp";
 
 import { resolveSceneTimeline } from "@/lib/domain/scene";
 import { applyKeyframesToEqualizer, clampNumber } from "@/lib/domain/timeline";
-import { defaultTrackTextConfig } from "@/lib/domain/defaults";
+import {
+  defaultPosterConfig,
+  defaultTrackTextConfig,
+} from "@/lib/domain/defaults";
 import { renderWatermarkConfig } from "@/lib/server/env";
 import {
   normalizeSpectrumBands,
@@ -193,6 +196,8 @@ function getBaseLayerCacheFileName(input: {
   height: number;
   fps: number;
   blurStrength: number;
+  backgroundDimStrength: number;
+  usePreparedBackground: boolean;
   watermarkEnabled: boolean;
 }) {
   const hash = createHash("sha1")
@@ -932,16 +937,25 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
 
   console.info("[render] ffmpeg selected", { renderJobId, ffmpegBinary });
 
-  const [posterAsset, trackAsset, analysis, backgroundAsset] =
-    await Promise.all([
-      getAssetById(project.posterAssetId),
-      getAssetById(project.trackAssetId),
-      getAnalysisById(project.analysisId),
-      typeof project.backgroundAssetId === "string" &&
-      project.backgroundAssetId.length > 0
-        ? getAssetById(project.backgroundAssetId)
-        : Promise.resolve(null),
-    ]);
+  const [
+    posterAsset,
+    trackAsset,
+    analysis,
+    backgroundAsset,
+    renderBackgroundAsset,
+  ] = await Promise.all([
+    getAssetById(project.posterAssetId),
+    getAssetById(project.trackAssetId),
+    getAnalysisById(project.analysisId),
+    typeof project.backgroundAssetId === "string" &&
+    project.backgroundAssetId.length > 0
+      ? getAssetById(project.backgroundAssetId)
+      : Promise.resolve(null),
+    typeof project.renderBackgroundAssetId === "string" &&
+    project.renderBackgroundAssetId.length > 0
+      ? getAssetById(project.renderBackgroundAssetId)
+      : Promise.resolve(null),
+  ]);
 
   if (!posterAsset || posterAsset.kind !== "poster") {
     await updateRenderJobById(renderJobId, {
@@ -979,10 +993,18 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const watermarkEnabled =
     project.watermarkEnabled && renderWatermarkConfig.enabled;
 
+  const preparedBackgroundAsset =
+    renderBackgroundAsset && renderBackgroundAsset.kind === "poster"
+      ? renderBackgroundAsset
+      : null;
+
   const sceneBackgroundAsset =
-    backgroundAsset && backgroundAsset.kind === "poster"
+    preparedBackgroundAsset ??
+    (backgroundAsset && backgroundAsset.kind === "poster"
       ? backgroundAsset
-      : posterAsset;
+      : posterAsset);
+
+  const usePreparedBackground = preparedBackgroundAsset !== null;
 
   const spectrum = await readJson<SpectrumSeries>(
     absolutePathFromRoot(analysis.spectrumSeriesPath),
@@ -1028,6 +1050,12 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   );
   const posterScaleFactor = 0.48;
   const posterW = Math.round(width * posterScaleFactor);
+  const posterBackgroundDimStrength = clampNumber(
+    project.posterConfig.backgroundDimStrength ??
+      defaultPosterConfig.backgroundDimStrength,
+    0,
+    0.85,
+  );
   const baseLayerPath = path.join(
     getStorageDirs().renders,
     getBaseLayerCacheFileName({
@@ -1038,6 +1066,8 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       height,
       fps,
       blurStrength: project.posterConfig.blurStrength,
+      backgroundDimStrength: posterBackgroundDimStrength,
+      usePreparedBackground,
       watermarkEnabled,
     }),
   );
@@ -1059,7 +1089,9 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       durationSec: sceneTimeline.clipDurationSec,
     }),
   );
-  const baseLayerFilterGraph = `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(6, project.posterConfig.blurStrength * 0.95)}:steps=3,eq=brightness=0.02:saturation=1.08[vout]`;
+  const baseLayerFilterGraph = usePreparedBackground
+    ? `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height}[vout]`
+    : `[0:v]scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height},gblur=sigma=${Math.max(6, project.posterConfig.blurStrength * 0.95)}:steps=3,drawbox=x=0:y=0:w=iw:h=ih:color=black@${posterBackgroundDimStrength.toFixed(3)}:t=fill,eq=saturation=1.08[vout]`;
 
   const baseLayerArgs = [
     "-y",

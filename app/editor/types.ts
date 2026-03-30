@@ -27,6 +27,7 @@ export type TemplateItem = {
   posterConfig: {
     cornerRadius: number;
     blurStrength: number;
+    backgroundDimStrength: number;
   };
 };
 
@@ -58,6 +59,7 @@ export type EqualizerConfigPayload = {
 export type PosterConfigPayload = {
   cornerRadius: number;
   blurStrength: number;
+  backgroundDimStrength: number;
 };
 
 export type TrackTextConfigPayload = {
@@ -75,6 +77,7 @@ export type ProjectPersistencePayload = {
   clientToken: string;
   templateId: string | null;
   backgroundAssetId: string | null;
+  renderBackgroundAssetId: string | null;
   equalizerConfig: EqualizerConfigPayload;
   particleConfig: {
     preset: "off";
@@ -104,6 +107,7 @@ export type LoadProjectResponse = {
   trackAssetId: string;
   posterAssetId: string;
   backgroundAssetId?: string | null;
+  renderBackgroundAssetId?: string | null;
   analysisId: string;
   templateId: string | null;
   equalizerConfig: {
@@ -117,6 +121,7 @@ export type LoadProjectResponse = {
   posterConfig?: {
     cornerRadius?: number;
     blurStrength?: number;
+    backgroundDimStrength?: number;
   };
   trackTextConfig?: {
     artist?: string;

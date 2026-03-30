@@ -38,6 +38,7 @@ export interface EqualizerConfig {
 export interface PosterConfig {
   cornerRadius: number;
   blurStrength: number;
+  backgroundDimStrength: number;
 }
 
 export interface TrackTextConfig {
@@ -93,6 +94,7 @@ export interface Project {
   trackAssetId: string;
   posterAssetId: string;
   backgroundAssetId: string | null;
+  renderBackgroundAssetId: string | null;
   analysisId: string;
   timeline?: TimelineState;
   keyframes?: TimelineKeyframeTrack[];

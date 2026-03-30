@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type CSSProperties,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -29,6 +30,7 @@ type PreviewPanelProps = {
   posterAssetId: string;
   backgroundAssetId: string;
   posterBlurStrength: number;
+  backgroundDimStrength: number;
   liveEqualizerConfig: {
     width: number;
     height: number;
@@ -49,6 +51,7 @@ type PreviewPanelProps = {
   trackTextSize: number;
   trackTextGap: number;
   trackTextAlign: "left" | "center" | "right";
+  renderWidth: number;
   renderHeight: number;
 };
 
@@ -79,6 +82,7 @@ export function PreviewPanel({
   posterAssetId,
   backgroundAssetId,
   posterBlurStrength,
+  backgroundDimStrength,
   liveEqualizerConfig,
   onPosterFileSelected,
   onBackgroundFileSelected,
@@ -94,9 +98,13 @@ export function PreviewPanel({
   trackTextSize,
   trackTextGap,
   trackTextAlign,
+  renderWidth,
   renderHeight,
 }: PreviewPanelProps) {
   const sceneRef = useRef<HTMLDivElement | null>(null);
+  const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const backgroundImageRef = useRef<HTMLImageElement | null>(null);
+  const backgroundLoadIdRef = useRef(0);
   const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
   const posterFileInputRef = useRef<HTMLInputElement | null>(null);
   const [posterPreviewUrl, setPosterPreviewUrl] = useState<string | null>(null);
@@ -161,12 +169,99 @@ export function PreviewPanel({
     "--scene-accent-c": sceneAccentC,
   } as CSSProperties;
 
-  const sceneBgStyle = {
-    backgroundImage: sceneBackgroundUrl
-      ? `url(${sceneBackgroundUrl})`
-      : undefined,
-    filter: `blur(${Math.max(8, posterBlurStrength)}px) brightness(0.52) saturate(1.05)`,
-  } as CSSProperties;
+  const drawBackgroundCanvas = useCallback(() => {
+    const canvas = backgroundCanvasRef.current;
+    const image = backgroundImageRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const width = Math.max(1, Math.round(renderWidth));
+    const height = Math.max(1, Math.round(renderHeight));
+
+    if (canvas.width !== width) {
+      canvas.width = width;
+    }
+
+    if (canvas.height !== height) {
+      canvas.height = height;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (!image || image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+      return;
+    }
+
+    const coverScale = Math.max(
+      width / image.naturalWidth,
+      height / image.naturalHeight,
+    );
+    const baseW = image.naturalWidth * coverScale;
+    const baseH = image.naturalHeight * coverScale;
+    const sceneZoom = 1.18;
+    const drawW = baseW * sceneZoom;
+    const drawH = baseH * sceneZoom;
+    const x = (width - drawW) / 2;
+    const y = (height - drawH) / 2;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    ctx.save();
+    ctx.filter = `blur(${Math.max(8, posterBlurStrength)}px) saturate(1.05)`;
+    ctx.drawImage(image, x, y, drawW, drawH);
+    ctx.restore();
+
+    const dimOpacity = Math.min(0.85, Math.max(0, backgroundDimStrength));
+    if (dimOpacity > 0) {
+      ctx.fillStyle = `rgba(0, 0, 0, ${dimOpacity})`;
+      ctx.fillRect(0, 0, width, height);
+    }
+  }, [backgroundDimStrength, posterBlurStrength, renderHeight, renderWidth]);
+
+  useEffect(() => {
+    const loadId = backgroundLoadIdRef.current + 1;
+    backgroundLoadIdRef.current = loadId;
+
+    if (!sceneBackgroundUrl) {
+      backgroundImageRef.current = null;
+      drawBackgroundCanvas();
+      return;
+    }
+
+    const image = new window.Image();
+    image.decoding = "async";
+
+    image.onload = () => {
+      if (backgroundLoadIdRef.current !== loadId) {
+        return;
+      }
+
+      backgroundImageRef.current = image;
+      drawBackgroundCanvas();
+    };
+
+    image.onerror = () => {
+      if (backgroundLoadIdRef.current !== loadId) {
+        return;
+      }
+
+      backgroundImageRef.current = null;
+      drawBackgroundCanvas();
+    };
+
+    image.src = sceneBackgroundUrl;
+  }, [drawBackgroundCanvas, sceneBackgroundUrl]);
+
+  useEffect(() => {
+    drawBackgroundCanvas();
+  }, [drawBackgroundCanvas]);
 
   const eqStyle = {
     left: `${(1 - liveEqualizerConfig.width) * 50}%`,
@@ -274,7 +369,7 @@ export function PreviewPanel({
         className="scene"
         style={sceneStyle}
       >
-        <div className="scene-bg " style={sceneBgStyle} />
+        <canvas ref={backgroundCanvasRef} className="scene-bg-canvas" />
 
         <div className="scene-eq" style={eqStyle}>
           {visualizerType === "line" ? (

@@ -22,6 +22,7 @@ type EditorPanelProps = {
   visualizerType: VisualizerType;
   visualizerBarCount: number;
   posterBlurStrength: number;
+  backgroundDimStrength: number;
   posterCornerRadius: number;
   artistName: string;
   songName: string;
@@ -58,6 +59,7 @@ type EditorPanelProps = {
   onVisualizerTypeChange: (value: VisualizerType) => void;
   onVisualizerBarCountChange: (value: number) => void;
   onPosterBlurStrengthChange: (value: number) => void;
+  onBackgroundDimStrengthChange: (value: number) => void;
   onPosterCornerRadiusChange: (value: number) => void;
   onArtistNameChange: (value: string) => void;
   onSongNameChange: (value: string) => void;
@@ -334,6 +336,35 @@ export function EditorPanel(props: EditorPanelProps) {
                 const next = toClampedNumber(event.target.value, 8, 36);
                 if (next !== null) {
                   props.onPosterBlurStrengthChange(Math.round(next));
+                }
+              }}
+            />
+          </div>
+        </label>
+
+        <label>
+          Background dim ({Math.round(props.backgroundDimStrength * 100)}%)
+          <div className="editor-range-row">
+            <input
+              type="range"
+              min={0}
+              max={0.85}
+              step={0.01}
+              value={props.backgroundDimStrength}
+              onChange={(event) =>
+                props.onBackgroundDimStrengthChange(Number(event.target.value))
+              }
+            />
+            <input
+              type="number"
+              min={0}
+              max={0.85}
+              step={0.01}
+              value={props.backgroundDimStrength}
+              onChange={(event) => {
+                const next = toClampedNumber(event.target.value, 0, 0.85);
+                if (next !== null) {
+                  props.onBackgroundDimStrengthChange(next);
                 }
               }}
             />

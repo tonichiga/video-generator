@@ -24,6 +24,7 @@ export const defaultEqualizerConfig: EqualizerConfig = {
 export const defaultPosterConfig: PosterConfig = {
   cornerRadius: 20,
   blurStrength: 20,
+  backgroundDimStrength: 0.48,
 };
 
 export const defaultTrackTextConfig: TrackTextConfig = {

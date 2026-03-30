@@ -184,6 +184,21 @@ body {
   z-index: 1;
 }
 
+.scene-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.scene-bg-dim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
 .scene-hidden-file-input {
   position: absolute;
   width: 1px;

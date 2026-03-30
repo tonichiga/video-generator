@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { defaultTrackTextConfig } from "@/lib/domain/defaults";
+import {
+  defaultPosterConfig,
+  defaultTrackTextConfig,
+} from "@/lib/domain/defaults";
 import { errorResponse } from "@/lib/server/errors";
 import {
   getAssetById,
@@ -57,6 +60,7 @@ export async function GET(
       trackAssetId: loaded.project.trackAssetId,
       posterAssetId: loaded.project.posterAssetId,
       backgroundAssetId: loaded.project.backgroundAssetId ?? null,
+      renderBackgroundAssetId: loaded.project.renderBackgroundAssetId ?? null,
       analysisId: loaded.project.analysisId,
       templateId: loaded.project.templateId,
       particleConfig: loaded.project.particleConfig,
@@ -106,6 +110,7 @@ export async function PATCH(
       posterConfig?: unknown;
       trackTextConfig?: unknown;
       backgroundAssetId?: unknown;
+      renderBackgroundAssetId?: unknown;
       templateId?: unknown;
       watermarkEnabled?: unknown;
       timeline?: unknown;
@@ -155,6 +160,34 @@ export async function PATCH(
         400,
         "PROJECT_BACKGROUND_INVALID",
         "backgroundAssetId must be null or a non-empty string",
+      );
+    }
+  }
+
+  if (payload.renderBackgroundAssetId !== undefined) {
+    if (payload.renderBackgroundAssetId === null) {
+      patch.renderBackgroundAssetId = null;
+    } else if (
+      typeof payload.renderBackgroundAssetId === "string" &&
+      payload.renderBackgroundAssetId.length > 0
+    ) {
+      const renderBackgroundAsset = await getAssetById(
+        payload.renderBackgroundAssetId,
+      );
+      if (!renderBackgroundAsset || renderBackgroundAsset.kind !== "poster") {
+        return errorResponse(
+          404,
+          "PROJECT_RENDER_BACKGROUND_NOT_FOUND",
+          "Render background asset not found",
+        );
+      }
+
+      patch.renderBackgroundAssetId = renderBackgroundAsset.id;
+    } else {
+      return errorResponse(
+        400,
+        "PROJECT_RENDER_BACKGROUND_INVALID",
+        "renderBackgroundAssetId must be null or a non-empty string",
       );
     }
   }
@@ -259,8 +292,34 @@ export async function PATCH(
   }
 
   if (payload.posterConfig && typeof payload.posterConfig === "object") {
-    patch.posterConfig =
-      payload.posterConfig as typeof loaded.project.posterConfig;
+    const next = payload.posterConfig as Record<string, unknown>;
+    const cornerRadius = parseNumberInRange(next.cornerRadius, 0, 180);
+    const blurStrength = parseNumberInRange(next.blurStrength, 0, 80);
+    const backgroundDimStrength = parseNumberInRange(
+      next.backgroundDimStrength,
+      0,
+      0.85,
+    );
+
+    if (
+      cornerRadius === null ||
+      blurStrength === null ||
+      backgroundDimStrength === null
+    ) {
+      return errorResponse(
+        400,
+        "PROJECT_POSTER_CONFIG_INVALID",
+        "posterConfig values are invalid",
+      );
+    }
+
+    patch.posterConfig = {
+      cornerRadius,
+      blurStrength,
+      backgroundDimStrength,
+    };
+  } else if (payload.posterConfig === null) {
+    patch.posterConfig = defaultPosterConfig;
   }
 
   if (payload.trackTextConfig && typeof payload.trackTextConfig === "object") {

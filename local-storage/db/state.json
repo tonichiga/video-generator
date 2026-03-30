@@ -1295,6 +1295,234 @@
       "height": 1920,
       "checksum": "prj_ysxfo6kz:1774725572001",
       "createdAt": "2026-03-28T19:19:32.001Z"
+    },
+    {
+      "id": "ast_poster_acte9jic",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_acte9jic.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-29T12:43:48.379Z"
+    },
+    {
+      "id": "ast_track_crgjiq0k",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_crgjiq0k.wav",
+      "mimeType": "audio/wav",
+      "size": 29944488,
+      "durationSec": 155.96,
+      "width": null,
+      "height": null,
+      "checksum": "8c586e8dfaf68f46b11919dbddaabc475842c8636d0b88ac4210a804d6e777b7",
+      "createdAt": "2026-03-29T12:45:41.277Z"
+    },
+    {
+      "id": "ast_track_fq16lf6r",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_fq16lf6r.wav",
+      "mimeType": "audio/wav",
+      "size": 29944488,
+      "durationSec": 155.96,
+      "width": null,
+      "height": null,
+      "checksum": "8c586e8dfaf68f46b11919dbddaabc475842c8636d0b88ac4210a804d6e777b7",
+      "createdAt": "2026-03-29T12:46:39.461Z"
+    },
+    {
+      "id": "ast_render_5ah0n6yn",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_5ah0n6yn.mp4",
+      "mimeType": "video/mp4",
+      "size": 9708778,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_e0ptn0e8:1774788482263",
+      "createdAt": "2026-03-29T12:48:02.263Z"
+    },
+    {
+      "id": "ast_poster_8gfa3mm4",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_8gfa3mm4.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-29T12:54:04.000Z"
+    },
+    {
+      "id": "ast_poster_dyiffloh",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_dyiffloh.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-29T12:55:22.350Z"
+    },
+    {
+      "id": "ast_track_gxm0s6q3",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_gxm0s6q3.wav",
+      "mimeType": "audio/wav",
+      "size": 29944488,
+      "durationSec": 155.96,
+      "width": null,
+      "height": null,
+      "checksum": "8c586e8dfaf68f46b11919dbddaabc475842c8636d0b88ac4210a804d6e777b7",
+      "createdAt": "2026-03-29T12:57:01.608Z"
+    },
+    {
+      "id": "ast_render_sq9wcfx2",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_sq9wcfx2.mp4",
+      "mimeType": "video/mp4",
+      "size": 8526549,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_04b8299r:1774789110117",
+      "createdAt": "2026-03-29T12:58:30.117Z"
+    },
+    {
+      "id": "ast_render_8sx5vtys",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_8sx5vtys.mp4",
+      "mimeType": "video/mp4",
+      "size": 8230410,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_mczca4ws:1774789273486",
+      "createdAt": "2026-03-29T13:01:13.486Z"
+    },
+    {
+      "id": "ast_render_gda1qlon",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_gda1qlon.mp4",
+      "mimeType": "video/mp4",
+      "size": 8643776,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_xak5fupi:1774789395320",
+      "createdAt": "2026-03-29T13:03:15.320Z"
+    },
+    {
+      "id": "ast_render_hglurhgc",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_hglurhgc.mp4",
+      "mimeType": "video/mp4",
+      "size": 8659395,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_626kqswf:1774789482829",
+      "createdAt": "2026-03-29T13:04:42.829Z"
+    },
+    {
+      "id": "ast_poster_jp668z9m",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_jp668z9m.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-29T13:10:28.350Z"
+    },
+    {
+      "id": "ast_track_vjr5rzg9",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_vjr5rzg9.wav",
+      "mimeType": "audio/wav",
+      "size": 51586684,
+      "durationSec": 179.12,
+      "width": null,
+      "height": null,
+      "checksum": "ecc0d2a91c9ce6c54743e78f141815092fbd4f792677c8b36607973c639c31c9",
+      "createdAt": "2026-03-29T13:10:43.012Z"
+    },
+    {
+      "id": "ast_poster_dumiq3oy",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_dumiq3oy.png",
+      "mimeType": "image/png",
+      "size": 1099486,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "80d85f8b5057298b8ec7a2a2cdce1c21f7fa283a9b81132ce107defb2579d47c",
+      "createdAt": "2026-03-29T13:11:00.940Z"
+    },
+    {
+      "id": "ast_render_9japjram",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_9japjram.mp4",
+      "mimeType": "video/mp4",
+      "size": 10905649,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_nluntnvq:1774789909871",
+      "createdAt": "2026-03-29T13:11:49.871Z"
+    },
+    {
+      "id": "ast_poster_a6nshesc",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_a6nshesc.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-03-29T13:16:17.484Z"
+    },
+    {
+      "id": "ast_track_heesbvn6",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_heesbvn6.wav",
+      "mimeType": "audio/wav",
+      "size": 29944488,
+      "durationSec": 155.96,
+      "width": null,
+      "height": null,
+      "checksum": "8c586e8dfaf68f46b11919dbddaabc475842c8636d0b88ac4210a804d6e777b7",
+      "createdAt": "2026-03-29T13:17:58.226Z"
+    },
+    {
+      "id": "ast_poster_6u5vdgua",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_6u5vdgua.png",
+      "mimeType": "image/png",
+      "size": 1080058,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "b18c278497091683ee97fba12c46b940ae8c93cdb01fccccf72b0582668a2574",
+      "createdAt": "2026-03-29T13:18:02.139Z"
+    },
+    {
+      "id": "ast_render_nr6bdxbv",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_nr6bdxbv.mp4",
+      "mimeType": "video/mp4",
+      "size": 8834897,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_nmxzcvwh:1774790331938",
+      "createdAt": "2026-03-29T13:18:51.938Z"
     }
   ],
   "analyses": [
@@ -1649,6 +1877,61 @@
       "envelopeSeriesPath": "analysis/an_t51kxsar_envelope.json",
       "spectrumSeriesPath": "analysis/an_t51kxsar_spectrum.json",
       "createdAt": "2026-03-28T19:17:58.344Z"
+    },
+    {
+      "id": "an_w63uwtb3",
+      "trackAssetId": "ast_track_crgjiq0k",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_w63uwtb3_envelope.json",
+      "spectrumSeriesPath": "analysis/an_w63uwtb3_spectrum.json",
+      "createdAt": "2026-03-29T12:45:41.819Z"
+    },
+    {
+      "id": "an_04sg4hjl",
+      "trackAssetId": "ast_track_fq16lf6r",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_04sg4hjl_envelope.json",
+      "spectrumSeriesPath": "analysis/an_04sg4hjl_spectrum.json",
+      "createdAt": "2026-03-29T12:46:40.959Z"
+    },
+    {
+      "id": "an_2ilfr39h",
+      "trackAssetId": "ast_track_gxm0s6q3",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_2ilfr39h_envelope.json",
+      "spectrumSeriesPath": "analysis/an_2ilfr39h_spectrum.json",
+      "createdAt": "2026-03-29T12:57:02.473Z"
+    },
+    {
+      "id": "an_lyfvliyl",
+      "trackAssetId": "ast_track_vjr5rzg9",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_lyfvliyl_envelope.json",
+      "spectrumSeriesPath": "analysis/an_lyfvliyl_spectrum.json",
+      "createdAt": "2026-03-29T13:10:57.953Z"
+    },
+    {
+      "id": "an_ce5a89r9",
+      "trackAssetId": "ast_track_heesbvn6",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_ce5a89r9_envelope.json",
+      "spectrumSeriesPath": "analysis/an_ce5a89r9_spectrum.json",
+      "createdAt": "2026-03-29T13:17:58.735Z"
     }
   ],
   "projects": [
@@ -2920,6 +3203,431 @@
       "keyframes": [],
       "createdAt": "2026-03-28T19:18:02.810Z",
       "updatedAt": "2026-03-28T19:18:07.903Z"
+    },
+    {
+      "id": "prj_e0ptn0e8",
+      "clientToken": "cl_dzqw48e6",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_fq16lf6r",
+      "posterAssetId": "ast_poster_acte9jic",
+      "backgroundAssetId": null,
+      "analysisId": "an_04sg4hjl",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.28,
+        "color": "#00ff7b",
+        "visualizerType": "symmetricBars",
+        "barCount": 71
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.69,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": true,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T12:46:44.697Z",
+      "updatedAt": "2026-03-29T12:46:46.039Z"
+    },
+    {
+      "id": "prj_04b8299r",
+      "clientToken": "cl_csuhyw5r",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_gxm0s6q3",
+      "posterAssetId": "ast_poster_dyiffloh",
+      "backgroundAssetId": null,
+      "analysisId": "an_2ilfr39h",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.3,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars",
+        "barCount": 61
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 30,
+        "backgroundDimStrength": 0.64
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.67,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T12:57:06.017Z",
+      "updatedAt": "2026-03-29T12:57:07.151Z"
+    },
+    {
+      "id": "prj_4b2bvw74",
+      "clientToken": "cl_csuhyw5r",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_gxm0s6q3",
+      "posterAssetId": "ast_poster_dyiffloh",
+      "backgroundAssetId": null,
+      "analysisId": "an_2ilfr39h",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.3,
+        "color": "#00ffb3",
+        "visualizerType": "symmetricBars",
+        "barCount": 61
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 36,
+        "backgroundDimStrength": 0.82
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.67,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T12:59:47.552Z",
+      "updatedAt": "2026-03-29T12:59:47.552Z"
+    },
+    {
+      "id": "prj_mczca4ws",
+      "clientToken": "cl_csuhyw5r",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_gxm0s6q3",
+      "posterAssetId": "ast_poster_dyiffloh",
+      "backgroundAssetId": null,
+      "analysisId": "an_2ilfr39h",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.3,
+        "color": "#00ffb3",
+        "visualizerType": "symmetricBars",
+        "barCount": 61
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 36,
+        "backgroundDimStrength": 0.82
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.67,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T12:59:49.581Z",
+      "updatedAt": "2026-03-29T12:59:50.228Z"
+    },
+    {
+      "id": "prj_xak5fupi",
+      "clientToken": "cl_csuhyw5r",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_gxm0s6q3",
+      "posterAssetId": "ast_poster_dyiffloh",
+      "backgroundAssetId": null,
+      "analysisId": "an_2ilfr39h",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.3,
+        "color": "#00ffb3",
+        "visualizerType": "symmetricBars",
+        "barCount": 61
+      },
+      "posterConfig": {
+        "cornerRadius": 40,
+        "blurStrength": 8,
+        "backgroundDimStrength": 0.82
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.67,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T13:02:01.418Z",
+      "updatedAt": "2026-03-29T13:02:02.228Z"
+    },
+    {
+      "id": "prj_626kqswf",
+      "clientToken": "cl_csuhyw5r",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_gxm0s6q3",
+      "posterAssetId": "ast_poster_dyiffloh",
+      "backgroundAssetId": null,
+      "analysisId": "an_2ilfr39h",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.3,
+        "color": "#00ffb3",
+        "visualizerType": "symmetricBars",
+        "barCount": 61
+      },
+      "posterConfig": {
+        "cornerRadius": 40,
+        "blurStrength": 36,
+        "backgroundDimStrength": 0
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.67,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T13:03:27.764Z",
+      "updatedAt": "2026-03-29T13:03:28.765Z"
+    },
+    {
+      "id": "prj_nluntnvq",
+      "clientToken": "cl_t8g5so9h",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_vjr5rzg9",
+      "posterAssetId": "ast_poster_jp668z9m",
+      "backgroundAssetId": null,
+      "renderBackgroundAssetId": "ast_poster_dumiq3oy",
+      "analysisId": "an_lyfvliyl",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.82,
+        "width": 0.74,
+        "height": 0.2,
+        "color": "#00E5FF",
+        "visualizerType": "symmetricBars",
+        "barCount": 36
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22,
+        "backgroundDimStrength": 0.55
+      },
+      "trackTextConfig": {
+        "artist": "Unknown Artist",
+        "songName": "Untitled Track",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.82,
+        "size": 34,
+        "gap": 10,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T13:11:00.325Z",
+      "updatedAt": "2026-03-29T13:11:00.972Z"
+    },
+    {
+      "id": "prj_nmxzcvwh",
+      "clientToken": "cl_jnpw7ut0",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_heesbvn6",
+      "posterAssetId": "ast_poster_a6nshesc",
+      "backgroundAssetId": null,
+      "renderBackgroundAssetId": "ast_poster_6u5vdgua",
+      "analysisId": "an_ce5a89r9",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.3,
+        "color": "#00ffaa",
+        "visualizerType": "symmetricBars",
+        "barCount": 53
+      },
+      "posterConfig": {
+        "cornerRadius": 34,
+        "blurStrength": 24,
+        "backgroundDimStrength": 0.53
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Midnight Overdrive",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.69,
+        "size": 68,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 120000,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-03-29T13:18:01.312Z",
+      "updatedAt": "2026-03-29T13:18:02.163Z"
     }
   ],
   "renderJobs": [
@@ -3496,6 +4204,104 @@
       "finishedAt": "2026-03-28T19:19:32.001Z",
       "watermarkApplied": true,
       "createdAt": "2026-03-28T19:18:07.924Z"
+    },
+    {
+      "id": "job_gwka2oif",
+      "projectId": "prj_e0ptn0e8",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_5ah0n6yn",
+      "outputPath": "renders/ast_render_5ah0n6yn.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T12:46:46.092Z",
+      "finishedAt": "2026-03-29T12:48:02.264Z",
+      "watermarkApplied": true,
+      "createdAt": "2026-03-29T12:46:46.063Z"
+    },
+    {
+      "id": "job_9sfj0h0x",
+      "projectId": "prj_04b8299r",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_sq9wcfx2",
+      "outputPath": "renders/ast_render_sq9wcfx2.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T12:57:07.196Z",
+      "finishedAt": "2026-03-29T12:58:30.118Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-03-29T12:57:07.171Z"
+    },
+    {
+      "id": "job_jdlb3h02",
+      "projectId": "prj_mczca4ws",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_8sx5vtys",
+      "outputPath": "renders/ast_render_8sx5vtys.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T12:59:50.279Z",
+      "finishedAt": "2026-03-29T13:01:13.487Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-03-29T12:59:50.239Z"
+    },
+    {
+      "id": "job_9ubamn4i",
+      "projectId": "prj_xak5fupi",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_gda1qlon",
+      "outputPath": "renders/ast_render_gda1qlon.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T13:02:02.283Z",
+      "finishedAt": "2026-03-29T13:03:15.321Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-03-29T13:02:02.240Z"
+    },
+    {
+      "id": "job_uqjzzktk",
+      "projectId": "prj_626kqswf",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_hglurhgc",
+      "outputPath": "renders/ast_render_hglurhgc.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T13:03:28.822Z",
+      "finishedAt": "2026-03-29T13:04:42.829Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-03-29T13:03:28.776Z"
+    },
+    {
+      "id": "job_o50pya5t",
+      "projectId": "prj_nluntnvq",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_9japjram",
+      "outputPath": "renders/ast_render_9japjram.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T13:11:01.036Z",
+      "finishedAt": "2026-03-29T13:11:49.872Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-03-29T13:11:00.999Z"
+    },
+    {
+      "id": "job_ctw2ifc4",
+      "projectId": "prj_nmxzcvwh",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_nr6bdxbv",
+      "outputPath": "renders/ast_render_nr6bdxbv.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-03-29T13:18:02.207Z",
+      "finishedAt": "2026-03-29T13:18:51.939Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-03-29T13:18:02.170Z"
     }
   ]
 }

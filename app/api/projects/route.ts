@@ -58,6 +58,7 @@ export async function POST(request: Request) {
       trackAssetId?: unknown;
       posterAssetId?: unknown;
       backgroundAssetId?: unknown;
+      renderBackgroundAssetId?: unknown;
       analysisId?: unknown;
       templateId?: unknown;
       particleConfig?: unknown;
@@ -142,6 +143,24 @@ export async function POST(request: Request) {
     }
   }
 
+  const renderBackgroundAssetId =
+    typeof payload.renderBackgroundAssetId === "string" &&
+    payload.renderBackgroundAssetId.length > 0
+      ? payload.renderBackgroundAssetId
+      : null;
+
+  let renderBackgroundAsset: Awaited<ReturnType<typeof getAssetById>> = null;
+  if (renderBackgroundAssetId) {
+    renderBackgroundAsset = await getAssetById(renderBackgroundAssetId);
+    if (!renderBackgroundAsset || renderBackgroundAsset.kind !== "poster") {
+      return errorResponse(
+        404,
+        "PROJECT_RENDER_BACKGROUND_NOT_FOUND",
+        "Render background asset not found",
+      );
+    }
+  }
+
   if (!trackAsset || trackAsset.kind !== "track") {
     return errorResponse(
       404,
@@ -217,6 +236,36 @@ export async function POST(request: Request) {
       color,
       visualizerType,
       barCount: barCount ?? defaultEqualizerConfig.barCount,
+    };
+  }
+
+  let posterConfig = defaultPosterConfig;
+  if (payload.posterConfig && typeof payload.posterConfig === "object") {
+    const next = payload.posterConfig as Record<string, unknown>;
+    const cornerRadius = parseNumberInRange(next.cornerRadius, 0, 180);
+    const blurStrength = parseNumberInRange(next.blurStrength, 0, 80);
+    const backgroundDimStrength = parseNumberInRange(
+      next.backgroundDimStrength,
+      0,
+      0.85,
+    );
+
+    if (
+      cornerRadius === null ||
+      blurStrength === null ||
+      backgroundDimStrength === null
+    ) {
+      return errorResponse(
+        400,
+        "PROJECT_POSTER_CONFIG_INVALID",
+        "posterConfig values are invalid",
+      );
+    }
+
+    posterConfig = {
+      cornerRadius,
+      blurStrength,
+      backgroundDimStrength,
     };
   }
 
@@ -314,14 +363,14 @@ export async function POST(request: Request) {
     trackAssetId: trackAsset.id,
     posterAssetId: posterAsset.id,
     backgroundAssetId: backgroundAsset?.id ?? null,
+    renderBackgroundAssetId: renderBackgroundAsset?.id ?? null,
     analysisId: analysis.id,
     templateId,
     particleConfig:
       (payload.particleConfig as Project["particleConfig"]) ??
       defaultParticleConfig,
     equalizerConfig,
-    posterConfig:
-      (payload.posterConfig as Project["posterConfig"]) ?? defaultPosterConfig,
+    posterConfig,
     trackTextConfig,
     watermarkEnabled:
       typeof payload.watermarkEnabled === "boolean"

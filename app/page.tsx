@@ -82,6 +82,7 @@ export default function Home() {
 
   const [posterCornerRadius, setPosterCornerRadius] = useState(20);
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
+  const [backgroundDimStrength, setBackgroundDimStrength] = useState(0.48);
   const [artistName, setArtistName] = useState("Unknown Artist");
   const [songName, setSongName] = useState("Untitled Track");
   const [trackTextColor, setTrackTextColor] = useState("#FFFFFF");
@@ -351,6 +352,7 @@ export default function Home() {
 
       setPosterCornerRadius(template.posterConfig.cornerRadius);
       setPosterBlurStrength(template.posterConfig.blurStrength);
+      setBackgroundDimStrength(template.posterConfig.backgroundDimStrength);
 
       if (emitEvent) {
         emitPreviewMetric("template_change", {
@@ -481,6 +483,7 @@ export default function Home() {
             );
             setPosterCornerRadius(first.posterConfig.cornerRadius);
             setPosterBlurStrength(first.posterConfig.blurStrength);
+            setBackgroundDimStrength(first.posterConfig.backgroundDimStrength);
           }
         }
       })
@@ -652,6 +655,75 @@ export default function Home() {
     setBackgroundAssetId(data.assetId);
   }
 
+  async function prepareRenderBackgroundAsset() {
+    const sourceAssetId = backgroundAssetId || posterAssetId;
+    if (!sourceAssetId) {
+      return null;
+    }
+
+    const response = await fetch(`/api/assets/${sourceAssetId}`);
+    if (!response.ok) {
+      throw new Error("Background asset fetch failed");
+    }
+
+    const sourceBlob = await response.blob();
+    const bitmap = await createImageBitmap(sourceBlob);
+
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = renderResolution.width;
+      canvas.height = renderResolution.height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Canvas context unavailable");
+      }
+
+      const coverScale = Math.max(
+        canvas.width / bitmap.width,
+        canvas.height / bitmap.height,
+      );
+      const baseW = bitmap.width * coverScale;
+      const baseH = bitmap.height * coverScale;
+
+      const sceneZoom = 1.18;
+      const drawW = baseW * sceneZoom;
+      const drawH = baseH * sceneZoom;
+      const x = (canvas.width - drawW) / 2;
+      const y = (canvas.height - drawH) / 2;
+
+      ctx.save();
+      ctx.filter = `blur(${Math.max(8, posterBlurStrength)}px) saturate(1.05)`;
+      ctx.drawImage(bitmap, x, y, drawW, drawH);
+      ctx.restore();
+
+      const dimOpacity = clampNumber(backgroundDimStrength, 0, 0.85);
+      if (dimOpacity > 0) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${dimOpacity})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      const renderedBlob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/png");
+      });
+
+      if (!renderedBlob) {
+        throw new Error("Prepared background export failed");
+      }
+
+      const file = new File(
+        [renderedBlob],
+        `prepared-background-${Date.now()}.png`,
+        { type: "image/png" },
+      );
+
+      const uploaded = await uploadPosterAsset(file);
+      return uploaded.assetId;
+    } finally {
+      bitmap.close();
+    }
+  }
+
   async function analyzeTrack() {
     if (!trackAssetId) {
       setStatus("Upload track first");
@@ -686,6 +758,7 @@ export default function Home() {
       trackAssetId,
       posterAssetId,
       backgroundAssetId: backgroundAssetId || null,
+      renderBackgroundAssetId: null,
       analysisId,
       templateId: selectedTemplateId,
       equalizerConfig: {
@@ -705,6 +778,7 @@ export default function Home() {
       posterConfig: {
         cornerRadius: posterCornerRadius,
         blurStrength: posterBlurStrength,
+        backgroundDimStrength,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -753,6 +827,7 @@ export default function Home() {
     setVisualizerBarCount(Math.round(data.equalizerConfig.barCount ?? 36));
     setPosterCornerRadius(data.posterConfig?.cornerRadius ?? 20);
     setPosterBlurStrength(data.posterConfig?.blurStrength ?? 20);
+    setBackgroundDimStrength(data.posterConfig?.backgroundDimStrength ?? 0.48);
     setArtistName(data.trackTextConfig?.artist ?? "Unknown Artist");
     setSongName(data.trackTextConfig?.songName ?? "Untitled Track");
     setTrackTextColor(data.trackTextConfig?.color ?? "#FFFFFF");
@@ -801,10 +876,16 @@ export default function Home() {
       return;
     }
 
+    setStatus("Preparing background for render...");
+    const preparedRenderBackgroundAssetId =
+      await prepareRenderBackgroundAsset();
+    setStatus("Syncing project settings...");
+
     await patchProject(projectId.trim(), {
       clientToken,
       templateId: selectedTemplateId,
       backgroundAssetId: backgroundAssetId || null,
+      renderBackgroundAssetId: preparedRenderBackgroundAssetId,
       equalizerConfig: {
         x: 0.5,
         y: equalizerY,
@@ -822,6 +903,7 @@ export default function Home() {
       posterConfig: {
         cornerRadius: posterCornerRadius,
         blurStrength: posterBlurStrength,
+        backgroundDimStrength,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -1090,6 +1172,7 @@ export default function Home() {
           visualizerType={visualizerType}
           visualizerBarCount={visualizerBarCount}
           posterBlurStrength={posterBlurStrength}
+          backgroundDimStrength={backgroundDimStrength}
           posterCornerRadius={posterCornerRadius}
           artistName={artistName}
           songName={songName}
@@ -1126,6 +1209,7 @@ export default function Home() {
           onVisualizerTypeChange={setVisualizerType}
           onVisualizerBarCountChange={setVisualizerBarCount}
           onPosterBlurStrengthChange={setPosterBlurStrength}
+          onBackgroundDimStrengthChange={setBackgroundDimStrength}
           onPosterCornerRadiusChange={setPosterCornerRadius}
           onArtistNameChange={setArtistName}
           onSongNameChange={setSongName}
@@ -1155,6 +1239,7 @@ export default function Home() {
           posterAssetId={posterAssetId}
           backgroundAssetId={backgroundAssetId}
           posterBlurStrength={posterBlurStrength}
+          backgroundDimStrength={backgroundDimStrength}
           liveEqualizerConfig={liveEqualizerConfig}
           onPosterFileSelected={(file) =>
             void runAction(() => uploadPoster(file))
@@ -1174,6 +1259,7 @@ export default function Home() {
           trackTextSize={trackTextSize}
           trackTextGap={trackTextGap}
           trackTextAlign={trackTextAlign}
+          renderWidth={renderResolution.width}
           renderHeight={renderResolution.height}
         />
       </div>
