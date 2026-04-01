@@ -39,6 +39,7 @@ export interface PosterConfig {
   cornerRadius: number;
   blurStrength: number;
   backgroundDimStrength: number;
+  beatScaleStrength?: number;
 }
 
 export interface TrackTextConfig {

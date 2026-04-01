@@ -300,11 +300,18 @@ export async function PATCH(
       0,
       0.85,
     );
+    const beatScaleStrength =
+      next.beatScaleStrength === undefined
+        ? (loaded.project.posterConfig.beatScaleStrength ??
+          defaultPosterConfig.beatScaleStrength ??
+          1)
+        : parseNumberInRange(next.beatScaleStrength, 0, 5);
 
     if (
       cornerRadius === null ||
       blurStrength === null ||
-      backgroundDimStrength === null
+      backgroundDimStrength === null ||
+      beatScaleStrength === null
     ) {
       return errorResponse(
         400,
@@ -317,6 +324,7 @@ export async function PATCH(
       cornerRadius,
       blurStrength,
       backgroundDimStrength,
+      beatScaleStrength,
     };
   } else if (payload.posterConfig === null) {
     patch.posterConfig = defaultPosterConfig;

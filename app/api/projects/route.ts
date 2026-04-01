@@ -249,11 +249,16 @@ export async function POST(request: Request) {
       0,
       0.85,
     );
+    const beatScaleStrength =
+      next.beatScaleStrength === undefined
+        ? (defaultPosterConfig.beatScaleStrength ?? 1)
+        : parseNumberInRange(next.beatScaleStrength, 0, 5);
 
     if (
       cornerRadius === null ||
       blurStrength === null ||
-      backgroundDimStrength === null
+      backgroundDimStrength === null ||
+      beatScaleStrength === null
     ) {
       return errorResponse(
         400,
@@ -266,6 +271,7 @@ export async function POST(request: Request) {
       cornerRadius,
       blurStrength,
       backgroundDimStrength,
+      beatScaleStrength,
     };
   }
 

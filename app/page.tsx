@@ -51,6 +51,11 @@ import {
   clampNumber,
   getDefaultTimeline,
 } from "@/lib/domain/timeline";
+import { normalizeSpectrumBands } from "@/lib/domain/spectrum";
+import {
+  createInitialBeatPulseState,
+  getNextBeatPulseState,
+} from "@/lib/domain/beat-pulse";
 
 export default function Home() {
   const [clientToken, setClientToken] = useState("");
@@ -83,6 +88,7 @@ export default function Home() {
   const [posterCornerRadius, setPosterCornerRadius] = useState(20);
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
   const [backgroundDimStrength, setBackgroundDimStrength] = useState(0.48);
+  const [posterBeatScaleStrength, setPosterBeatScaleStrength] = useState(1);
   const [artistName, setArtistName] = useState("Unknown Artist");
   const [songName, setSongName] = useState("Untitled Track");
   const [trackTextColor, setTrackTextColor] = useState("#FFFFFF");
@@ -116,6 +122,7 @@ export default function Home() {
   const [visualizerBars, setVisualizerBars] = useState<number[]>(() =>
     Array.from({ length: 32 }).map(() => 0.05),
   );
+  const [posterPulseScale, setPosterPulseScale] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -130,6 +137,7 @@ export default function Home() {
   const mediaSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const analyserDataRef = useRef<Uint8Array | null>(null);
+  const beatPulseStateRef = useRef(createInitialBeatPulseState());
 
   const selectedTemplate = useMemo(
     () => templates.find((item) => item.id === selectedTemplateId) ?? null,
@@ -199,14 +207,8 @@ export default function Home() {
   }, [trackAssetId]);
 
   const normalizedVisualizerBars = useMemo(() => {
-    if (visualizerBars.length === visualizerBarCount) {
-      return visualizerBars;
-    }
-    return Array.from({ length: visualizerBarCount }).map(
-      (_, index) =>
-        visualizerBars[index] ??
-        visualizerBars[visualizerBars.length - 1] ??
-        0.05,
+    return normalizeSpectrumBands(visualizerBars, visualizerBarCount).map(
+      (value) => clampNumber(value, 0.04, 1),
     );
   }, [visualizerBarCount, visualizerBars]);
 
@@ -277,6 +279,25 @@ export default function Home() {
 
   const updateVisualizerBars = useCallback(
     (now: number) => {
+      const commitBars = (bars: number[]) => {
+        const normalizedBars = normalizeSpectrumBands(
+          bars,
+          visualizerBarCount,
+        ).map((value) => clampNumber(value, 0.04, 1));
+        setVisualizerBars(normalizedBars);
+        const nextPulse = getNextBeatPulseState(
+          beatPulseStateRef.current,
+          normalizedBars,
+          {
+            strength: 1,
+          },
+        );
+        beatPulseStateRef.current = nextPulse;
+        const pulseStrength = clampNumber(posterBeatScaleStrength, 0, 5);
+        const scaledPulse = 1 + (nextPulse.scale - 1) * pulseStrength;
+        setPosterPulseScale(clampNumber(scaledPulse, 1, 1.25));
+      };
+
       const audio = audioRef.current;
       if (audio && spectrumValues.length > 0 && spectrumFrameStepMs > 0) {
         const frameIndex = clampNumber(
@@ -287,7 +308,7 @@ export default function Home() {
 
         const frame = spectrumValues[frameIndex];
         if (Array.isArray(frame) && frame.length > 0) {
-          setVisualizerBars(frame.map((value) => clampNumber(value, 0.04, 1)));
+          commitBars(frame);
           return;
         }
       }
@@ -302,7 +323,7 @@ export default function Home() {
             return clampNumber(0.08 + wave, 0.04, 0.2);
           },
         );
-        setVisualizerBars(idle);
+        commitBars(idle);
         return;
       }
 
@@ -323,9 +344,14 @@ export default function Home() {
         },
       );
 
-      setVisualizerBars(bars);
+      commitBars(bars);
     },
-    [spectrumFrameStepMs, spectrumValues, visualizerBarCount],
+    [
+      posterBeatScaleStrength,
+      spectrumFrameStepMs,
+      spectrumValues,
+      visualizerBarCount,
+    ],
   );
 
   const applyTemplateSettings = useCallback(
@@ -353,6 +379,7 @@ export default function Home() {
       setPosterCornerRadius(template.posterConfig.cornerRadius);
       setPosterBlurStrength(template.posterConfig.blurStrength);
       setBackgroundDimStrength(template.posterConfig.backgroundDimStrength);
+      setPosterBeatScaleStrength(template.posterConfig.beatScaleStrength ?? 1);
 
       if (emitEvent) {
         emitPreviewMetric("template_change", {
@@ -461,7 +488,14 @@ export default function Home() {
         (_, index) => previous[index] ?? previous[previous.length - 1] ?? 0.05,
       ),
     );
+    beatPulseStateRef.current = createInitialBeatPulseState();
+    setPosterPulseScale(1);
   }, [visualizerBarCount]);
+
+  useEffect(() => {
+    beatPulseStateRef.current = createInitialBeatPulseState();
+    setPosterPulseScale(1);
+  }, [posterBeatScaleStrength]);
 
   useEffect(() => {
     let mounted = true;
@@ -484,6 +518,9 @@ export default function Home() {
             setPosterCornerRadius(first.posterConfig.cornerRadius);
             setPosterBlurStrength(first.posterConfig.blurStrength);
             setBackgroundDimStrength(first.posterConfig.backgroundDimStrength);
+            setPosterBeatScaleStrength(
+              first.posterConfig.beatScaleStrength ?? 1,
+            );
           }
         }
       })
@@ -779,6 +816,7 @@ export default function Home() {
         cornerRadius: posterCornerRadius,
         blurStrength: posterBlurStrength,
         backgroundDimStrength,
+        beatScaleStrength: posterBeatScaleStrength,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -828,6 +866,7 @@ export default function Home() {
     setPosterCornerRadius(data.posterConfig?.cornerRadius ?? 20);
     setPosterBlurStrength(data.posterConfig?.blurStrength ?? 20);
     setBackgroundDimStrength(data.posterConfig?.backgroundDimStrength ?? 0.48);
+    setPosterBeatScaleStrength(data.posterConfig?.beatScaleStrength ?? 1);
     setArtistName(data.trackTextConfig?.artist ?? "Unknown Artist");
     setSongName(data.trackTextConfig?.songName ?? "Untitled Track");
     setTrackTextColor(data.trackTextConfig?.color ?? "#FFFFFF");
@@ -904,6 +943,7 @@ export default function Home() {
         cornerRadius: posterCornerRadius,
         blurStrength: posterBlurStrength,
         backgroundDimStrength,
+        beatScaleStrength: posterBeatScaleStrength,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -989,6 +1029,8 @@ export default function Home() {
       setIsPlaying(false);
       stopRenderLoop();
       setVisualizerBars((previous) => previous.map(() => 0.06));
+      beatPulseStateRef.current = createInitialBeatPulseState();
+      setPosterPulseScale(1);
       emitPreviewMetric("preview_pause", {
         reason: "manual",
         maxDriftMs: Math.round(maxDriftRef.current),
@@ -1174,6 +1216,7 @@ export default function Home() {
           posterBlurStrength={posterBlurStrength}
           backgroundDimStrength={backgroundDimStrength}
           posterCornerRadius={posterCornerRadius}
+          posterBeatScaleStrength={posterBeatScaleStrength}
           artistName={artistName}
           songName={songName}
           trackTextColor={trackTextColor}
@@ -1211,6 +1254,7 @@ export default function Home() {
           onPosterBlurStrengthChange={setPosterBlurStrength}
           onBackgroundDimStrengthChange={setBackgroundDimStrength}
           onPosterCornerRadiusChange={setPosterCornerRadius}
+          onPosterBeatScaleStrengthChange={setPosterBeatScaleStrength}
           onArtistNameChange={setArtistName}
           onSongNameChange={setSongName}
           onTrackTextColorChange={setTrackTextColor}
@@ -1259,6 +1303,7 @@ export default function Home() {
           trackTextSize={trackTextSize}
           trackTextGap={trackTextGap}
           trackTextAlign={trackTextAlign}
+          posterPulseScale={posterPulseScale}
           renderWidth={renderResolution.width}
           renderHeight={renderResolution.height}
         />

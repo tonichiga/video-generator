@@ -1,5 +1,13 @@
 import { clampNumber } from "@/lib/domain/timeline";
 
+function sanitizeBandValue(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  return clampNumber(value, 0, 1);
+}
+
 export function normalizeSpectrumBands(row: number[], targetBars: number) {
   if (targetBars <= 0) {
     return [];
@@ -10,7 +18,21 @@ export function normalizeSpectrumBands(row: number[], targetBars: number) {
   }
 
   if (row.length === targetBars) {
-    return row.map((value) => clampNumber(value, 0, 1));
+    return row.map((value) => sanitizeBandValue(value));
+  }
+
+  if (row.length < targetBars) {
+    return Array.from({ length: targetBars }).map((_, index) => {
+      const sourcePos =
+        (index / Math.max(1, targetBars - 1)) * (row.length - 1);
+      const left = Math.floor(sourcePos);
+      const right = Math.min(row.length - 1, left + 1);
+      const t = sourcePos - left;
+
+      const from = sanitizeBandValue(row[left]);
+      const to = sanitizeBandValue(row[right]);
+      return clampNumber(from + (to - from) * t, 0, 1);
+    });
   }
 
   const stride = row.length / targetBars;
@@ -23,7 +45,7 @@ export function normalizeSpectrumBands(row: number[], targetBars: number) {
     let sum = 0;
     let count = 0;
     for (let cursor = start; cursor < end && cursor < row.length; cursor += 1) {
-      sum += row[cursor] ?? 0;
+      sum += sanitizeBandValue(row[cursor]);
       count += 1;
     }
 

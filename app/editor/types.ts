@@ -28,6 +28,7 @@ export type TemplateItem = {
     cornerRadius: number;
     blurStrength: number;
     backgroundDimStrength: number;
+    beatScaleStrength?: number;
   };
 };
 
@@ -60,6 +61,7 @@ export type PosterConfigPayload = {
   cornerRadius: number;
   blurStrength: number;
   backgroundDimStrength: number;
+  beatScaleStrength: number;
 };
 
 export type TrackTextConfigPayload = {
@@ -122,6 +124,7 @@ export type LoadProjectResponse = {
     cornerRadius?: number;
     blurStrength?: number;
     backgroundDimStrength?: number;
+    beatScaleStrength?: number;
   };
   trackTextConfig?: {
     artist?: string;

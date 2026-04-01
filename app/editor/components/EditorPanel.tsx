@@ -24,6 +24,7 @@ type EditorPanelProps = {
   posterBlurStrength: number;
   backgroundDimStrength: number;
   posterCornerRadius: number;
+  posterBeatScaleStrength: number;
   artistName: string;
   songName: string;
   trackTextColor: string;
@@ -61,6 +62,7 @@ type EditorPanelProps = {
   onPosterBlurStrengthChange: (value: number) => void;
   onBackgroundDimStrengthChange: (value: number) => void;
   onPosterCornerRadiusChange: (value: number) => void;
+  onPosterBeatScaleStrengthChange: (value: number) => void;
   onArtistNameChange: (value: string) => void;
   onSongNameChange: (value: string) => void;
   onTrackTextColorChange: (value: string) => void;
@@ -394,6 +396,37 @@ export function EditorPanel(props: EditorPanelProps) {
                 const next = toClampedNumber(event.target.value, 6, 40);
                 if (next !== null) {
                   props.onPosterCornerRadiusChange(Math.round(next));
+                }
+              }}
+            />
+          </div>
+        </label>
+
+        <label>
+          Beat scale strength ({props.posterBeatScaleStrength.toFixed(2)}x)
+          <div className="editor-range-row">
+            <input
+              type="range"
+              min={0}
+              max={5}
+              step={0.05}
+              value={props.posterBeatScaleStrength}
+              onChange={(event) =>
+                props.onPosterBeatScaleStrengthChange(
+                  Number(event.target.value),
+                )
+              }
+            />
+            <input
+              type="number"
+              min={0}
+              max={5}
+              step={0.05}
+              value={props.posterBeatScaleStrength}
+              onChange={(event) => {
+                const next = toClampedNumber(event.target.value, 0, 5);
+                if (next !== null) {
+                  props.onPosterBeatScaleStrengthChange(next);
                 }
               }}
             />

@@ -8,6 +8,10 @@ import sharp from "sharp";
 import { resolveSceneTimeline } from "@/lib/domain/scene";
 import { applyKeyframesToEqualizer, clampNumber } from "@/lib/domain/timeline";
 import {
+  createInitialBeatPulseState,
+  getNextBeatPulseState,
+} from "@/lib/domain/beat-pulse";
+import {
   defaultPosterConfig,
   defaultTrackTextConfig,
 } from "@/lib/domain/defaults";
@@ -51,7 +55,7 @@ type SpectrumSeries = {
 
 const activeRenderProcesses = new Map<string, ChildProcess>();
 const RENDER_LAYER_CACHE_VERSION =
-  "2026-03-28-viz-preview-parity-no-particles-v5";
+  "2026-03-31-viz-preview-parity-beat-pulse-v6";
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
@@ -239,6 +243,35 @@ function getVisualizerLayerCacheFileName(input: {
     .slice(0, 16);
 
   return `viz_${hash}.mov`;
+}
+
+function getPosterLayerCacheFileName(input: {
+  posterAssetId: string;
+  analysisId: string;
+  trimInMs: number;
+  trimOutMs: number;
+  width: number;
+  height: number;
+  fps: number;
+  durationSec: number;
+  basePosterWidth: number;
+  basePosterHeight: number;
+  barCount: number;
+  beatScaleStrength: number;
+  cornerRadiusPx: number;
+  borderPx: number;
+}) {
+  const hash = createHash("sha1")
+    .update(
+      JSON.stringify({
+        version: RENDER_LAYER_CACHE_VERSION,
+        ...input,
+      }),
+    )
+    .digest("hex")
+    .slice(0, 16);
+
+  return `poster_${hash}.mov`;
 }
 
 function parseTimestampToSeconds(value: string) {
@@ -524,6 +557,15 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
+function toEven(value: number, min = 2) {
+  const rounded = Math.max(min, Math.round(value));
+  return rounded % 2 === 0 ? rounded : rounded + 1;
+}
+
+function toFiniteNumber(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
 function buildResponsiveSpectrumFrame(input: {
   frames: number[][];
   absoluteMs: number;
@@ -551,9 +593,25 @@ function buildResponsiveSpectrumFrame(input: {
   const prev = frames[prevIndex] ?? current;
 
   return Array.from({ length: barCount }).map((_, index) => {
-    const from = clampNumber(current[index] ?? 0, 0, 1);
-    const to = clampNumber(next[index] ?? from, 0, 1);
-    const previous = clampNumber(prev[index] ?? from, 0, 1);
+    const currentRaw = current[index];
+    const nextRaw = next[index];
+    const prevRaw = prev[index];
+
+    const from = clampNumber(
+      Number.isFinite(currentRaw) ? (currentRaw as number) : 0,
+      0,
+      1,
+    );
+    const to = clampNumber(
+      Number.isFinite(nextRaw) ? (nextRaw as number) : from,
+      0,
+      1,
+    );
+    const previous = clampNumber(
+      Number.isFinite(prevRaw) ? (prevRaw as number) : from,
+      0,
+      1,
+    );
 
     const interpolated = lerp(from, to, localT);
     const transient = Math.max(0, from - previous) * 0.4;
@@ -564,6 +622,235 @@ function buildResponsiveSpectrumFrame(input: {
 
     return clampNumber(emphasized, 0.015, 1);
   });
+}
+
+async function renderPosterPulseLayer(input: {
+  renderJobId: string;
+  ffmpegBinary: string;
+  outputPath: string;
+  posterPath: string;
+  width: number;
+  height: number;
+  fps: number;
+  timeline: ReturnType<typeof resolveSceneTimeline>;
+  spectrumFrameStepMs: number;
+  spectrumValues: number[][];
+  barCount: number;
+  basePosterWidth: number;
+  basePosterHeight: number;
+  beatScaleStrength: number;
+  cornerRadiusPx: number;
+  borderPx: number;
+}) {
+  const {
+    renderJobId,
+    ffmpegBinary,
+    outputPath,
+    posterPath,
+    width,
+    height,
+    fps,
+    timeline,
+    spectrumFrameStepMs,
+    spectrumValues,
+    barCount,
+    basePosterWidth,
+    basePosterHeight,
+    beatScaleStrength,
+    cornerRadiusPx,
+    borderPx,
+  } = input;
+
+  const posterSource = await fs.readFile(posterPath);
+  const normalizedFrames = spectrumValues.map((row) =>
+    normalizeSpectrumBands(row ?? [], barCount),
+  );
+  const frameCount = Math.max(1, Math.round(timeline.clipDurationSec * fps));
+  let pulseState = createInitialBeatPulseState();
+
+  const args = [
+    "-y",
+    "-f",
+    "rawvideo",
+    "-pix_fmt",
+    "rgba",
+    "-s",
+    `${width}x${height}`,
+    "-r",
+    String(fps),
+    "-i",
+    "-",
+    "-an",
+    "-c:v",
+    "qtrle",
+    "-pix_fmt",
+    "argb",
+    "-t",
+    String(timeline.clipDurationSec),
+    outputPath,
+  ];
+
+  const ffmpeg = spawn(ffmpegBinary, args, {
+    stdio: ["pipe", "ignore", "pipe"],
+  });
+  activeRenderProcesses.set(renderJobId, ffmpeg);
+
+  let stderr = "";
+  ffmpeg.stderr.on("data", (chunk) => {
+    stderr += chunk.toString();
+  });
+
+  const roundedCache = new Map<string, Buffer>();
+  const maxCacheEntries = 64;
+
+  const getRoundedPoster = async (posterW: number, posterH: number) => {
+    const cacheKey = `${posterW}x${posterH}`;
+    const cached = roundedCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const posterRadius = Math.min(
+      Math.max(0, Math.round(cornerRadiusPx)),
+      Math.floor(Math.min(posterW, posterH) / 2),
+    );
+    const radiusForStroke = Math.max(
+      0,
+      posterRadius - Math.floor(borderPx / 2),
+    );
+    const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${posterW}" height="${posterH}"><rect x="0" y="0" width="${posterW}" height="${posterH}" rx="${posterRadius}" ry="${posterRadius}" fill="white" /></svg>`;
+    const strokeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${posterW}" height="${posterH}"><rect x="${borderPx / 2}" y="${borderPx / 2}" width="${Math.max(1, posterW - borderPx)}" height="${Math.max(1, posterH - borderPx)}" rx="${radiusForStroke}" ry="${radiusForStroke}" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="${borderPx}" /></svg>`;
+
+    const rendered = await sharp(posterSource)
+      .resize(posterW, posterH, {
+        fit: "cover",
+      })
+      .ensureAlpha()
+      .composite([
+        {
+          input: Buffer.from(maskSvg),
+          blend: "dest-in",
+        },
+        {
+          input: Buffer.from(strokeSvg),
+          blend: "over",
+        },
+      ])
+      .png()
+      .toBuffer();
+
+    roundedCache.set(cacheKey, rendered);
+    if (roundedCache.size > maxCacheEntries) {
+      const oldestKey = roundedCache.keys().next().value;
+      if (typeof oldestKey === "string") {
+        roundedCache.delete(oldestKey);
+      }
+    }
+
+    return rendered;
+  };
+
+  const writeFrame = async (frame: Buffer) => {
+    if (!ffmpeg.stdin.write(frame)) {
+      await new Promise<void>((resolve, reject) => {
+        ffmpeg.stdin.once("drain", resolve);
+        ffmpeg.stdin.once("error", reject);
+      });
+    }
+  };
+
+  try {
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+      const absoluteMs = timeline.trimInMs + (frameIndex * 1000) / fps;
+      const values = buildResponsiveSpectrumFrame({
+        frames: normalizedFrames,
+        absoluteMs,
+        frameStepMs: spectrumFrameStepMs,
+        barCount,
+      });
+
+      pulseState = getNextBeatPulseState(pulseState, values, {
+        strength: 1,
+      });
+      const pulseStrength = clampNumber(
+        toFiniteNumber(beatScaleStrength, 1),
+        0,
+        5,
+      );
+      const safePulse = toFiniteNumber(pulseState.scale, 1);
+      const safeScale = clampNumber(
+        1 + (safePulse - 1) * pulseStrength,
+        1,
+        1.25,
+      );
+      const scaledW = toEven(basePosterWidth * safeScale, 16);
+      const scaledH = toEven(basePosterHeight * safeScale, 16);
+
+      if (!Number.isFinite(scaledW) || !Number.isFinite(scaledH)) {
+        continue;
+      }
+
+      const posterBuffer = await getRoundedPoster(scaledW, scaledH);
+      const left = Math.floor((width - scaledW) / 2);
+      const top = Math.floor((height - scaledH) / 2);
+      const frame = await sharp({
+        create: {
+          width,
+          height,
+          channels: 4,
+          background: {
+            r: 0,
+            g: 0,
+            b: 0,
+            alpha: 0,
+          },
+        },
+      })
+        .composite([
+          {
+            input: posterBuffer,
+            left,
+            top,
+          },
+        ])
+        .raw()
+        .toBuffer();
+
+      await writeFrame(frame);
+
+      if (frameIndex % Math.max(1, Math.round(fps * 2)) === 0) {
+        const normalized = frameIndex / Math.max(1, frameCount - 1);
+        const nextProgress = Math.max(
+          50,
+          Math.min(64, Math.round(50 + normalized * 14)),
+        );
+        void updateRenderJobById(renderJobId, {
+          progress: nextProgress,
+        });
+      }
+    }
+
+    ffmpeg.stdin.end();
+
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg.on("error", reject);
+      ffmpeg.on("close", (code) => {
+        activeRenderProcesses.delete(renderJobId);
+        if (code === 0) {
+          resolve();
+          return;
+        }
+
+        reject(
+          new Error(`ffmpeg exited with code ${code}: ${stderr.slice(-1200)}`),
+        );
+      });
+    });
+  } catch (error) {
+    activeRenderProcesses.delete(renderJobId);
+    ffmpeg.kill("SIGKILL");
+    throw error;
+  }
 }
 
 async function renderSpectrumVisualizerLayer(input: {
@@ -1050,11 +1337,26 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   );
   const posterScaleFactor = 0.48;
   const posterW = Math.round(width * posterScaleFactor);
+  const posterAspectRatio =
+    typeof posterAsset.width === "number" &&
+    typeof posterAsset.height === "number" &&
+    posterAsset.width > 0 &&
+    posterAsset.height > 0
+      ? posterAsset.height / posterAsset.width
+      : 1;
+  const posterH = Math.max(32, toEven(posterW * posterAspectRatio, 16));
   const posterBackgroundDimStrength = clampNumber(
     project.posterConfig.backgroundDimStrength ??
       defaultPosterConfig.backgroundDimStrength,
     0,
     0.85,
+  );
+  const posterBeatScaleStrength = clampNumber(
+    project.posterConfig.beatScaleStrength ??
+      defaultPosterConfig.beatScaleStrength ??
+      1,
+    0,
+    5,
   );
   const baseLayerPath = path.join(
     getStorageDirs().renders,
@@ -1087,6 +1389,30 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       height,
       fps,
       durationSec: sceneTimeline.clipDurationSec,
+    }),
+  );
+  const posterCornerRadiusPx = Math.max(
+    0,
+    Math.min(180, Math.round(project.posterConfig.cornerRadius)),
+  );
+  const posterBorderPx = 2;
+  const posterLayerPath = path.join(
+    getStorageDirs().renders,
+    getPosterLayerCacheFileName({
+      posterAssetId: posterAsset.id,
+      analysisId: analysis.id,
+      trimInMs: sceneTimeline.trimInMs,
+      trimOutMs: sceneTimeline.trimOutMs,
+      width,
+      height,
+      fps,
+      durationSec: sceneTimeline.clipDurationSec,
+      basePosterWidth: toEven(posterW, 16),
+      basePosterHeight: posterH,
+      barCount: resolvedBarCount,
+      beatScaleStrength: posterBeatScaleStrength,
+      cornerRadiusPx: posterCornerRadiusPx,
+      borderPx: posterBorderPx,
     }),
   );
   const baseLayerFilterGraph = usePreparedBackground
@@ -1129,13 +1455,6 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     `${outputAssetId}_text_overlay.png`,
   );
 
-  const posterCornerRadiusPx = Math.max(
-    0,
-    Math.min(180, Math.round(project.posterConfig.cornerRadius)),
-  );
-  const posterBorderPx = 2;
-  const posterMaskExpression = `if(gt(abs(W/2-X),W/2-${posterCornerRadiusPx})*gt(abs(H/2-Y),H/2-${posterCornerRadiusPx}),if(lte(pow(abs(W/2-X)-(W/2-${posterCornerRadiusPx}),2)+pow(abs(H/2-Y)-(H/2-${posterCornerRadiusPx}),2),pow(${posterCornerRadiusPx},2)),255,0),255)`;
-
   const trackTextConfig = {
     ...defaultTrackTextConfig,
     ...(project.trackTextConfig ?? {}),
@@ -1161,10 +1480,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const filterGraph = [
     `[0:v]null[base]`,
     `[2:v]format=rgba[vizKeyed]`,
-    `[3:v]scale=${posterW}:-2,format=rgba,drawbox=x=0:y=0:w=iw:h=ih:color=white@0.2:t=${posterBorderPx}[posterFramed]`,
-    `[posterFramed]split=2[posterColor][posterMaskSrc]`,
-    `[posterMaskSrc]format=gray,geq=lum='${posterMaskExpression}'[posterMask]`,
-    `[posterColor][posterMask]alphamerge[posterTop]`,
+    `[3:v]format=rgba[posterTop]`,
     `[4:v]format=rgba[textOverlay]`,
   ];
 
@@ -1188,12 +1504,8 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     trackAsset.filePath,
     "-i",
     visualizerLayerPath,
-    "-loop",
-    "1",
-    "-t",
-    String(sceneTimeline.clipDurationSec),
     "-i",
-    posterAsset.filePath,
+    posterLayerPath,
     "-loop",
     "1",
     "-t",
@@ -1229,11 +1541,13 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const hasCachedBaseLayer = await hasUsableCacheFile(baseLayerPath);
   const hasCachedVisualizerLayer =
     await hasUsableCacheFile(visualizerLayerPath);
+  const hasCachedPosterLayer = await hasUsableCacheFile(posterLayerPath);
 
   console.info("[render] layer cache", {
     renderJobId,
     base: hasCachedBaseLayer ? "hit" : "miss",
     visualizer: hasCachedVisualizerLayer ? "hit" : "miss",
+    poster: hasCachedPosterLayer ? "hit" : "miss",
   });
 
   try {
@@ -1269,6 +1583,29 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       });
     }
 
+    await updateRenderJobById(renderJobId, { progress: 50 });
+
+    if (!hasCachedPosterLayer) {
+      await renderPosterPulseLayer({
+        renderJobId,
+        ffmpegBinary,
+        outputPath: posterLayerPath,
+        posterPath: posterAsset.filePath,
+        width,
+        height,
+        fps,
+        timeline: sceneTimeline,
+        spectrumFrameStepMs: spectrum.frameStepMs,
+        spectrumValues: spectrum.values ?? [],
+        barCount: resolvedBarCount,
+        basePosterWidth: toEven(posterW, 16),
+        basePosterHeight: posterH,
+        beatScaleStrength: posterBeatScaleStrength,
+        cornerRadiusPx: posterCornerRadiusPx,
+        borderPx: posterBorderPx,
+      });
+    }
+
     await updateRenderJobById(renderJobId, { progress: 64 });
 
     await runFfmpeg(
@@ -1286,6 +1623,9 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       if (!hasCachedVisualizerLayer) {
         await fs.unlink(visualizerLayerPath).catch(() => null);
       }
+      if (!hasCachedPosterLayer) {
+        await fs.unlink(posterLayerPath).catch(() => null);
+      }
       await fs.unlink(textOverlayPath).catch(() => null);
       return;
     }
@@ -1301,6 +1641,9 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     console.error("[render] ffmpeg failed", { renderJobId, error });
     if (!hasCachedVisualizerLayer) {
       await fs.unlink(visualizerLayerPath).catch(() => null);
+    }
+    if (!hasCachedPosterLayer) {
+      await fs.unlink(posterLayerPath).catch(() => null);
     }
     await fs.unlink(textOverlayPath).catch(() => null);
     return;

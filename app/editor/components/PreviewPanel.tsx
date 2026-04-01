@@ -51,6 +51,7 @@ type PreviewPanelProps = {
   trackTextSize: number;
   trackTextGap: number;
   trackTextAlign: "left" | "center" | "right";
+  posterPulseScale: number;
   renderWidth: number;
   renderHeight: number;
 };
@@ -98,6 +99,7 @@ export function PreviewPanel({
   trackTextSize,
   trackTextGap,
   trackTextAlign,
+  posterPulseScale,
   renderWidth,
   renderHeight,
 }: PreviewPanelProps) {
@@ -304,6 +306,12 @@ export function PreviewPanel({
     marginTop: `${previewGapPx}px`,
   } as CSSProperties;
 
+  const posterWrapStyle = {
+    transform: `scale(${posterPulseScale.toFixed(4)})`,
+    transformOrigin: "center center",
+    transition: "transform 75ms linear",
+  } as CSSProperties;
+
   function openBackgroundPicker() {
     backgroundFileInputRef.current?.click();
   }
@@ -431,6 +439,7 @@ export function PreviewPanel({
 
           <div
             className="relative z-10 w-[320px] h-[320px] "
+            style={posterWrapStyle}
             onClick={(event) => {
               event.stopPropagation();
               openPosterPicker();
