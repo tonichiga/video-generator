@@ -253,12 +253,17 @@ export async function POST(request: Request) {
       next.beatScaleStrength === undefined
         ? (defaultPosterConfig.beatScaleStrength ?? 1)
         : parseNumberInRange(next.beatScaleStrength, 0, 5);
+    const cameraPunchStrength =
+      next.cameraPunchStrength === undefined
+        ? (defaultPosterConfig.cameraPunchStrength ?? 0)
+        : parseNumberInRange(next.cameraPunchStrength, 0, 3);
 
     if (
       cornerRadius === null ||
       blurStrength === null ||
       backgroundDimStrength === null ||
-      beatScaleStrength === null
+      beatScaleStrength === null ||
+      cameraPunchStrength === null
     ) {
       return errorResponse(
         400,
@@ -272,6 +277,7 @@ export async function POST(request: Request) {
       blurStrength,
       backgroundDimStrength,
       beatScaleStrength,
+      cameraPunchStrength,
     };
   }
 

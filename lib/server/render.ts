@@ -12,6 +12,10 @@ import {
   getNextBeatPulseState,
 } from "@/lib/domain/beat-pulse";
 import {
+  buildCameraPunchScaleExpression,
+  detectCameraPunchBeatsMs,
+} from "@/lib/domain/camera-punch";
+import {
   defaultPosterConfig,
   defaultTrackTextConfig,
 } from "@/lib/domain/defaults";
@@ -1358,6 +1362,22 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     0,
     5,
   );
+  const cameraPunchStrength = clampNumber(
+    project.posterConfig.cameraPunchStrength ??
+      defaultPosterConfig.cameraPunchStrength ??
+      0,
+    0,
+    3,
+  );
+  const cameraPunchBeatsMs = detectCameraPunchBeatsMs({
+    spectrumValues: spectrum.values ?? [],
+    frameStepMs: spectrum.frameStepMs,
+    barCount: resolvedBarCount,
+  });
+  const cameraPunchScaleExpr = buildCameraPunchScaleExpression({
+    beatTimesMs: cameraPunchBeatsMs,
+    strength: cameraPunchStrength,
+  });
   const baseLayerPath = path.join(
     getStorageDirs().renders,
     getBaseLayerCacheFileName({
@@ -1479,15 +1499,15 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
 
   const filterGraph = [
     `[0:v]null[base]`,
-    `[2:v]format=rgba[vizKeyed]`,
-    `[3:v]format=rgba[posterTop]`,
-    `[4:v]format=rgba[textOverlay]`,
+    `[2:v]format=rgba,scale='trunc(iw*${cameraPunchScaleExpr}/2)*2':'trunc(ih*${cameraPunchScaleExpr}/2)*2'[vizKeyed]`,
+    `[3:v]format=rgba,scale='trunc(iw*${cameraPunchScaleExpr}/2)*2':'trunc(ih*${cameraPunchScaleExpr}/2)*2'[posterTop]`,
+    `[4:v]format=rgba,scale='trunc(iw*${cameraPunchScaleExpr}/2)*2':'trunc(ih*${cameraPunchScaleExpr}/2)*2'[textOverlay]`,
   ];
 
   filterGraph.push(
-    `[base][vizKeyed]overlay=0:0:format=auto[scene1]`,
+    `[base][vizKeyed]overlay=(W-w)/2:(H-h)/2:format=auto[scene1]`,
     `[scene1][posterTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene2]`,
-    `[scene2][textOverlay]overlay=0:0:format=auto[vout]`,
+    `[scene2][textOverlay]overlay=(W-w)/2:(H-h)/2:format=auto[vout]`,
   );
 
   const filterComplex = filterGraph.join(";");

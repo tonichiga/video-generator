@@ -56,6 +56,10 @@ import {
   createInitialBeatPulseState,
   getNextBeatPulseState,
 } from "@/lib/domain/beat-pulse";
+import {
+  cameraPunchScaleAtMs,
+  detectCameraPunchBeatsMs,
+} from "@/lib/domain/camera-punch";
 
 export default function Home() {
   const [clientToken, setClientToken] = useState("");
@@ -89,6 +93,7 @@ export default function Home() {
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
   const [backgroundDimStrength, setBackgroundDimStrength] = useState(0.48);
   const [posterBeatScaleStrength, setPosterBeatScaleStrength] = useState(1);
+  const [cameraPunchStrength, setCameraPunchStrength] = useState(0);
   const [artistName, setArtistName] = useState("Unknown Artist");
   const [songName, setSongName] = useState("Untitled Track");
   const [trackTextColor, setTrackTextColor] = useState("#FFFFFF");
@@ -123,6 +128,7 @@ export default function Home() {
     Array.from({ length: 32 }).map(() => 0.05),
   );
   const [posterPulseScale, setPosterPulseScale] = useState(1);
+  const [cameraPunchScale, setCameraPunchScale] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -212,6 +218,14 @@ export default function Home() {
     );
   }, [visualizerBarCount, visualizerBars]);
 
+  const cameraPunchBeatsMs = useMemo(() => {
+    return detectCameraPunchBeatsMs({
+      spectrumValues,
+      frameStepMs: spectrumFrameStepMs,
+      barCount: visualizerBarCount,
+    });
+  }, [spectrumFrameStepMs, spectrumValues, visualizerBarCount]);
+
   const emitPreviewMetric = useCallback(
     (event: string, payload: Record<string, unknown> = {}) => {
       const body = {
@@ -296,6 +310,14 @@ export default function Home() {
         const pulseStrength = clampNumber(posterBeatScaleStrength, 0, 5);
         const scaledPulse = 1 + (nextPulse.scale - 1) * pulseStrength;
         setPosterPulseScale(clampNumber(scaledPulse, 1, 1.25));
+
+        const playheadMs = Math.round((audio?.currentTime ?? 0) * 1000);
+        const punchScale = cameraPunchScaleAtMs({
+          absoluteMs: playheadMs,
+          beatTimesMs: cameraPunchBeatsMs,
+          strength: cameraPunchStrength,
+        });
+        setCameraPunchScale(clampNumber(punchScale, 1, 1.2));
       };
 
       const audio = audioRef.current;
@@ -347,6 +369,8 @@ export default function Home() {
       commitBars(bars);
     },
     [
+      cameraPunchBeatsMs,
+      cameraPunchStrength,
       posterBeatScaleStrength,
       spectrumFrameStepMs,
       spectrumValues,
@@ -380,6 +404,7 @@ export default function Home() {
       setPosterBlurStrength(template.posterConfig.blurStrength);
       setBackgroundDimStrength(template.posterConfig.backgroundDimStrength);
       setPosterBeatScaleStrength(template.posterConfig.beatScaleStrength ?? 1);
+      setCameraPunchStrength(template.posterConfig.cameraPunchStrength ?? 0);
 
       if (emitEvent) {
         emitPreviewMetric("template_change", {
@@ -490,12 +515,17 @@ export default function Home() {
     );
     beatPulseStateRef.current = createInitialBeatPulseState();
     setPosterPulseScale(1);
+    setCameraPunchScale(1);
   }, [visualizerBarCount]);
 
   useEffect(() => {
     beatPulseStateRef.current = createInitialBeatPulseState();
     setPosterPulseScale(1);
   }, [posterBeatScaleStrength]);
+
+  useEffect(() => {
+    setCameraPunchScale(1);
+  }, [cameraPunchStrength]);
 
   useEffect(() => {
     let mounted = true;
@@ -521,6 +551,7 @@ export default function Home() {
             setPosterBeatScaleStrength(
               first.posterConfig.beatScaleStrength ?? 1,
             );
+            setCameraPunchStrength(first.posterConfig.cameraPunchStrength ?? 0);
           }
         }
       })
@@ -817,6 +848,7 @@ export default function Home() {
         blurStrength: posterBlurStrength,
         backgroundDimStrength,
         beatScaleStrength: posterBeatScaleStrength,
+        cameraPunchStrength,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -867,6 +899,7 @@ export default function Home() {
     setPosterBlurStrength(data.posterConfig?.blurStrength ?? 20);
     setBackgroundDimStrength(data.posterConfig?.backgroundDimStrength ?? 0.48);
     setPosterBeatScaleStrength(data.posterConfig?.beatScaleStrength ?? 1);
+    setCameraPunchStrength(data.posterConfig?.cameraPunchStrength ?? 0);
     setArtistName(data.trackTextConfig?.artist ?? "Unknown Artist");
     setSongName(data.trackTextConfig?.songName ?? "Untitled Track");
     setTrackTextColor(data.trackTextConfig?.color ?? "#FFFFFF");
@@ -902,8 +935,12 @@ export default function Home() {
     try {
       setIsBusy(true);
       await action();
-    } catch {
-      setStatus("Operation failed. Check input and try again.");
+    } catch (error) {
+      if (error instanceof Error && error.message.trim().length > 0) {
+        setStatus(error.message.slice(0, 220));
+      } else {
+        setStatus("Operation failed. Check input and try again.");
+      }
     } finally {
       setIsBusy(false);
     }
@@ -944,6 +981,7 @@ export default function Home() {
         blurStrength: posterBlurStrength,
         backgroundDimStrength,
         beatScaleStrength: posterBeatScaleStrength,
+        cameraPunchStrength,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -1031,6 +1069,7 @@ export default function Home() {
       setVisualizerBars((previous) => previous.map(() => 0.06));
       beatPulseStateRef.current = createInitialBeatPulseState();
       setPosterPulseScale(1);
+      setCameraPunchScale(1);
       emitPreviewMetric("preview_pause", {
         reason: "manual",
         maxDriftMs: Math.round(maxDriftRef.current),
@@ -1217,6 +1256,7 @@ export default function Home() {
           backgroundDimStrength={backgroundDimStrength}
           posterCornerRadius={posterCornerRadius}
           posterBeatScaleStrength={posterBeatScaleStrength}
+          cameraPunchStrength={cameraPunchStrength}
           artistName={artistName}
           songName={songName}
           trackTextColor={trackTextColor}
@@ -1255,6 +1295,7 @@ export default function Home() {
           onBackgroundDimStrengthChange={setBackgroundDimStrength}
           onPosterCornerRadiusChange={setPosterCornerRadius}
           onPosterBeatScaleStrengthChange={setPosterBeatScaleStrength}
+          onCameraPunchStrengthChange={setCameraPunchStrength}
           onArtistNameChange={setArtistName}
           onSongNameChange={setSongName}
           onTrackTextColorChange={setTrackTextColor}
@@ -1304,6 +1345,7 @@ export default function Home() {
           trackTextGap={trackTextGap}
           trackTextAlign={trackTextAlign}
           posterPulseScale={posterPulseScale}
+          cameraPunchScale={cameraPunchScale}
           renderWidth={renderResolution.width}
           renderHeight={renderResolution.height}
         />

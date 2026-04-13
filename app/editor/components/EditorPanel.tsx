@@ -25,6 +25,7 @@ type EditorPanelProps = {
   backgroundDimStrength: number;
   posterCornerRadius: number;
   posterBeatScaleStrength: number;
+  cameraPunchStrength: number;
   artistName: string;
   songName: string;
   trackTextColor: string;
@@ -63,6 +64,7 @@ type EditorPanelProps = {
   onBackgroundDimStrengthChange: (value: number) => void;
   onPosterCornerRadiusChange: (value: number) => void;
   onPosterBeatScaleStrengthChange: (value: number) => void;
+  onCameraPunchStrengthChange: (value: number) => void;
   onArtistNameChange: (value: string) => void;
   onSongNameChange: (value: string) => void;
   onTrackTextColorChange: (value: string) => void;
@@ -427,6 +429,35 @@ export function EditorPanel(props: EditorPanelProps) {
                 const next = toClampedNumber(event.target.value, 0, 5);
                 if (next !== null) {
                   props.onPosterBeatScaleStrengthChange(next);
+                }
+              }}
+            />
+          </div>
+        </label>
+
+        <label>
+          Camera punch ({props.cameraPunchStrength.toFixed(2)}x)
+          <div className="editor-range-row">
+            <input
+              type="range"
+              min={0}
+              max={3}
+              step={0.05}
+              value={props.cameraPunchStrength}
+              onChange={(event) =>
+                props.onCameraPunchStrengthChange(Number(event.target.value))
+              }
+            />
+            <input
+              type="number"
+              min={0}
+              max={3}
+              step={0.05}
+              value={props.cameraPunchStrength}
+              onChange={(event) => {
+                const next = toClampedNumber(event.target.value, 0, 3);
+                if (next !== null) {
+                  props.onCameraPunchStrengthChange(next);
                 }
               }}
             />

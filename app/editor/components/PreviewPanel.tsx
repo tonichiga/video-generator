@@ -52,6 +52,7 @@ type PreviewPanelProps = {
   trackTextGap: number;
   trackTextAlign: "left" | "center" | "right";
   posterPulseScale: number;
+  cameraPunchScale: number;
   renderWidth: number;
   renderHeight: number;
 };
@@ -100,6 +101,7 @@ export function PreviewPanel({
   trackTextGap,
   trackTextAlign,
   posterPulseScale,
+  cameraPunchScale,
   renderWidth,
   renderHeight,
 }: PreviewPanelProps) {
@@ -163,6 +165,18 @@ export function PreviewPanel({
     posterAssetId,
     posterPreviewUrl,
   ]);
+
+  const scenePosterUrl = useMemo(() => {
+    if (posterPreviewUrl) {
+      return posterPreviewUrl;
+    }
+
+    if (posterAssetId) {
+      return `/api/assets/${posterAssetId}`;
+    }
+
+    return "";
+  }, [posterAssetId, posterPreviewUrl]);
 
   const sceneStyle = {
     aspectRatio: previewAspectRatio,
@@ -312,6 +326,15 @@ export function PreviewPanel({
     transition: "transform 75ms linear",
   } as CSSProperties;
 
+  const scenePunchStyle = {
+    position: "absolute",
+    inset: 0,
+    zIndex: 3,
+    transform: `scale(${cameraPunchScale.toFixed(4)})`,
+    transformOrigin: "center center",
+    transition: "transform 75ms linear",
+  } as CSSProperties;
+
   function openBackgroundPicker() {
     backgroundFileInputRef.current?.click();
   }
@@ -379,100 +402,102 @@ export function PreviewPanel({
       >
         <canvas ref={backgroundCanvasRef} className="scene-bg-canvas" />
 
-        <div className="scene-eq" style={eqStyle}>
-          {visualizerType === "line" ? (
-            <svg viewBox="0 0 100 100" className="scene-eq-line" role="img">
-              <path
-                d={equalizerLineD}
-                stroke={liveEqualizerConfig.color}
-                strokeWidth="2.8"
-                fill="none"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-            </svg>
-          ) : visualizerType === "symmetricBars" ? (
-            <div className="scene-eq-symmetric-bars">
-              {normalizedVisualizerBars.map((value, index) => (
-                <span key={index} className="scene-eq-symmetric-col">
-                  <span
-                    className="scene-eq-symmetric-segment scene-eq-symmetric-segment--top"
-                    style={{
-                      height: visualizerSymmetricBarHeight(value),
-                      backgroundColor: liveEqualizerConfig.color,
-                    }}
-                  />
-                  <span
-                    className="scene-eq-symmetric-segment scene-eq-symmetric-segment--bottom"
-                    style={{
-                      height: visualizerSymmetricBarHeight(value),
-                      backgroundColor: liveEqualizerConfig.color,
-                    }}
-                  />
-                </span>
-              ))}
-            </div>
-          ) : (
-            <div className={`scene-eq-bars scene-eq-bars--${visualizerType}`}>
-              {normalizedVisualizerBars.map((value, index) => (
-                <span
-                  key={index}
-                  className="scene-eq-bar"
-                  style={{
-                    height: `${Math.max(8, Math.round(value * 100))}%`,
-                    backgroundColor: liveEqualizerConfig.color,
-                  }}
+        <div style={scenePunchStyle}>
+          <div className="scene-eq" style={eqStyle}>
+            {visualizerType === "line" ? (
+              <svg viewBox="0 0 100 100" className="scene-eq-line" role="img">
+                <path
+                  d={equalizerLineD}
+                  stroke={liveEqualizerConfig.color}
+                  strokeWidth="2.8"
+                  fill="none"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
                 />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="scene-poster-wrap cursor-pointer hover:brightness-110">
-          <div
-            className="absolute inset-0"
-            onClick={(event) => {
-              event.stopPropagation();
-              openBackgroundPicker();
-            }}
-          />
-
-          <div
-            className="relative z-10 w-[320px] h-[320px] "
-            style={posterWrapStyle}
-            onClick={(event) => {
-              event.stopPropagation();
-              openPosterPicker();
-            }}
-          >
-            {posterPreviewUrl ? (
-              <Image
-                className="scene-poster object-cover w-full h-full"
-                src={posterPreviewUrl}
-                alt="Poster preview"
-                width={1024}
-                height={1024}
-                style={{ borderRadius: `${posterCornerRadius}px` }}
-                unoptimized
-              />
+              </svg>
+            ) : visualizerType === "symmetricBars" ? (
+              <div className="scene-eq-symmetric-bars">
+                {normalizedVisualizerBars.map((value, index) => (
+                  <span key={index} className="scene-eq-symmetric-col">
+                    <span
+                      className="scene-eq-symmetric-segment scene-eq-symmetric-segment--top"
+                      style={{
+                        height: visualizerSymmetricBarHeight(value),
+                        backgroundColor: liveEqualizerConfig.color,
+                      }}
+                    />
+                    <span
+                      className="scene-eq-symmetric-segment scene-eq-symmetric-segment--bottom"
+                      style={{
+                        height: visualizerSymmetricBarHeight(value),
+                        backgroundColor: liveEqualizerConfig.color,
+                      }}
+                    />
+                  </span>
+                ))}
+              </div>
             ) : (
-              <div className="border w-[320px] h-[320px] rounded-2xl flex items-center justify-center">
-                +
+              <div className={`scene-eq-bars scene-eq-bars--${visualizerType}`}>
+                {normalizedVisualizerBars.map((value, index) => (
+                  <span
+                    key={index}
+                    className="scene-eq-bar"
+                    style={{
+                      height: `${Math.max(8, Math.round(value * 100))}%`,
+                      backgroundColor: liveEqualizerConfig.color,
+                    }}
+                  />
+                ))}
               </div>
             )}
           </div>
-        </div>
 
-        <div className="scene-track-text" style={trackTextStyle}>
-          <p className="scene-track-text-artist" style={trackArtistStyle}>
-            {artistName || "Unknown Artist"}
-          </p>
-          <p
-            className="scene-track-text-song text-nowrap"
-            style={trackSongStyle}
-          >
-            {songName || "Untitled Track"}
-          </p>
+          <div className="scene-poster-wrap cursor-pointer hover:brightness-110">
+            <div
+              className="absolute inset-0"
+              onClick={(event) => {
+                event.stopPropagation();
+                openBackgroundPicker();
+              }}
+            />
+
+            <div
+              className="relative z-10 w-[320px] h-[320px] "
+              style={posterWrapStyle}
+              onClick={(event) => {
+                event.stopPropagation();
+                openPosterPicker();
+              }}
+            >
+              {scenePosterUrl ? (
+                <Image
+                  className="scene-poster object-cover w-full h-full"
+                  src={scenePosterUrl}
+                  alt="Poster preview"
+                  width={1024}
+                  height={1024}
+                  style={{ borderRadius: `${posterCornerRadius}px` }}
+                  unoptimized
+                />
+              ) : (
+                <div className="border w-[320px] h-[320px] rounded-2xl flex items-center justify-center">
+                  +
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="scene-track-text" style={trackTextStyle}>
+            <p className="scene-track-text-artist" style={trackArtistStyle}>
+              {artistName || "Unknown Artist"}
+            </p>
+            <p
+              className="scene-track-text-song text-nowrap"
+              style={trackSongStyle}
+            >
+              {songName || "Untitled Track"}
+            </p>
+          </div>
         </div>
       </div>
       <p className="layer-note">

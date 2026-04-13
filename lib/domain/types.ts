@@ -40,6 +40,7 @@ export interface PosterConfig {
   blurStrength: number;
   backgroundDimStrength: number;
   beatScaleStrength?: number;
+  cameraPunchStrength?: number;
 }
 
 export interface TrackTextConfig {

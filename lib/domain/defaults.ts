@@ -26,6 +26,7 @@ export const defaultPosterConfig: PosterConfig = {
   blurStrength: 20,
   backgroundDimStrength: 0.48,
   beatScaleStrength: 1,
+  cameraPunchStrength: 0,
 };
 
 export const defaultTrackTextConfig: TrackTextConfig = {

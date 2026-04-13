@@ -29,6 +29,7 @@ export type TemplateItem = {
     blurStrength: number;
     backgroundDimStrength: number;
     beatScaleStrength?: number;
+    cameraPunchStrength?: number;
   };
 };
 
@@ -62,6 +63,7 @@ export type PosterConfigPayload = {
   blurStrength: number;
   backgroundDimStrength: number;
   beatScaleStrength: number;
+  cameraPunchStrength: number;
 };
 
 export type TrackTextConfigPayload = {
@@ -125,6 +127,7 @@ export type LoadProjectResponse = {
     blurStrength?: number;
     backgroundDimStrength?: number;
     beatScaleStrength?: number;
+    cameraPunchStrength?: number;
   };
   trackTextConfig?: {
     artist?: string;

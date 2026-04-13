@@ -306,12 +306,19 @@ export async function PATCH(
           defaultPosterConfig.beatScaleStrength ??
           1)
         : parseNumberInRange(next.beatScaleStrength, 0, 5);
+    const cameraPunchStrength =
+      next.cameraPunchStrength === undefined
+        ? (loaded.project.posterConfig.cameraPunchStrength ??
+          defaultPosterConfig.cameraPunchStrength ??
+          0)
+        : parseNumberInRange(next.cameraPunchStrength, 0, 3);
 
     if (
       cornerRadius === null ||
       blurStrength === null ||
       backgroundDimStrength === null ||
-      beatScaleStrength === null
+      beatScaleStrength === null ||
+      cameraPunchStrength === null
     ) {
       return errorResponse(
         400,
@@ -325,6 +332,7 @@ export async function PATCH(
       blurStrength,
       backgroundDimStrength,
       beatScaleStrength,
+      cameraPunchStrength,
     };
   } else if (payload.posterConfig === null) {
     patch.posterConfig = defaultPosterConfig;

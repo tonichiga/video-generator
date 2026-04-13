@@ -12,7 +12,26 @@ async function parseJson<T>(
   fallbackMessage: string,
 ): Promise<T> {
   if (!response.ok) {
-    throw new Error(fallbackMessage);
+    let detail = "";
+
+    try {
+      const parsed = (await response.json()) as {
+        error?: { code?: string; message?: string };
+      };
+      const code = parsed?.error?.code;
+      const message = parsed?.error?.message;
+      if (code || message) {
+        detail = [code, message].filter(Boolean).join(": ");
+      }
+    } catch {
+      const text = await response.text().catch(() => "");
+      detail = text.trim().slice(0, 220);
+    }
+
+    const suffix = detail
+      ? ` [${response.status}] ${detail}`
+      : ` [${response.status}]`;
+    throw new Error(`${fallbackMessage}${suffix}`);
   }
 
   return (await response.json()) as T;
