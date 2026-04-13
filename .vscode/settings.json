@@ -3,6 +3,14 @@
     "/^npx shadcn@latest init -d$/": {
       "approve": true,
       "matchCommandLine": true
+    },
+    "/^npx shadcn@latest add card input select dialog progress badge separator$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^npx shadcn@latest add tabs$/": {
+      "approve": true,
+      "matchCommandLine": true
     }
   }
 }

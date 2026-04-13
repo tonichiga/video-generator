@@ -37,7 +37,6 @@ import { PreviewPanel } from "./editor/components/PreviewPanel";
 import { PreviewTimelinePanel } from "./editor/components/PreviewPanel";
 import type {
   CreateProjectPayload,
-  TimelineKeyframeParameter,
   TimelineKeyframeTrack,
   TimelineState,
   TemplateItem,
@@ -94,6 +93,11 @@ export default function Home() {
   const [backgroundDimStrength, setBackgroundDimStrength] = useState(0.48);
   const [posterBeatScaleStrength, setPosterBeatScaleStrength] = useState(1);
   const [cameraPunchStrength, setCameraPunchStrength] = useState(0);
+  const [parallaxDriftStrength, setParallaxDriftStrength] = useState(0);
+  const [bannerScale, setBannerScale] = useState(0.56);
+  const [bannerBorderEnabled, setBannerBorderEnabled] = useState(true);
+  const [bannerBorderColor, setBannerBorderColor] = useState("#dceaff");
+  const [bannerBorderWidth, setBannerBorderWidth] = useState(2);
   const [artistName, setArtistName] = useState("Unknown Artist");
   const [songName, setSongName] = useState("Untitled Track");
   const [trackTextColor, setTrackTextColor] = useState("#FFFFFF");
@@ -118,8 +122,8 @@ export default function Home() {
     getDefaultTimeline(DEFAULT_DURATION_MS),
   );
   const [keyframes, setKeyframes] = useState<TimelineKeyframeTrack[]>([]);
-  const [selectedKeyframeParameter, setSelectedKeyframeParameter] =
-    useState<TimelineKeyframeParameter>("equalizer.height");
+  const [pendingAutoSaveAfterAnalysis, setPendingAutoSaveAfterAnalysis] =
+    useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [previewDriftMs, setPreviewDriftMs] = useState(0);
   const [previewFps, setPreviewFps] = useState(0);
@@ -405,6 +409,15 @@ export default function Home() {
       setBackgroundDimStrength(template.posterConfig.backgroundDimStrength);
       setPosterBeatScaleStrength(template.posterConfig.beatScaleStrength ?? 1);
       setCameraPunchStrength(template.posterConfig.cameraPunchStrength ?? 0);
+      setParallaxDriftStrength(
+        template.posterConfig.parallaxDriftStrength ?? 0,
+      );
+      setBannerScale(template.posterConfig.bannerScale ?? 0.56);
+      setBannerBorderEnabled(template.posterConfig.bannerBorderEnabled ?? true);
+      setBannerBorderColor(
+        template.posterConfig.bannerBorderColor ?? "#dceaff",
+      );
+      setBannerBorderWidth(template.posterConfig.bannerBorderWidth ?? 2);
 
       if (emitEvent) {
         emitPreviewMetric("template_change", {
@@ -552,6 +565,17 @@ export default function Home() {
               first.posterConfig.beatScaleStrength ?? 1,
             );
             setCameraPunchStrength(first.posterConfig.cameraPunchStrength ?? 0);
+            setParallaxDriftStrength(
+              first.posterConfig.parallaxDriftStrength ?? 0,
+            );
+            setBannerScale(first.posterConfig.bannerScale ?? 0.56);
+            setBannerBorderEnabled(
+              first.posterConfig.bannerBorderEnabled ?? true,
+            );
+            setBannerBorderColor(
+              first.posterConfig.bannerBorderColor ?? "#dceaff",
+            );
+            setBannerBorderWidth(first.posterConfig.bannerBorderWidth ?? 2);
           }
         }
       })
@@ -589,10 +613,18 @@ export default function Home() {
 
     const interval = window.setInterval(() => {
       void getAnalysisStatus(analysisId)
-        .then((data) => {
+        .then(async (data) => {
           setAnalysisStatus(data.status);
           if (data.status === "done") {
             setStatus("Audio analysis complete");
+            if (pendingAutoSaveAfterAnalysis) {
+              setPendingAutoSaveAfterAnalysis(false);
+              try {
+                await tryAutoSaveProject();
+              } catch {
+                setStatus("Analysis done, auto-save failed");
+              }
+            }
           }
         })
         .catch(() => {
@@ -602,7 +634,8 @@ export default function Home() {
     }, 1500);
 
     return () => window.clearInterval(interval);
-  }, [analysisId, analysisStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisId, analysisStatus, pendingAutoSaveAfterAnalysis]);
 
   useEffect(() => {
     if (analysisStatus !== "done" || !analysisId) {
@@ -709,8 +742,14 @@ export default function Home() {
   }, [stopRenderLoop]);
 
   async function uploadTrack(file: File) {
-    const data = await uploadTrackAsset(file);
-    setTrackAssetId(data.assetId);
+    const upload = await uploadTrackAsset(file);
+    setTrackAssetId(upload.assetId);
+
+    const analysis = await startTrackAnalysis(upload.assetId);
+    setAnalysisId(analysis.analysisId);
+    setAnalysisStatus(analysis.status);
+    setPendingAutoSaveAfterAnalysis(true);
+    setStatus("Track uploaded, analysis started");
   }
 
   async function uploadPoster(file: File) {
@@ -804,72 +843,134 @@ export default function Home() {
     setStatus("Audio analysis started");
   }
 
+  const buildCreateProjectPayload =
+    useCallback((): CreateProjectPayload | null => {
+      if (
+        !trackAssetId ||
+        !posterAssetId ||
+        analysisStatus !== "done" ||
+        !analysisId
+      ) {
+        return null;
+      }
+
+      return {
+        clientToken,
+        name: projectName,
+        format,
+        quality,
+        fps: 30,
+        trackAssetId,
+        posterAssetId,
+        backgroundAssetId: backgroundAssetId || null,
+        renderBackgroundAssetId: null,
+        analysisId,
+        templateId: selectedTemplateId,
+        equalizerConfig: {
+          x: 0.5,
+          y: equalizerY,
+          width: equalizerWidth,
+          height: equalizerHeight,
+          color: equalizerColor,
+          visualizerType,
+          barCount: visualizerBarCount,
+        },
+        particleConfig: {
+          preset: "off",
+          density: 0,
+          speed: 0.5,
+        },
+        posterConfig: {
+          cornerRadius: posterCornerRadius,
+          blurStrength: posterBlurStrength,
+          backgroundDimStrength,
+          beatScaleStrength: posterBeatScaleStrength,
+          cameraPunchStrength,
+          parallaxDriftStrength,
+          bannerScale,
+          bannerBorderEnabled,
+          bannerBorderColor,
+          bannerBorderWidth,
+        },
+        trackTextConfig: {
+          artist: artistName.trim() || "Unknown Artist",
+          songName: songName.trim() || "Untitled Track",
+          color: trackTextColor,
+          x: trackTextX,
+          y: trackTextY,
+          size: trackTextSize,
+          gap: trackTextGap,
+          align: trackTextAlign,
+        },
+        timeline: {
+          ...timeline,
+          playheadMs: timeline.playheadMs ?? timeline.trimInMs,
+        },
+        keyframes,
+      };
+    }, [
+      analysisId,
+      analysisStatus,
+      artistName,
+      backgroundAssetId,
+      backgroundDimStrength,
+      bannerBorderColor,
+      bannerBorderEnabled,
+      bannerBorderWidth,
+      bannerScale,
+      cameraPunchStrength,
+      clientToken,
+      equalizerColor,
+      equalizerHeight,
+      equalizerWidth,
+      equalizerY,
+      format,
+      keyframes,
+      posterAssetId,
+      posterBeatScaleStrength,
+      posterBlurStrength,
+      posterCornerRadius,
+      parallaxDriftStrength,
+      projectName,
+      quality,
+      selectedTemplateId,
+      songName,
+      timeline,
+      trackAssetId,
+      trackTextAlign,
+      trackTextColor,
+      trackTextGap,
+      trackTextSize,
+      trackTextX,
+      trackTextY,
+      visualizerBarCount,
+      visualizerType,
+    ]);
+
   async function saveProject(event: FormEvent) {
     event.preventDefault();
 
-    if (
-      !trackAssetId ||
-      !posterAssetId ||
-      analysisStatus !== "done" ||
-      !analysisId
-    ) {
+    const payload = buildCreateProjectPayload();
+    if (!payload) {
       setStatus("Upload files and complete analysis before saving");
       return;
     }
 
-    const payload: CreateProjectPayload = {
-      clientToken,
-      name: projectName,
-      format,
-      quality,
-      fps: 30,
-      trackAssetId,
-      posterAssetId,
-      backgroundAssetId: backgroundAssetId || null,
-      renderBackgroundAssetId: null,
-      analysisId,
-      templateId: selectedTemplateId,
-      equalizerConfig: {
-        x: 0.5,
-        y: equalizerY,
-        width: equalizerWidth,
-        height: equalizerHeight,
-        color: equalizerColor,
-        visualizerType,
-        barCount: visualizerBarCount,
-      },
-      particleConfig: {
-        preset: "off",
-        density: 0,
-        speed: 0.5,
-      },
-      posterConfig: {
-        cornerRadius: posterCornerRadius,
-        blurStrength: posterBlurStrength,
-        backgroundDimStrength,
-        beatScaleStrength: posterBeatScaleStrength,
-        cameraPunchStrength,
-      },
-      trackTextConfig: {
-        artist: artistName.trim() || "Unknown Artist",
-        songName: songName.trim() || "Untitled Track",
-        color: trackTextColor,
-        x: trackTextX,
-        y: trackTextY,
-        size: trackTextSize,
-        gap: trackTextGap,
-        align: trackTextAlign,
-      },
-      timeline: {
-        ...timeline,
-        playheadMs: timeline.playheadMs ?? timeline.trimInMs,
-      },
-      keyframes,
-    };
-
     const data = await createProject(payload);
     setProjectId(data.projectId);
     setStatus("Project saved");
+  }
+
+  async function tryAutoSaveProject() {
+    const payload = buildCreateProjectPayload();
+    if (!payload) {
+      setStatus("Analysis done. Upload poster to auto-save project");
+      return;
+    }
+
+    const data = await createProject(payload);
+    setProjectId(data.projectId);
+    setStatus("Analysis complete, project auto-saved");
   }
 
   async function loadProject() {
@@ -900,6 +1001,11 @@ export default function Home() {
     setBackgroundDimStrength(data.posterConfig?.backgroundDimStrength ?? 0.48);
     setPosterBeatScaleStrength(data.posterConfig?.beatScaleStrength ?? 1);
     setCameraPunchStrength(data.posterConfig?.cameraPunchStrength ?? 0);
+    setParallaxDriftStrength(data.posterConfig?.parallaxDriftStrength ?? 0);
+    setBannerScale(data.posterConfig?.bannerScale ?? 0.56);
+    setBannerBorderEnabled(data.posterConfig?.bannerBorderEnabled ?? true);
+    setBannerBorderColor(data.posterConfig?.bannerBorderColor ?? "#dceaff");
+    setBannerBorderWidth(data.posterConfig?.bannerBorderWidth ?? 2);
     setArtistName(data.trackTextConfig?.artist ?? "Unknown Artist");
     setSongName(data.trackTextConfig?.songName ?? "Untitled Track");
     setTrackTextColor(data.trackTextConfig?.color ?? "#FFFFFF");
@@ -982,6 +1088,11 @@ export default function Home() {
         backgroundDimStrength,
         beatScaleStrength: posterBeatScaleStrength,
         cameraPunchStrength,
+        parallaxDriftStrength,
+        bannerScale,
+        bannerBorderEnabled,
+        bannerBorderColor,
+        bannerBorderWidth,
       },
       trackTextConfig: {
         artist: artistName.trim() || "Unknown Artist",
@@ -1158,65 +1269,6 @@ export default function Home() {
     });
   }
 
-  function addKeyframe() {
-    const playheadMs = Math.round(timeline.playheadMs ?? timeline.trimInMs);
-
-    const valueByParameter: Record<TimelineKeyframeParameter, number> = {
-      "equalizer.width": liveEqualizerConfig.width,
-      "equalizer.height": liveEqualizerConfig.height,
-      "equalizer.y": liveEqualizerConfig.y,
-    };
-
-    const nextPoint = {
-      timeMs: playheadMs,
-      value: valueByParameter[selectedKeyframeParameter],
-      easing: "easeInOut" as const,
-    };
-
-    setKeyframes((previous) => {
-      const copy = [...previous];
-      const existingIndex = copy.findIndex(
-        (item) => item.parameter === selectedKeyframeParameter,
-      );
-
-      if (existingIndex < 0) {
-        copy.push({
-          parameter: selectedKeyframeParameter,
-          points: [nextPoint],
-        });
-      } else {
-        const points = [...copy[existingIndex].points]
-          .filter((item) => item.timeMs !== nextPoint.timeMs)
-          .concat(nextPoint)
-          .sort((a, b) => a.timeMs - b.timeMs);
-
-        copy[existingIndex] = {
-          ...copy[existingIndex],
-          points,
-        };
-      }
-
-      return copy;
-    });
-
-    emitPreviewMetric("keyframe_change", {
-      parameter: selectedKeyframeParameter,
-      timeMs: playheadMs,
-      action: "add",
-    });
-  }
-
-  function clearSelectedKeyframes() {
-    setKeyframes((previous) =>
-      previous.filter((item) => item.parameter !== selectedKeyframeParameter),
-    );
-
-    emitPreviewMetric("keyframe_change", {
-      parameter: selectedKeyframeParameter,
-      action: "clear_parameter",
-    });
-  }
-
   const equalizerLineD = useMemo(
     () => visualizerLinePath(normalizedVisualizerBars),
     [normalizedVisualizerBars],
@@ -1231,144 +1283,164 @@ export default function Home() {
   }
 
   return (
-    <main className="editor-root ">
+    <main className={`editor-root editor-root--${format}`}>
       <audio
         ref={audioRef}
         src={trackPlaybackUrl || undefined}
         preload="auto"
       />
 
-      <div className="grid grid-cols-2 w-full justify-between">
-        <EditorPanel
-          clientToken={clientToken}
-          projectName={projectName}
-          format={format}
-          quality={quality}
-          selectedTemplateId={selectedTemplateId}
-          templates={templates}
-          equalizerColor={equalizerColor}
-          equalizerWidth={equalizerWidth}
-          equalizerHeight={equalizerHeight}
-          equalizerY={equalizerY}
-          visualizerType={visualizerType}
-          visualizerBarCount={visualizerBarCount}
-          posterBlurStrength={posterBlurStrength}
-          backgroundDimStrength={backgroundDimStrength}
-          posterCornerRadius={posterCornerRadius}
-          posterBeatScaleStrength={posterBeatScaleStrength}
-          cameraPunchStrength={cameraPunchStrength}
-          artistName={artistName}
-          songName={songName}
-          trackTextColor={trackTextColor}
-          trackTextX={trackTextX}
-          trackTextY={trackTextY}
-          trackTextSize={trackTextSize}
-          trackTextGap={trackTextGap}
-          trackTextAlign={trackTextAlign}
-          projectId={projectId}
-          status={status}
-          isBusy={isBusy}
-          trackAssetId={trackAssetId}
-          posterAssetId={posterAssetId}
-          backgroundAssetId={backgroundAssetId}
-          analysisId={analysisId}
-          analysisStatus={analysisStatus}
-          renderJobId={renderJobId}
-          renderStatus={renderStatus}
-          renderProgress={renderProgress}
-          previewTimelineEnabled={previewTimelineEnabled}
-          previewStartupMs={previewStartupMs}
-          previewDriftMs={previewDriftMs}
-          previewFps={previewFps}
-          onClientTokenChange={setClientToken}
-          onProjectNameChange={setProjectName}
-          onFormatChange={setFormat}
-          onQualityChange={setQuality}
-          onTemplateChange={(value) => applyTemplateSettings(value, true)}
-          onEqualizerColorChange={setEqualizerColor}
-          onEqualizerWidthChange={setEqualizerWidth}
-          onEqualizerHeightChange={setEqualizerHeight}
-          onEqualizerYChange={setEqualizerY}
-          onVisualizerTypeChange={setVisualizerType}
-          onVisualizerBarCountChange={setVisualizerBarCount}
-          onPosterBlurStrengthChange={setPosterBlurStrength}
-          onBackgroundDimStrengthChange={setBackgroundDimStrength}
-          onPosterCornerRadiusChange={setPosterCornerRadius}
-          onPosterBeatScaleStrengthChange={setPosterBeatScaleStrength}
-          onCameraPunchStrengthChange={setCameraPunchStrength}
-          onArtistNameChange={setArtistName}
-          onSongNameChange={setSongName}
-          onTrackTextColorChange={setTrackTextColor}
-          onTrackTextXChange={setTrackTextX}
-          onTrackTextYChange={setTrackTextY}
-          onTrackTextSizeChange={setTrackTextSize}
-          onTrackTextGapChange={setTrackTextGap}
-          onTrackTextAlignChange={setTrackTextAlign}
-          onSubmitProject={(event) => void runAction(() => saveProject(event))}
-          onUploadTrack={(file) => void runAction(() => uploadTrack(file))}
-          onAnalyzeTrack={() => void runAction(analyzeTrack)}
-          onStartRender={() => void runAction(startRender)}
-          onDownloadRender={downloadRender}
-          onCancelRender={() => void runAction(cancelRender)}
-          onRetryRender={() => void runAction(retryRender)}
-          onProjectIdChange={setProjectId}
-          onLoadProject={() => void runAction(loadProject)}
-          onSaveTimeline={() => void runAction(saveTimelineState)}
-        />
+      <div className="editor-workspace">
+        <div className="editor-main-column">
+          <EditorPanel
+            clientToken={clientToken}
+            projectName={projectName}
+            format={format}
+            quality={quality}
+            selectedTemplateId={selectedTemplateId}
+            templates={templates}
+            equalizerColor={equalizerColor}
+            equalizerWidth={equalizerWidth}
+            equalizerHeight={equalizerHeight}
+            equalizerY={equalizerY}
+            visualizerType={visualizerType}
+            visualizerBarCount={visualizerBarCount}
+            posterBlurStrength={posterBlurStrength}
+            backgroundDimStrength={backgroundDimStrength}
+            posterCornerRadius={posterCornerRadius}
+            posterBeatScaleStrength={posterBeatScaleStrength}
+            cameraPunchStrength={cameraPunchStrength}
+            parallaxDriftStrength={parallaxDriftStrength}
+            bannerScale={bannerScale}
+            bannerBorderEnabled={bannerBorderEnabled}
+            bannerBorderColor={bannerBorderColor}
+            bannerBorderWidth={bannerBorderWidth}
+            artistName={artistName}
+            songName={songName}
+            trackTextColor={trackTextColor}
+            trackTextX={trackTextX}
+            trackTextY={trackTextY}
+            trackTextSize={trackTextSize}
+            trackTextGap={trackTextGap}
+            trackTextAlign={trackTextAlign}
+            projectId={projectId}
+            status={status}
+            isBusy={isBusy}
+            trackAssetId={trackAssetId}
+            posterAssetId={posterAssetId}
+            backgroundAssetId={backgroundAssetId}
+            analysisId={analysisId}
+            analysisStatus={analysisStatus}
+            renderJobId={renderJobId}
+            renderStatus={renderStatus}
+            renderProgress={renderProgress}
+            previewTimelineEnabled={previewTimelineEnabled}
+            previewStartupMs={previewStartupMs}
+            previewDriftMs={previewDriftMs}
+            previewFps={previewFps}
+            onClientTokenChange={setClientToken}
+            onProjectNameChange={setProjectName}
+            onFormatChange={setFormat}
+            onQualityChange={setQuality}
+            onTemplateChange={(value) => applyTemplateSettings(value, true)}
+            onEqualizerColorChange={setEqualizerColor}
+            onEqualizerWidthChange={setEqualizerWidth}
+            onEqualizerHeightChange={setEqualizerHeight}
+            onEqualizerYChange={setEqualizerY}
+            onVisualizerTypeChange={setVisualizerType}
+            onVisualizerBarCountChange={setVisualizerBarCount}
+            onPosterBlurStrengthChange={setPosterBlurStrength}
+            onBackgroundDimStrengthChange={setBackgroundDimStrength}
+            onPosterCornerRadiusChange={setPosterCornerRadius}
+            onPosterBeatScaleStrengthChange={setPosterBeatScaleStrength}
+            onCameraPunchStrengthChange={setCameraPunchStrength}
+            onParallaxDriftStrengthChange={setParallaxDriftStrength}
+            onBannerScaleChange={setBannerScale}
+            onBannerBorderEnabledChange={setBannerBorderEnabled}
+            onBannerBorderColorChange={setBannerBorderColor}
+            onBannerBorderWidthChange={setBannerBorderWidth}
+            onArtistNameChange={setArtistName}
+            onSongNameChange={setSongName}
+            onTrackTextColorChange={setTrackTextColor}
+            onTrackTextXChange={setTrackTextX}
+            onTrackTextYChange={setTrackTextY}
+            onTrackTextSizeChange={setTrackTextSize}
+            onTrackTextGapChange={setTrackTextGap}
+            onTrackTextAlignChange={setTrackTextAlign}
+            onSubmitProject={(event) =>
+              void runAction(() => saveProject(event))
+            }
+            onUploadTrack={(file) => void runAction(() => uploadTrack(file))}
+            onAnalyzeTrack={() => void runAction(analyzeTrack)}
+            onStartRender={() => void runAction(startRender)}
+            onDownloadRender={downloadRender}
+            onCancelRender={() => void runAction(cancelRender)}
+            onRetryRender={() => void runAction(retryRender)}
+            onProjectIdChange={setProjectId}
+            onLoadProject={() => void runAction(loadProject)}
+            onSaveTimeline={() => void runAction(saveTimelineState)}
+          />
 
-        <PreviewPanel
-          previewAspectRatio={previewAspectRatio}
-          sceneAccentA={selectedTemplate?.defaultPalette?.[0] ?? equalizerColor}
-          sceneAccentB={selectedTemplate?.defaultPalette?.[1] ?? "#11141f"}
-          sceneAccentC={selectedTemplate?.defaultPalette?.[2] ?? "#d8e8ff"}
-          posterAssetId={posterAssetId}
-          backgroundAssetId={backgroundAssetId}
-          posterBlurStrength={posterBlurStrength}
-          backgroundDimStrength={backgroundDimStrength}
-          liveEqualizerConfig={liveEqualizerConfig}
-          onPosterFileSelected={(file) =>
-            void runAction(() => uploadPoster(file))
-          }
-          onBackgroundFileSelected={(file) =>
-            void runAction(() => uploadBackground(file))
-          }
-          visualizerType={visualizerType}
-          normalizedVisualizerBars={normalizedVisualizerBars}
-          equalizerLineD={equalizerLineD}
-          posterCornerRadius={posterCornerRadius}
-          artistName={artistName}
-          songName={songName}
-          trackTextColor={trackTextColor}
-          trackTextX={trackTextX}
-          trackTextY={trackTextY}
-          trackTextSize={trackTextSize}
-          trackTextGap={trackTextGap}
-          trackTextAlign={trackTextAlign}
-          posterPulseScale={posterPulseScale}
-          cameraPunchScale={cameraPunchScale}
-          renderWidth={renderResolution.width}
-          renderHeight={renderResolution.height}
-        />
+          <PreviewTimelinePanel
+            previewTimelineEnabled={previewTimelineEnabled}
+            isPlaying={isPlaying}
+            onTogglePlayback={() => void togglePlayback()}
+            onSeekTo={seekTo}
+            onCutToSelection={updateTrim}
+            timeline={timeline}
+            trackDurationMs={trackDurationMs}
+            trimInX={trimInX}
+            trimOutX={trimOutX}
+            playheadX={playheadX}
+            waveformValues={waveformValues}
+            onUpdateTrim={updateTrim}
+          />
+        </div>
+
+        <div className="editor-preview-column">
+          <PreviewPanel
+            previewAspectRatio={previewAspectRatio}
+            sceneAccentA={
+              selectedTemplate?.defaultPalette?.[0] ?? equalizerColor
+            }
+            sceneAccentB={selectedTemplate?.defaultPalette?.[1] ?? "#11141f"}
+            sceneAccentC={selectedTemplate?.defaultPalette?.[2] ?? "#d8e8ff"}
+            posterAssetId={posterAssetId}
+            backgroundAssetId={backgroundAssetId}
+            posterBlurStrength={posterBlurStrength}
+            backgroundDimStrength={backgroundDimStrength}
+            liveEqualizerConfig={liveEqualizerConfig}
+            onPosterFileSelected={(file) =>
+              void runAction(() => uploadPoster(file))
+            }
+            onBackgroundFileSelected={(file) =>
+              void runAction(() => uploadBackground(file))
+            }
+            visualizerType={visualizerType}
+            normalizedVisualizerBars={normalizedVisualizerBars}
+            equalizerLineD={equalizerLineD}
+            posterCornerRadius={posterCornerRadius}
+            bannerScale={bannerScale}
+            bannerBorderEnabled={bannerBorderEnabled}
+            bannerBorderColor={bannerBorderColor}
+            bannerBorderWidth={bannerBorderWidth}
+            artistName={artistName}
+            songName={songName}
+            trackTextColor={trackTextColor}
+            trackTextX={trackTextX}
+            trackTextY={trackTextY}
+            trackTextSize={trackTextSize}
+            trackTextGap={trackTextGap}
+            trackTextAlign={trackTextAlign}
+            posterPulseScale={posterPulseScale}
+            cameraPunchScale={cameraPunchScale}
+            parallaxDriftStrength={parallaxDriftStrength}
+            previewTimeMs={timeline.playheadMs ?? timeline.trimInMs}
+            renderWidth={renderResolution.width}
+            renderHeight={renderResolution.height}
+          />
+        </div>
       </div>
-
-      <PreviewTimelinePanel
-        previewTimelineEnabled={previewTimelineEnabled}
-        isPlaying={isPlaying}
-        onTogglePlayback={() => void togglePlayback()}
-        onSeekTo={seekTo}
-        timeline={timeline}
-        trackDurationMs={trackDurationMs}
-        trimInX={trimInX}
-        trimOutX={trimOutX}
-        playheadX={playheadX}
-        waveformValues={waveformValues}
-        onUpdateTrim={updateTrim}
-        selectedKeyframeParameter={selectedKeyframeParameter}
-        onSelectedKeyframeParameterChange={setSelectedKeyframeParameter}
-        onAddKeyframe={addKeyframe}
-        onClearSelectedKeyframes={clearSelectedKeyframes}
-        keyframes={keyframes}
-      />
     </main>
   );
 }

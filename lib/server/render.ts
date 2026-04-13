@@ -15,6 +15,7 @@ import {
   buildCameraPunchScaleExpression,
   detectCameraPunchBeatsMs,
 } from "@/lib/domain/camera-punch";
+import { buildParallaxBackgroundCropExpressions } from "@/lib/domain/parallax-drift";
 import {
   defaultPosterConfig,
   defaultTrackTextConfig,
@@ -263,6 +264,8 @@ function getPosterLayerCacheFileName(input: {
   barCount: number;
   beatScaleStrength: number;
   cornerRadiusPx: number;
+  borderEnabled: boolean;
+  borderColor: string;
   borderPx: number;
 }) {
   const hash = createHash("sha1")
@@ -644,6 +647,8 @@ async function renderPosterPulseLayer(input: {
   basePosterHeight: number;
   beatScaleStrength: number;
   cornerRadiusPx: number;
+  borderEnabled: boolean;
+  borderColor: string;
   borderPx: number;
 }) {
   const {
@@ -662,6 +667,8 @@ async function renderPosterPulseLayer(input: {
     basePosterHeight,
     beatScaleStrength,
     cornerRadiusPx,
+    borderEnabled,
+    borderColor,
     borderPx,
   } = input;
 
@@ -723,23 +730,28 @@ async function renderPosterPulseLayer(input: {
       posterRadius - Math.floor(borderPx / 2),
     );
     const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${posterW}" height="${posterH}"><rect x="0" y="0" width="${posterW}" height="${posterH}" rx="${posterRadius}" ry="${posterRadius}" fill="white" /></svg>`;
-    const strokeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${posterW}" height="${posterH}"><rect x="${borderPx / 2}" y="${borderPx / 2}" width="${Math.max(1, posterW - borderPx)}" height="${Math.max(1, posterH - borderPx)}" rx="${radiusForStroke}" ry="${radiusForStroke}" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="${borderPx}" /></svg>`;
+    const strokeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${posterW}" height="${posterH}"><rect x="${borderPx / 2}" y="${borderPx / 2}" width="${Math.max(1, posterW - borderPx)}" height="${Math.max(1, posterH - borderPx)}" rx="${radiusForStroke}" ry="${radiusForStroke}" fill="none" stroke="${borderColor}" stroke-width="${borderPx}" /></svg>`;
+
+    const composites: sharp.OverlayOptions[] = [
+      {
+        input: Buffer.from(maskSvg),
+        blend: "dest-in",
+      },
+    ];
+
+    if (borderEnabled && borderPx > 0) {
+      composites.push({
+        input: Buffer.from(strokeSvg),
+        blend: "over",
+      });
+    }
 
     const rendered = await sharp(posterSource)
       .resize(posterW, posterH, {
         fit: "cover",
       })
       .ensureAlpha()
-      .composite([
-        {
-          input: Buffer.from(maskSvg),
-          blend: "dest-in",
-        },
-        {
-          input: Buffer.from(strokeSvg),
-          blend: "over",
-        },
-      ])
+      .composite(composites)
       .png()
       .toBuffer();
 
@@ -1320,6 +1332,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     project.format,
     project.quality,
   );
+  const trackAssetFilePath = trackAsset.filePath;
   const trackDurationSec = trackAsset.durationSec ?? 120;
   const sceneTimeline = resolveSceneTimeline({
     trackDurationSec,
@@ -1339,7 +1352,11 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     8,
     96,
   );
-  const posterScaleFactor = 0.48;
+  const posterScaleFactor = clampNumber(
+    project.posterConfig.bannerScale ?? defaultPosterConfig.bannerScale ?? 0.56,
+    0.2,
+    0.8,
+  );
   const posterW = Math.round(width * posterScaleFactor);
   const posterAspectRatio =
     typeof posterAsset.width === "number" &&
@@ -1369,13 +1386,29 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     0,
     3,
   );
+  const parallaxDriftStrength = clampNumber(
+    project.posterConfig.parallaxDriftStrength ??
+      defaultPosterConfig.parallaxDriftStrength ??
+      0,
+    0,
+    3,
+  );
   const cameraPunchBeatsMs = detectCameraPunchBeatsMs({
     spectrumValues: spectrum.values ?? [],
     frameStepMs: spectrum.frameStepMs,
     barCount: resolvedBarCount,
   });
+  const clipStartMs = Math.max(
+    0,
+    Math.round(sceneTimeline.clipStartSec * 1000),
+  );
+  const clipEndMs =
+    clipStartMs + Math.round(sceneTimeline.clipDurationSec * 1000);
+  const cameraPunchBeatsForClipMs = cameraPunchBeatsMs
+    .filter((value) => value >= clipStartMs && value <= clipEndMs)
+    .map((value) => value - clipStartMs);
   const cameraPunchScaleExpr = buildCameraPunchScaleExpression({
-    beatTimesMs: cameraPunchBeatsMs,
+    beatTimesMs: cameraPunchBeatsForClipMs,
     strength: cameraPunchStrength,
   });
   const baseLayerPath = path.join(
@@ -1415,7 +1448,26 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     0,
     Math.min(180, Math.round(project.posterConfig.cornerRadius)),
   );
-  const posterBorderPx = 2;
+  const posterBorderEnabled =
+    project.posterConfig.bannerBorderEnabled ??
+    defaultPosterConfig.bannerBorderEnabled ??
+    true;
+  const posterBorderColor =
+    project.posterConfig.bannerBorderColor ??
+    defaultPosterConfig.bannerBorderColor ??
+    "#dceaff";
+  const posterBorderPx = Math.max(
+    0,
+    Math.round(
+      clampNumber(
+        project.posterConfig.bannerBorderWidth ??
+          defaultPosterConfig.bannerBorderWidth ??
+          2,
+        0,
+        12,
+      ),
+    ),
+  );
   const posterLayerPath = path.join(
     getStorageDirs().renders,
     getPosterLayerCacheFileName({
@@ -1432,6 +1484,8 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       barCount: resolvedBarCount,
       beatScaleStrength: posterBeatScaleStrength,
       cornerRadiusPx: posterCornerRadiusPx,
+      borderEnabled: posterBorderEnabled,
+      borderColor: posterBorderColor,
       borderPx: posterBorderPx,
     }),
   );
@@ -1497,64 +1551,90 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     watermarkFontSize: renderWatermarkConfig.fontSize,
   });
 
-  const filterGraph = [
-    `[0:v]null[base]`,
-    `[2:v]format=rgba,scale='trunc(iw*${cameraPunchScaleExpr}/2)*2':'trunc(ih*${cameraPunchScaleExpr}/2)*2'[vizKeyed]`,
-    `[3:v]format=rgba,scale='trunc(iw*${cameraPunchScaleExpr}/2)*2':'trunc(ih*${cameraPunchScaleExpr}/2)*2'[posterTop]`,
-    `[4:v]format=rgba,scale='trunc(iw*${cameraPunchScaleExpr}/2)*2':'trunc(ih*${cameraPunchScaleExpr}/2)*2'[textOverlay]`,
-  ];
+  function buildCompositeFilterComplex(scaleExpr: string) {
+    const bgParallax = buildParallaxBackgroundCropExpressions({
+      strength: parallaxDriftStrength,
+      baseWidthPx: width,
+      baseHeightPx: height,
+    });
+    const zoomedW = Math.max(
+      width + 4,
+      Math.round(width * bgParallax.zoomScale),
+    );
+    const zoomedH = Math.max(
+      height + 4,
+      Math.round(height * bgParallax.zoomScale),
+    );
 
-  filterGraph.push(
-    `[base][vizKeyed]overlay=(W-w)/2:(H-h)/2:format=auto[scene1]`,
-    `[scene1][posterTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene2]`,
-    `[scene2][textOverlay]overlay=(W-w)/2:(H-h)/2:format=auto[vout]`,
+    const filterGraph = [
+      `[0:v]scale=${zoomedW}:${zoomedH}:flags=lanczos[baseZoomed]`,
+      `[baseZoomed]crop=${width}:${height}:x='${bgParallax.x}':y='${bgParallax.y}'[base]`,
+      `[2:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[vizKeyed]`,
+      `[3:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[posterTop]`,
+      `[4:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[textOverlay]`,
+    ];
+
+    filterGraph.push(
+      `[base][vizKeyed]overlay=(W-w)/2:(H-h)/2:format=auto[scene1]`,
+      `[scene1][posterTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene2]`,
+      `[scene2][textOverlay]overlay=(W-w)/2:(H-h)/2:format=auto[vout]`,
+    );
+
+    return filterGraph.join(";");
+  }
+
+  function buildCompositeFfmpegArgs(filterComplex: string) {
+    return [
+      "-y",
+      "-i",
+      baseLayerPath,
+      "-ss",
+      String(sceneTimeline.clipStartSec),
+      "-t",
+      String(sceneTimeline.clipDurationSec),
+      "-i",
+      trackAssetFilePath,
+      "-i",
+      visualizerLayerPath,
+      "-i",
+      posterLayerPath,
+      "-loop",
+      "1",
+      "-t",
+      String(sceneTimeline.clipDurationSec),
+      "-i",
+      textOverlayPath,
+      "-filter_complex",
+      filterComplex,
+      "-map",
+      "[vout]",
+      "-map",
+      "1:a:0",
+      "-r",
+      String(fps),
+      "-c:v",
+      "libx264",
+      "-preset",
+      "veryfast",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "192k",
+      "-shortest",
+      "-movflags",
+      "+faststart",
+      outputPath,
+    ];
+  }
+
+  const ffmpegArgs = buildCompositeFfmpegArgs(
+    buildCompositeFilterComplex(cameraPunchScaleExpr),
   );
-
-  const filterComplex = filterGraph.join(";");
-
-  const ffmpegArgs = [
-    "-y",
-    "-i",
-    baseLayerPath,
-    "-ss",
-    String(sceneTimeline.clipStartSec),
-    "-t",
-    String(sceneTimeline.clipDurationSec),
-    "-i",
-    trackAsset.filePath,
-    "-i",
-    visualizerLayerPath,
-    "-i",
-    posterLayerPath,
-    "-loop",
-    "1",
-    "-t",
-    String(sceneTimeline.clipDurationSec),
-    "-i",
-    textOverlayPath,
-    "-filter_complex",
-    filterComplex,
-    "-map",
-    "[vout]",
-    "-map",
-    "1:a:0",
-    "-r",
-    String(fps),
-    "-c:v",
-    "libx264",
-    "-preset",
-    "veryfast",
-    "-pix_fmt",
-    "yuv420p",
-    "-c:a",
-    "aac",
-    "-b:a",
-    "192k",
-    "-shortest",
-    "-movflags",
-    "+faststart",
-    outputPath,
-  ];
+  const fallbackFfmpegArgs = buildCompositeFfmpegArgs(
+    buildCompositeFilterComplex("1"),
+  );
 
   await updateRenderJobById(renderJobId, { progress: 14 });
 
@@ -1622,20 +1702,47 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
         basePosterHeight: posterH,
         beatScaleStrength: posterBeatScaleStrength,
         cornerRadiusPx: posterCornerRadiusPx,
+        borderEnabled: posterBorderEnabled,
+        borderColor: posterBorderColor,
         borderPx: posterBorderPx,
       });
     }
 
     await updateRenderJobById(renderJobId, { progress: 64 });
 
-    await runFfmpeg(
-      renderJobId,
-      ffmpegBinary,
-      ffmpegArgs,
-      sceneTimeline.clipDurationSec,
-      64,
-      96,
-    );
+    try {
+      await runFfmpeg(
+        renderJobId,
+        ffmpegBinary,
+        ffmpegArgs,
+        sceneTimeline.clipDurationSec,
+        64,
+        96,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const isFilterInitError =
+        message.includes("Error initializing filters") ||
+        message.includes("Invalid argument");
+
+      if (!isFilterInitError || cameraPunchStrength <= 0) {
+        throw error;
+      }
+
+      console.warn("[render] retry without camera punch", {
+        renderJobId,
+        reason: "filter_init_error",
+      });
+
+      await runFfmpeg(
+        renderJobId,
+        ffmpegBinary,
+        fallbackFfmpegArgs,
+        sceneTimeline.clipDurationSec,
+        64,
+        96,
+      );
+    }
   } catch (error) {
     const latest = await getRenderJobById(renderJobId);
     if (latest?.status === "canceled") {

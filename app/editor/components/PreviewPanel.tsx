@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -8,14 +9,11 @@ import {
   useState,
 } from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { getParallaxBackgroundDriftAtMs } from "@/lib/domain/parallax-drift";
 
 import { TIMELINE_HEIGHT, TIMELINE_WIDTH } from "@/app/editor/constants";
-import type {
-  TimelineKeyframeParameter,
-  TimelineKeyframeTrack,
-  TimelineState,
-  VisualizerType,
-} from "@/app/editor/types";
+import type { TimelineState, VisualizerType } from "@/app/editor/types";
 import {
   formatMs,
   visualizerSymmetricBarHeight,
@@ -43,6 +41,10 @@ type PreviewPanelProps = {
   normalizedVisualizerBars: number[];
   equalizerLineD: string;
   posterCornerRadius: number;
+  bannerScale: number;
+  bannerBorderEnabled: boolean;
+  bannerBorderColor: string;
+  bannerBorderWidth: number;
   artistName: string;
   songName: string;
   trackTextColor: string;
@@ -53,6 +55,8 @@ type PreviewPanelProps = {
   trackTextAlign: "left" | "center" | "right";
   posterPulseScale: number;
   cameraPunchScale: number;
+  parallaxDriftStrength: number;
+  previewTimeMs: number;
   renderWidth: number;
   renderHeight: number;
 };
@@ -62,6 +66,7 @@ type PreviewTimelinePanelProps = {
   isPlaying: boolean;
   onTogglePlayback: () => void;
   onSeekTo: (value: number) => void;
+  onCutToSelection: (trimInMs: number, trimOutMs: number) => void;
   timeline: TimelineState;
   trackDurationMs: number;
   trimInX: number;
@@ -69,11 +74,6 @@ type PreviewTimelinePanelProps = {
   playheadX: number;
   waveformValues: number[];
   onUpdateTrim: (trimInMs: number, trimOutMs: number) => void;
-  selectedKeyframeParameter: TimelineKeyframeParameter;
-  onSelectedKeyframeParameterChange: (value: TimelineKeyframeParameter) => void;
-  onAddKeyframe: () => void;
-  onClearSelectedKeyframes: () => void;
-  keyframes: TimelineKeyframeTrack[];
 };
 
 export function PreviewPanel({
@@ -92,6 +92,10 @@ export function PreviewPanel({
   normalizedVisualizerBars,
   equalizerLineD,
   posterCornerRadius,
+  bannerScale,
+  bannerBorderEnabled,
+  bannerBorderColor,
+  bannerBorderWidth,
   artistName,
   songName,
   trackTextColor,
@@ -102,12 +106,15 @@ export function PreviewPanel({
   trackTextAlign,
   posterPulseScale,
   cameraPunchScale,
+  parallaxDriftStrength,
+  previewTimeMs,
   renderWidth,
   renderHeight,
 }: PreviewPanelProps) {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
+  const drawBackgroundRef = useRef<() => void>(() => {});
   const backgroundLoadIdRef = useRef(0);
   const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
   const posterFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -242,12 +249,17 @@ export function PreviewPanel({
   }, [backgroundDimStrength, posterBlurStrength, renderHeight, renderWidth]);
 
   useEffect(() => {
+    drawBackgroundRef.current = drawBackgroundCanvas;
+    drawBackgroundCanvas();
+  }, [drawBackgroundCanvas]);
+
+  useEffect(() => {
     const loadId = backgroundLoadIdRef.current + 1;
     backgroundLoadIdRef.current = loadId;
 
     if (!sceneBackgroundUrl) {
       backgroundImageRef.current = null;
-      drawBackgroundCanvas();
+      drawBackgroundRef.current();
       return;
     }
 
@@ -260,7 +272,7 @@ export function PreviewPanel({
       }
 
       backgroundImageRef.current = image;
-      drawBackgroundCanvas();
+      drawBackgroundRef.current();
     };
 
     image.onerror = () => {
@@ -268,16 +280,12 @@ export function PreviewPanel({
         return;
       }
 
-      backgroundImageRef.current = null;
-      drawBackgroundCanvas();
+      // Preserve previously loaded image if current request fails.
+      drawBackgroundRef.current();
     };
 
     image.src = sceneBackgroundUrl;
-  }, [drawBackgroundCanvas, sceneBackgroundUrl]);
-
-  useEffect(() => {
-    drawBackgroundCanvas();
-  }, [drawBackgroundCanvas]);
+  }, [sceneBackgroundUrl]);
 
   const eqStyle = {
     left: `${(1 - liveEqualizerConfig.width) * 50}%`,
@@ -285,6 +293,17 @@ export function PreviewPanel({
     height: `${liveEqualizerConfig.height * 100}%`,
     top: `${liveEqualizerConfig.y * 100}%`,
   } as CSSProperties;
+
+  const backgroundDrift = useMemo(
+    () =>
+      getParallaxBackgroundDriftAtMs({
+        timeMs: previewTimeMs,
+        strength: parallaxDriftStrength,
+        baseWidthPx: renderWidth,
+        baseHeightPx: renderHeight,
+      }),
+    [parallaxDriftStrength, previewTimeMs, renderHeight, renderWidth],
+  );
 
   const trackTextStyle = {
     left: `${trackTextX * 100}%`,
@@ -310,6 +329,14 @@ export function PreviewPanel({
     Math.round(previewSongSizePx * 0.72),
   );
   const previewGapPx = Math.max(0, Math.round(trackTextGap * previewScale));
+  const previewPosterCornerRadiusPx = Math.max(
+    0,
+    Math.round(posterCornerRadius * previewScale),
+  );
+  const previewBannerBorderWidthPx = Math.max(
+    0,
+    Math.round(bannerBorderWidth * previewScale),
+  );
 
   const trackArtistStyle = {
     fontSize: `${previewArtistSizePx}px`,
@@ -324,6 +351,19 @@ export function PreviewPanel({
     transform: `scale(${posterPulseScale.toFixed(4)})`,
     transformOrigin: "center center",
     transition: "transform 75ms linear",
+  } as CSSProperties;
+
+  const posterSizePercent = Math.max(20, Math.min(80, bannerScale * 100));
+  const posterBoxStyle = {
+    ...posterWrapStyle,
+    width: `${posterSizePercent}%`,
+    aspectRatio: "1 / 1",
+    maxWidth: "100%",
+  } as CSSProperties;
+
+  const backgroundDriftStyle = {
+    transform: `translate(${backgroundDrift.offset.x.toFixed(2)}px, ${backgroundDrift.offset.y.toFixed(2)}px) scale(${backgroundDrift.zoomScale.toFixed(4)})`,
+    transformOrigin: "center center",
   } as CSSProperties;
 
   const scenePunchStyle = {
@@ -400,7 +440,11 @@ export function PreviewPanel({
         className="scene"
         style={sceneStyle}
       >
-        <canvas ref={backgroundCanvasRef} className="scene-bg-canvas" />
+        <canvas
+          ref={backgroundCanvasRef}
+          className="scene-bg-canvas"
+          style={backgroundDriftStyle}
+        />
 
         <div style={scenePunchStyle}>
           <div className="scene-eq" style={eqStyle}>
@@ -462,8 +506,8 @@ export function PreviewPanel({
             />
 
             <div
-              className="relative z-10 w-[320px] h-[320px] "
-              style={posterWrapStyle}
+              className="relative z-10"
+              style={posterBoxStyle}
               onClick={(event) => {
                 event.stopPropagation();
                 openPosterPicker();
@@ -476,11 +520,20 @@ export function PreviewPanel({
                   alt="Poster preview"
                   width={1024}
                   height={1024}
-                  style={{ borderRadius: `${posterCornerRadius}px` }}
+                  style={{
+                    borderRadius: `${previewPosterCornerRadiusPx}px`,
+                    borderStyle: "solid",
+                    borderColor: bannerBorderEnabled
+                      ? bannerBorderColor
+                      : "transparent",
+                    borderWidth: bannerBorderEnabled
+                      ? `${previewBannerBorderWidthPx}px`
+                      : "0px",
+                  }}
                   unoptimized
                 />
               ) : (
-                <div className="border w-[320px] h-[320px] rounded-2xl flex items-center justify-center">
+                <div className="border w-full h-full rounded-2xl flex items-center justify-center">
                   +
                 </div>
               )}
@@ -512,6 +565,7 @@ export function PreviewTimelinePanel({
   isPlaying,
   onTogglePlayback,
   onSeekTo,
+  onCutToSelection,
   timeline,
   trackDurationMs,
   trimInX,
@@ -519,12 +573,131 @@ export function PreviewTimelinePanel({
   playheadX,
   waveformValues,
   onUpdateTrim,
-  selectedKeyframeParameter,
-  onSelectedKeyframeParameterChange,
-  onAddKeyframe,
-  onClearSelectedKeyframes,
-  keyframes,
 }: PreviewTimelinePanelProps) {
+  const [hoverMs, setHoverMs] = useState<number | null>(null);
+  const [draftSelection, setDraftSelection] = useState<{
+    startMs: number;
+    endMs: number;
+  } | null>(null);
+  const [selectedRange, setSelectedRange] = useState<{
+    startMs: number;
+    endMs: number;
+  } | null>(null);
+
+  const activeSelection = useMemo(() => {
+    const source = draftSelection ?? selectedRange;
+    if (!source) {
+      return null;
+    }
+
+    return {
+      startMs: Math.min(source.startMs, source.endMs),
+      endMs: Math.max(source.startMs, source.endMs),
+    };
+  }, [draftSelection, selectedRange]);
+
+  const selectedRangeX = useMemo(() => {
+    if (!activeSelection) {
+      return null;
+    }
+
+    const startX = (activeSelection.startMs / trackDurationMs) * TIMELINE_WIDTH;
+    const endX = (activeSelection.endMs / trackDurationMs) * TIMELINE_WIDTH;
+    return {
+      x: startX,
+      width: Math.max(2, endX - startX),
+    };
+  }, [activeSelection, trackDurationMs]);
+
+  const hoverX = useMemo(() => {
+    if (hoverMs === null) {
+      return null;
+    }
+
+    return (hoverMs / trackDurationMs) * TIMELINE_WIDTH;
+  }, [hoverMs, trackDurationMs]);
+
+  function getTimelineMsFromClientX(clientX: number, element: HTMLDivElement) {
+    const rect = element.getBoundingClientRect();
+    const relative = clamp(
+      (clientX - rect.left) / Math.max(1, rect.width),
+      0,
+      1,
+    );
+    return Math.round(relative * trackDurationMs);
+  }
+
+  function clamp(value: number, min: number, max: number) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) {
+      return;
+    }
+
+    const target = event.currentTarget;
+    target.setPointerCapture(event.pointerId);
+    const ms = getTimelineMsFromClientX(event.clientX, target);
+    setDraftSelection({ startMs: ms, endMs: ms });
+    setSelectedRange(null);
+    setHoverMs(ms);
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const ms = getTimelineMsFromClientX(event.clientX, event.currentTarget);
+    setHoverMs(ms);
+
+    setDraftSelection((previous) => {
+      if (!previous) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        endMs: ms,
+      };
+    });
+  }
+
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    const target = event.currentTarget;
+    if (target.hasPointerCapture(event.pointerId)) {
+      target.releasePointerCapture(event.pointerId);
+    }
+
+    const ms = getTimelineMsFromClientX(event.clientX, target);
+    setHoverMs(ms);
+
+    const currentDraft = draftSelection;
+    if (!currentDraft) {
+      return;
+    }
+
+    const startMs = Math.min(currentDraft.startMs, ms);
+    const endMs = Math.max(currentDraft.startMs, ms);
+
+    setDraftSelection(null);
+
+    if (endMs - startMs < 120) {
+      setSelectedRange(null);
+      onSeekTo(ms);
+      return;
+    }
+
+    setSelectedRange({ startMs, endMs });
+  }
+
+  function handleCutSelection() {
+    if (!selectedRange) {
+      return;
+    }
+
+    onCutToSelection(selectedRange.startMs, selectedRange.endMs);
+    onSeekTo(selectedRange.startMs);
+    setSelectedRange(null);
+  }
+
   function toClampedNumber(input: string, min: number, max: number) {
     const parsed = Number(input);
     if (!Number.isFinite(parsed)) {
@@ -549,20 +722,42 @@ export function PreviewTimelinePanel({
       <div className="timeline-head">
         <strong>Timeline v1</strong>
         <div className="timeline-head-actions">
-          <button type="button" onClick={onTogglePlayback}>
-            {isPlaying ? "Pause" : "Play"}
-          </button>
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant="secondary"
+            onClick={onTogglePlayback}
+          >
+            {isPlaying ? "Pause" : "Play"}
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant="outline"
             onClick={() => onSeekTo(timeline.trimInMs)}
             disabled={isPlaying}
           >
             Jump Trim In
-          </button>
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant="outline"
+            onClick={handleCutSelection}
+            disabled={isPlaying || !selectedRange}
+          >
+            Scissors
+          </Button>
         </div>
       </div>
 
-      <div className="timeline-canvas">
+      <div
+        className="timeline-canvas"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={() => setHoverMs(null)}
+      >
         <svg
           viewBox={`0 0 ${TIMELINE_WIDTH} ${TIMELINE_HEIGHT}`}
           role="img"
@@ -619,39 +814,34 @@ export function PreviewTimelinePanel({
             stroke="#ff6d62"
             strokeWidth="2"
           />
+          {selectedRangeX ? (
+            <rect
+              x={selectedRangeX.x}
+              y="0"
+              width={selectedRangeX.width}
+              height={TIMELINE_HEIGHT}
+              fill="rgba(0, 214, 255, 0.22)"
+              stroke="rgba(0, 214, 255, 0.85)"
+              strokeWidth="1"
+            />
+          ) : null}
+          {hoverX !== null ? (
+            <line
+              x1={hoverX}
+              y1="0"
+              x2={hoverX}
+              y2={TIMELINE_HEIGHT}
+              stroke="rgba(255,255,255,0.45)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+            />
+          ) : null}
         </svg>
       </div>
 
       <div className="timeline-sliders">
         <label>
           Playhead ({formatMs(timeline.playheadMs ?? timeline.trimInMs)})
-          <div className="timeline-slider-row">
-            <input
-              type="range"
-              min={timeline.trimInMs}
-              max={timeline.trimOutMs}
-              step={10}
-              value={timeline.playheadMs ?? timeline.trimInMs}
-              onChange={(event) => onSeekTo(Number(event.target.value))}
-            />
-            <input
-              type="number"
-              min={timeline.trimInMs}
-              max={timeline.trimOutMs}
-              step={10}
-              value={timeline.playheadMs ?? timeline.trimInMs}
-              onChange={(event) => {
-                const next = toClampedNumber(
-                  event.target.value,
-                  timeline.trimInMs,
-                  timeline.trimOutMs,
-                );
-                if (next !== null) {
-                  onSeekTo(next);
-                }
-              }}
-            />
-          </div>
         </label>
         <label>
           Trim in ({formatMs(timeline.trimInMs)})
@@ -717,41 +907,6 @@ export function PreviewTimelinePanel({
             />
           </div>
         </label>
-      </div>
-
-      <div className="timeline-keyframes">
-        <label>
-          Keyframe parameter
-          <select
-            value={selectedKeyframeParameter}
-            onChange={(event) =>
-              onSelectedKeyframeParameterChange(
-                event.target.value as TimelineKeyframeParameter,
-              )
-            }
-          >
-            <option value="equalizer.width">Equalizer width</option>
-            <option value="equalizer.height">Equalizer height</option>
-            <option value="equalizer.y">Equalizer Y</option>
-          </select>
-        </label>
-        <button type="button" onClick={onAddKeyframe}>
-          Add Keyframe @ Playhead
-        </button>
-        <button type="button" onClick={onClearSelectedKeyframes}>
-          Clear Selected Parameter
-        </button>
-        <ul className="keyframe-list">
-          {keyframes.length === 0 ? (
-            <li>No keyframes yet</li>
-          ) : (
-            keyframes.map((track) => (
-              <li key={track.parameter}>
-                {track.parameter}: {track.points.length} points
-              </li>
-            ))
-          )}
-        </ul>
       </div>
     </section>
   );

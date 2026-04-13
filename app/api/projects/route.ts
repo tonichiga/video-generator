@@ -257,13 +257,40 @@ export async function POST(request: Request) {
       next.cameraPunchStrength === undefined
         ? (defaultPosterConfig.cameraPunchStrength ?? 0)
         : parseNumberInRange(next.cameraPunchStrength, 0, 3);
+    const parallaxDriftStrength =
+      next.parallaxDriftStrength === undefined
+        ? (defaultPosterConfig.parallaxDriftStrength ?? 0)
+        : parseNumberInRange(next.parallaxDriftStrength, 0, 3);
+    const bannerScale =
+      next.bannerScale === undefined
+        ? (defaultPosterConfig.bannerScale ?? 0.56)
+        : parseNumberInRange(next.bannerScale, 0.2, 0.8);
+    const bannerBorderEnabled =
+      next.bannerBorderEnabled === undefined
+        ? (defaultPosterConfig.bannerBorderEnabled ?? true)
+        : typeof next.bannerBorderEnabled === "boolean"
+          ? next.bannerBorderEnabled
+          : null;
+    const bannerBorderColor =
+      next.bannerBorderColor === undefined
+        ? (defaultPosterConfig.bannerBorderColor ?? "#dceaff")
+        : parseHexColor(next.bannerBorderColor);
+    const bannerBorderWidth =
+      next.bannerBorderWidth === undefined
+        ? (defaultPosterConfig.bannerBorderWidth ?? 2)
+        : parseNumberInRange(next.bannerBorderWidth, 0, 12);
 
     if (
       cornerRadius === null ||
       blurStrength === null ||
       backgroundDimStrength === null ||
       beatScaleStrength === null ||
-      cameraPunchStrength === null
+      cameraPunchStrength === null ||
+      parallaxDriftStrength === null ||
+      bannerScale === null ||
+      bannerBorderEnabled === null ||
+      bannerBorderColor === null ||
+      bannerBorderWidth === null
     ) {
       return errorResponse(
         400,
@@ -278,6 +305,11 @@ export async function POST(request: Request) {
       backgroundDimStrength,
       beatScaleStrength,
       cameraPunchStrength,
+      parallaxDriftStrength,
+      bannerScale,
+      bannerBorderEnabled,
+      bannerBorderColor,
+      bannerBorderWidth,
     };
   }
 

@@ -1,4 +1,6 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type DragEvent, type FormEvent, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { VISUALIZER_TYPE_OPTIONS } from "@/app/editor/constants";
 import type {
@@ -26,6 +28,11 @@ type EditorPanelProps = {
   posterCornerRadius: number;
   posterBeatScaleStrength: number;
   cameraPunchStrength: number;
+  parallaxDriftStrength: number;
+  bannerScale: number;
+  bannerBorderEnabled: boolean;
+  bannerBorderColor: string;
+  bannerBorderWidth: number;
   artistName: string;
   songName: string;
   trackTextColor: string;
@@ -65,6 +72,11 @@ type EditorPanelProps = {
   onPosterCornerRadiusChange: (value: number) => void;
   onPosterBeatScaleStrengthChange: (value: number) => void;
   onCameraPunchStrengthChange: (value: number) => void;
+  onParallaxDriftStrengthChange: (value: number) => void;
+  onBannerScaleChange: (value: number) => void;
+  onBannerBorderEnabledChange: (value: boolean) => void;
+  onBannerBorderColorChange: (value: string) => void;
+  onBannerBorderWidthChange: (value: number) => void;
   onArtistNameChange: (value: string) => void;
   onSongNameChange: (value: string) => void;
   onTrackTextColorChange: (value: string) => void;
@@ -87,6 +99,8 @@ type EditorPanelProps = {
 
 export function EditorPanel(props: EditorPanelProps) {
   const [trackFile, setTrackFile] = useState<File | null>(null);
+  const [isTrackDropActive, setIsTrackDropActive] = useState(false);
+  const [activeTab, setActiveTab] = useState("project");
 
   const trackLabel = useMemo(() => {
     if (!trackFile) {
@@ -105,650 +119,841 @@ export function EditorPanel(props: EditorPanelProps) {
     return Math.min(max, Math.max(min, parsed));
   }
 
+  function handleTrackDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsTrackDropActive(true);
+  }
+
+  function handleTrackDragLeave(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsTrackDropActive(false);
+  }
+
+  function handleTrackDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsTrackDropActive(false);
+
+    const file = event.dataTransfer.files?.[0] ?? null;
+    if (file && file.type.startsWith("audio/")) {
+      setTrackFile(file);
+    }
+  }
+
   return (
     <section className="editor-panel">
-      <h1>Video Generator MVP</h1>
-      <p className="editor-subtitle">
-        Upload track + poster, generate equalizer analysis, then save/load
-        project.
-      </p>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="editor-tabs"
+      >
+        <TabsList className="editor-tabs-list">
+          <TabsTrigger value="project">Project</TabsTrigger>
+          <TabsTrigger value="visual">Visual</TabsTrigger>
+          <TabsTrigger value="text">Text</TabsTrigger>
+          <TabsTrigger value="media">Media</TabsTrigger>
+        </TabsList>
 
-      <form className="editor-grid" onSubmit={props.onSubmitProject}>
-        <label>
-          Client token
-          <input
-            value={props.clientToken}
-            onChange={(event) => props.onClientTokenChange(event.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Project name
-          <input
-            value={props.projectName}
-            onChange={(event) => props.onProjectNameChange(event.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Format
-          <select
-            value={props.format}
-            onChange={(event) =>
-              props.onFormatChange(event.target.value as Format)
-            }
-          >
-            <option value="tiktok">TikTok 9:16</option>
-            <option value="youtube">YouTube 16:9</option>
-          </select>
-        </label>
-
-        <label>
-          Quality
-          <select
-            value={props.quality}
-            onChange={(event) =>
-              props.onQualityChange(event.target.value as Quality)
-            }
-          >
-            <option value="hd">HD</option>
-            <option value="fhd">FHD</option>
-          </select>
-        </label>
-
-        <label>
-          Template
-          <select
-            value={props.selectedTemplateId ?? ""}
-            onChange={(event) =>
-              props.onTemplateChange(event.target.value || null)
-            }
-          >
-            {props.templates.map((tpl) => (
-              <option key={tpl.id} value={tpl.id}>
-                {tpl.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Equalizer color
-          <input
-            type="color"
-            value={props.equalizerColor}
-            onChange={(event) =>
-              props.onEqualizerColorChange(event.target.value)
-            }
-          />
-        </label>
-
-        <label>
-          Equalizer width
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.01}
-              value={props.equalizerWidth}
-              onChange={(event) =>
-                props.onEqualizerWidthChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0.1}
-              max={1}
-              step={0.01}
-              value={props.equalizerWidth}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0.1, 1);
-                if (next !== null) {
-                  props.onEqualizerWidthChange(next);
+        <form className="editor-grid" onSubmit={props.onSubmitProject}>
+          <TabsContent value="project" className="editor-tab-content">
+            <label>
+              Client token
+              <input
+                value={props.clientToken}
+                onChange={(event) =>
+                  props.onClientTokenChange(event.target.value)
                 }
-              }}
-            />
-          </div>
-        </label>
+                required
+              />
+            </label>
 
-        <label>
-          Equalizer height
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0.05}
-              max={0.4}
-              step={0.01}
-              value={props.equalizerHeight}
-              onChange={(event) =>
-                props.onEqualizerHeightChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0.05}
-              max={0.4}
-              step={0.01}
-              value={props.equalizerHeight}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0.05, 0.4);
-                if (next !== null) {
-                  props.onEqualizerHeightChange(next);
+            <label>
+              Project name
+              <input
+                value={props.projectName}
+                onChange={(event) =>
+                  props.onProjectNameChange(event.target.value)
                 }
-              }}
-            />
-          </div>
-        </label>
+                required
+              />
+            </label>
 
-        <label>
-          Equalizer Y
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={props.equalizerY}
-              onChange={(event) =>
-                props.onEqualizerYChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-              value={props.equalizerY}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 1);
-                if (next !== null) {
-                  props.onEqualizerYChange(next);
+            <label>
+              Format
+              <select
+                value={props.format}
+                onChange={(event) =>
+                  props.onFormatChange(event.target.value as Format)
                 }
-              }}
-            />
-          </div>
-        </label>
+              >
+                <option value="tiktok">TikTok 9:16</option>
+                <option value="youtube">YouTube 16:9</option>
+              </select>
+            </label>
 
-        <label>
-          Visualizer type
-          <select
-            value={props.visualizerType}
-            onChange={(event) =>
-              props.onVisualizerTypeChange(event.target.value as VisualizerType)
-            }
-          >
-            {VISUALIZER_TYPE_OPTIONS.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Visualizer bar count ({props.visualizerBarCount})
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={8}
-              max={96}
-              step={1}
-              value={props.visualizerBarCount}
-              onChange={(event) =>
-                props.onVisualizerBarCountChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={8}
-              max={96}
-              step={1}
-              value={props.visualizerBarCount}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 8, 96);
-                if (next !== null) {
-                  props.onVisualizerBarCountChange(Math.round(next));
+            <label>
+              Quality
+              <select
+                value={props.quality}
+                onChange={(event) =>
+                  props.onQualityChange(event.target.value as Quality)
                 }
-              }}
-            />
-          </div>
-        </label>
+              >
+                <option value="hd">HD</option>
+                <option value="fhd">FHD</option>
+              </select>
+            </label>
 
-        <label>
-          Background blur
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={8}
-              max={36}
-              step={1}
-              value={props.posterBlurStrength}
-              onChange={(event) =>
-                props.onPosterBlurStrengthChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={8}
-              max={36}
-              step={1}
-              value={props.posterBlurStrength}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 8, 36);
-                if (next !== null) {
-                  props.onPosterBlurStrengthChange(Math.round(next));
+            <label>
+              Template
+              <select
+                value={props.selectedTemplateId ?? ""}
+                onChange={(event) =>
+                  props.onTemplateChange(event.target.value || null)
                 }
-              }}
-            />
-          </div>
-        </label>
+              >
+                {props.templates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </TabsContent>
 
-        <label>
-          Background dim ({Math.round(props.backgroundDimStrength * 100)}%)
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={0.85}
-              step={0.01}
-              value={props.backgroundDimStrength}
-              onChange={(event) =>
-                props.onBackgroundDimStrengthChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={0.85}
-              step={0.01}
-              value={props.backgroundDimStrength}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 0.85);
-                if (next !== null) {
-                  props.onBackgroundDimStrengthChange(next);
+          <TabsContent value="visual" className="editor-tab-content">
+            <label>
+              Equalizer color
+              <input
+                type="color"
+                value={props.equalizerColor}
+                onChange={(event) =>
+                  props.onEqualizerColorChange(event.target.value)
                 }
-              }}
-            />
-          </div>
-        </label>
+              />
+            </label>
 
-        <label>
-          Poster corner radius
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={6}
-              max={40}
-              step={1}
-              value={props.posterCornerRadius}
-              onChange={(event) =>
-                props.onPosterCornerRadiusChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={6}
-              max={40}
-              step={1}
-              value={props.posterCornerRadius}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 6, 40);
-                if (next !== null) {
-                  props.onPosterCornerRadiusChange(Math.round(next));
+            <label>
+              Equalizer width
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0.1}
+                  max={1}
+                  step={0.01}
+                  value={props.equalizerWidth}
+                  onChange={(event) =>
+                    props.onEqualizerWidthChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0.1}
+                  max={1}
+                  step={0.01}
+                  value={props.equalizerWidth}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0.1, 1);
+                    if (next !== null) {
+                      props.onEqualizerWidthChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Equalizer height
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0.05}
+                  max={0.4}
+                  step={0.01}
+                  value={props.equalizerHeight}
+                  onChange={(event) =>
+                    props.onEqualizerHeightChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0.05}
+                  max={0.4}
+                  step={0.01}
+                  value={props.equalizerHeight}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0.05, 0.4);
+                    if (next !== null) {
+                      props.onEqualizerHeightChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Equalizer Y
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={props.equalizerY}
+                  onChange={(event) =>
+                    props.onEqualizerYChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={props.equalizerY}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onEqualizerYChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Visualizer type
+              <select
+                value={props.visualizerType}
+                onChange={(event) =>
+                  props.onVisualizerTypeChange(
+                    event.target.value as VisualizerType,
+                  )
                 }
-              }}
-            />
-          </div>
-        </label>
+              >
+                {VISUALIZER_TYPE_OPTIONS.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-        <label>
-          Beat scale strength ({props.posterBeatScaleStrength.toFixed(2)}x)
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={5}
-              step={0.05}
-              value={props.posterBeatScaleStrength}
-              onChange={(event) =>
-                props.onPosterBeatScaleStrengthChange(
-                  Number(event.target.value),
-                )
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={5}
-              step={0.05}
-              value={props.posterBeatScaleStrength}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 5);
-                if (next !== null) {
-                  props.onPosterBeatScaleStrengthChange(next);
+            <label>
+              Visualizer bar count ({props.visualizerBarCount})
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={8}
+                  max={96}
+                  step={1}
+                  value={props.visualizerBarCount}
+                  onChange={(event) =>
+                    props.onVisualizerBarCountChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={8}
+                  max={96}
+                  step={1}
+                  value={props.visualizerBarCount}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 8, 96);
+                    if (next !== null) {
+                      props.onVisualizerBarCountChange(Math.round(next));
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Background blur
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={8}
+                  max={36}
+                  step={1}
+                  value={props.posterBlurStrength}
+                  onChange={(event) =>
+                    props.onPosterBlurStrengthChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={8}
+                  max={36}
+                  step={1}
+                  value={props.posterBlurStrength}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 8, 36);
+                    if (next !== null) {
+                      props.onPosterBlurStrengthChange(Math.round(next));
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Background dim ({Math.round(props.backgroundDimStrength * 100)}%)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={0.85}
+                  step={0.01}
+                  value={props.backgroundDimStrength}
+                  onChange={(event) =>
+                    props.onBackgroundDimStrengthChange(
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={0.85}
+                  step={0.01}
+                  value={props.backgroundDimStrength}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 0.85);
+                    if (next !== null) {
+                      props.onBackgroundDimStrengthChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Banner size ({Math.round(props.bannerScale * 100)}%)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0.2}
+                  max={0.8}
+                  step={0.01}
+                  value={props.bannerScale}
+                  onChange={(event) =>
+                    props.onBannerScaleChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0.2}
+                  max={0.8}
+                  step={0.01}
+                  value={props.bannerScale}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0.2, 0.8);
+                    if (next !== null) {
+                      props.onBannerScaleChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Banner border
+              <div className="editor-range-row">
+                <select
+                  value={props.bannerBorderEnabled ? "on" : "off"}
+                  onChange={(event) =>
+                    props.onBannerBorderEnabledChange(
+                      event.target.value === "on",
+                    )
+                  }
+                >
+                  <option value="on">Enabled</option>
+                  <option value="off">Disabled</option>
+                </select>
+                <input
+                  type="color"
+                  value={props.bannerBorderColor}
+                  onChange={(event) =>
+                    props.onBannerBorderColorChange(event.target.value)
+                  }
+                  disabled={!props.bannerBorderEnabled}
+                />
+              </div>
+            </label>
+
+            <label>
+              Banner border width
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={12}
+                  step={1}
+                  value={props.bannerBorderWidth}
+                  onChange={(event) =>
+                    props.onBannerBorderWidthChange(Number(event.target.value))
+                  }
+                  disabled={!props.bannerBorderEnabled}
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={12}
+                  step={1}
+                  value={props.bannerBorderWidth}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 12);
+                    if (next !== null) {
+                      props.onBannerBorderWidthChange(Math.round(next));
+                    }
+                  }}
+                  disabled={!props.bannerBorderEnabled}
+                />
+              </div>
+            </label>
+
+            <label>
+              Poster corner radius
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={6}
+                  max={40}
+                  step={1}
+                  value={props.posterCornerRadius}
+                  onChange={(event) =>
+                    props.onPosterCornerRadiusChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={6}
+                  max={40}
+                  step={1}
+                  value={props.posterCornerRadius}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 6, 40);
+                    if (next !== null) {
+                      props.onPosterCornerRadiusChange(Math.round(next));
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Beat scale strength ({props.posterBeatScaleStrength.toFixed(2)}x)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={5}
+                  step={0.05}
+                  value={props.posterBeatScaleStrength}
+                  onChange={(event) =>
+                    props.onPosterBeatScaleStrengthChange(
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={5}
+                  step={0.05}
+                  value={props.posterBeatScaleStrength}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 5);
+                    if (next !== null) {
+                      props.onPosterBeatScaleStrengthChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Camera punch ({props.cameraPunchStrength.toFixed(2)}x)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={3}
+                  step={0.05}
+                  value={props.cameraPunchStrength}
+                  onChange={(event) =>
+                    props.onCameraPunchStrengthChange(
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={3}
+                  step={0.05}
+                  value={props.cameraPunchStrength}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 3);
+                    if (next !== null) {
+                      props.onCameraPunchStrengthChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Parallax drift ({props.parallaxDriftStrength.toFixed(2)}x)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={3}
+                  step={0.05}
+                  value={props.parallaxDriftStrength}
+                  onChange={(event) =>
+                    props.onParallaxDriftStrengthChange(
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={3}
+                  step={0.05}
+                  value={props.parallaxDriftStrength}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 3);
+                    if (next !== null) {
+                      props.onParallaxDriftStrengthChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+          </TabsContent>
+
+          <TabsContent value="text" className="editor-tab-content">
+            <label>
+              Artist
+              <input
+                value={props.artistName}
+                onChange={(event) =>
+                  props.onArtistNameChange(event.target.value)
                 }
-              }}
-            />
-          </div>
-        </label>
+                maxLength={120}
+              />
+            </label>
 
-        <label>
-          Camera punch ({props.cameraPunchStrength.toFixed(2)}x)
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={3}
-              step={0.05}
-              value={props.cameraPunchStrength}
-              onChange={(event) =>
-                props.onCameraPunchStrengthChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={3}
-              step={0.05}
-              value={props.cameraPunchStrength}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 3);
-                if (next !== null) {
-                  props.onCameraPunchStrengthChange(next);
+            <label>
+              Song name
+              <input
+                value={props.songName}
+                onChange={(event) => props.onSongNameChange(event.target.value)}
+                maxLength={120}
+              />
+            </label>
+
+            <label>
+              Text color
+              <input
+                type="color"
+                value={props.trackTextColor}
+                onChange={(event) =>
+                  props.onTrackTextColorChange(event.target.value)
                 }
-              }}
-            />
-          </div>
-        </label>
+              />
+            </label>
 
-        <label>
-          Artist
-          <input
-            value={props.artistName}
-            onChange={(event) => props.onArtistNameChange(event.target.value)}
-            maxLength={120}
-          />
-        </label>
-
-        <label>
-          Song name
-          <input
-            value={props.songName}
-            onChange={(event) => props.onSongNameChange(event.target.value)}
-            maxLength={120}
-          />
-        </label>
-
-        <label>
-          Text color
-          <input
-            type="color"
-            value={props.trackTextColor}
-            onChange={(event) =>
-              props.onTrackTextColorChange(event.target.value)
-            }
-          />
-        </label>
-
-        <label>
-          Text align
-          <select
-            value={props.trackTextAlign}
-            onChange={(event) =>
-              props.onTrackTextAlignChange(
-                event.target.value as "left" | "center" | "right",
-              )
-            }
-          >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-          </select>
-        </label>
-
-        <label>
-          Text X ({props.trackTextX.toFixed(2)})
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={props.trackTextX}
-              onChange={(event) =>
-                props.onTrackTextXChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-              value={props.trackTextX}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 1);
-                if (next !== null) {
-                  props.onTrackTextXChange(next);
+            <label>
+              Text align
+              <select
+                value={props.trackTextAlign}
+                onChange={(event) =>
+                  props.onTrackTextAlignChange(
+                    event.target.value as "left" | "center" | "right",
+                  )
                 }
-              }}
-            />
-          </div>
-        </label>
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </label>
 
-        <label>
-          Text Y ({props.trackTextY.toFixed(2)})
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={props.trackTextY}
-              onChange={(event) =>
-                props.onTrackTextYChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-              value={props.trackTextY}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 1);
-                if (next !== null) {
-                  props.onTrackTextYChange(next);
+            <label>
+              Text X ({props.trackTextX.toFixed(2)})
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={props.trackTextX}
+                  onChange={(event) =>
+                    props.onTrackTextXChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={props.trackTextX}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onTrackTextXChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Text Y ({props.trackTextY.toFixed(2)})
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={props.trackTextY}
+                  onChange={(event) =>
+                    props.onTrackTextYChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={props.trackTextY}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onTrackTextYChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Text size ({Math.round(props.trackTextSize)} px)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={14}
+                  max={120}
+                  step={1}
+                  value={props.trackTextSize}
+                  onChange={(event) =>
+                    props.onTrackTextSizeChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={14}
+                  max={120}
+                  step={1}
+                  value={props.trackTextSize}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 14, 120);
+                    if (next !== null) {
+                      props.onTrackTextSizeChange(Math.round(next));
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Text gap ({Math.round(props.trackTextGap)} px)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={120}
+                  step={1}
+                  value={props.trackTextGap}
+                  onChange={(event) =>
+                    props.onTrackTextGapChange(Number(event.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={120}
+                  step={1}
+                  value={props.trackTextGap}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 120);
+                    if (next !== null) {
+                      props.onTrackTextGapChange(Math.round(next));
+                    }
+                  }}
+                />
+              </div>
+            </label>
+          </TabsContent>
+
+          <TabsContent value="media" className="editor-tab-content">
+            <label>
+              Track upload
+              <div
+                className={`track-dropzone ${isTrackDropActive ? "track-dropzone--active" : ""}`}
+                onDragOver={handleTrackDragOver}
+                onDragLeave={handleTrackDragLeave}
+                onDrop={handleTrackDrop}
+              >
+                <span>Drop audio file here or choose manually</span>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(event) =>
+                    setTrackFile(event.target.files?.[0] ?? null)
+                  }
+                />
+              </div>
+              <small>{trackLabel}</small>
+            </label>
+
+            <div className="editor-actions">
+              <Button
+                type="button"
+                size="xs"
+                disabled={props.isBusy || !trackFile}
+                onClick={() => {
+                  if (trackFile) {
+                    props.onUploadTrack(trackFile);
+                  }
+                }}
+              >
+                Upload Track
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                disabled={props.isBusy}
+                onClick={props.onAnalyzeTrack}
+              >
+                Analyze
+              </Button>
+              <Button type="submit" size="xs" disabled={props.isBusy}>
+                Save Project
+              </Button>
+            </div>
+
+            <div className="editor-actions">
+              <Button
+                type="button"
+                size="xs"
+                disabled={props.isBusy}
+                onClick={props.onStartRender}
+              >
+                Export MP4
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                disabled={props.isBusy || props.renderStatus !== "done"}
+                onClick={props.onDownloadRender}
+              >
+                Download Render
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                disabled={
+                  props.isBusy ||
+                  (props.renderStatus !== "queued" &&
+                    props.renderStatus !== "processing")
                 }
-              }}
-            />
-          </div>
-        </label>
-
-        <label>
-          Text size ({Math.round(props.trackTextSize)} px)
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={14}
-              max={120}
-              step={1}
-              value={props.trackTextSize}
-              onChange={(event) =>
-                props.onTrackTextSizeChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={14}
-              max={120}
-              step={1}
-              value={props.trackTextSize}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 14, 120);
-                if (next !== null) {
-                  props.onTrackTextSizeChange(Math.round(next));
+                onClick={props.onCancelRender}
+              >
+                Cancel Render
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                disabled={
+                  props.isBusy ||
+                  (props.renderStatus !== "failed" &&
+                    props.renderStatus !== "canceled")
                 }
-              }}
-            />
-          </div>
-        </label>
+                onClick={props.onRetryRender}
+              >
+                Retry Render
+              </Button>
+            </div>
 
-        <label>
-          Text gap ({Math.round(props.trackTextGap)} px)
-          <div className="editor-range-row">
-            <input
-              type="range"
-              min={0}
-              max={120}
-              step={1}
-              value={props.trackTextGap}
-              onChange={(event) =>
-                props.onTrackTextGapChange(Number(event.target.value))
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              max={120}
-              step={1}
-              value={props.trackTextGap}
-              onChange={(event) => {
-                const next = toClampedNumber(event.target.value, 0, 120);
-                if (next !== null) {
-                  props.onTrackTextGapChange(Math.round(next));
+            <div className="editor-actions editor-load-row">
+              <input
+                placeholder="project id"
+                value={props.projectId}
+                onChange={(event) =>
+                  props.onProjectIdChange(event.target.value)
                 }
-              }}
-            />
-          </div>
-        </label>
+              />
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                disabled={props.isBusy}
+                onClick={props.onLoadProject}
+              >
+                Load Project
+              </Button>
+              {props.previewTimelineEnabled ? (
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  disabled={props.isBusy}
+                  onClick={props.onSaveTimeline}
+                >
+                  Save Timeline
+                </Button>
+              ) : null}
+            </div>
+          </TabsContent>
+        </form>
+      </Tabs>
 
-        <label>
-          Track upload
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={(event) => setTrackFile(event.target.files?.[0] ?? null)}
-          />
-          <small>{trackLabel}</small>
-        </label>
-
-        <div className="editor-actions">
-          <button
-            type="button"
-            disabled={props.isBusy || !trackFile}
-            onClick={() => {
-              if (trackFile) {
-                props.onUploadTrack(trackFile);
-              }
-            }}
-          >
-            Upload Track
-          </button>
-          <button
-            type="button"
-            disabled={props.isBusy}
-            onClick={props.onAnalyzeTrack}
-          >
-            Analyze
-          </button>
-          <button type="submit" disabled={props.isBusy}>
-            Save Project
-          </button>
-        </div>
-
-        <div className="editor-actions">
-          <button
-            type="button"
-            disabled={props.isBusy}
-            onClick={props.onStartRender}
-          >
-            Export MP4
-          </button>
-          <button
-            type="button"
-            disabled={props.isBusy || props.renderStatus !== "done"}
-            onClick={props.onDownloadRender}
-          >
-            Download Render
-          </button>
-          <button
-            type="button"
-            disabled={
-              props.isBusy ||
-              (props.renderStatus !== "queued" &&
-                props.renderStatus !== "processing")
-            }
-            onClick={props.onCancelRender}
-          >
-            Cancel Render
-          </button>
-          <button
-            type="button"
-            disabled={
-              props.isBusy ||
-              (props.renderStatus !== "failed" &&
-                props.renderStatus !== "canceled")
-            }
-            onClick={props.onRetryRender}
-          >
-            Retry Render
-          </button>
-        </div>
-
-        <div className="editor-actions editor-load-row">
-          <input
-            placeholder="project id"
-            value={props.projectId}
-            onChange={(event) => props.onProjectIdChange(event.target.value)}
-          />
-          <button
-            type="button"
-            disabled={props.isBusy}
-            onClick={props.onLoadProject}
-          >
-            Load Project
-          </button>
+      {activeTab === "media" ? (
+        <ul className="editor-status-list">
+          <li>Status: {props.status}</li>
+          <li>Track asset: {props.trackAssetId || "-"}</li>
+          <li>Poster asset: {props.posterAssetId || "-"}</li>
+          <li>Background asset: {props.backgroundAssetId || "-"}</li>
+          <li>
+            Analysis:{" "}
+            {props.analysisId
+              ? `${props.analysisStatus} (${props.analysisId})`
+              : "-"}
+          </li>
+          <li>Project: {props.projectId || "-"}</li>
+          <li>
+            Render:{" "}
+            {props.renderJobId
+              ? `${props.renderStatus} ${props.renderProgress}%`
+              : "-"}
+          </li>
           {props.previewTimelineEnabled ? (
-            <button
-              type="button"
-              disabled={props.isBusy}
-              onClick={props.onSaveTimeline}
-            >
-              Save Timeline
-            </button>
+            <>
+              <li>Preview startup: {props.previewStartupMs} ms</li>
+              <li>Preview drift: {props.previewDriftMs} ms</li>
+              <li>Preview fps: {props.previewFps}</li>
+            </>
           ) : null}
-        </div>
-      </form>
-
-      <ul className="editor-status-list">
-        <li>Status: {props.status}</li>
-        <li>Track asset: {props.trackAssetId || "-"}</li>
-        <li>Poster asset: {props.posterAssetId || "-"}</li>
-        <li>Background asset: {props.backgroundAssetId || "-"}</li>
-        <li>
-          Analysis:{" "}
-          {props.analysisId
-            ? `${props.analysisStatus} (${props.analysisId})`
-            : "-"}
-        </li>
-        <li>Project: {props.projectId || "-"}</li>
-        <li>
-          Render:{" "}
-          {props.renderJobId
-            ? `${props.renderStatus} ${props.renderProgress}%`
-            : "-"}
-        </li>
-        {props.previewTimelineEnabled ? (
-          <>
-            <li>Preview startup: {props.previewStartupMs} ms</li>
-            <li>Preview drift: {props.previewDriftMs} ms</li>
-            <li>Preview fps: {props.previewFps}</li>
-          </>
-        ) : null}
-      </ul>
+        </ul>
+      ) : null}
     </section>
   );
 }

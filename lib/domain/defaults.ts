@@ -27,6 +27,11 @@ export const defaultPosterConfig: PosterConfig = {
   backgroundDimStrength: 0.48,
   beatScaleStrength: 1,
   cameraPunchStrength: 0,
+  parallaxDriftStrength: 0,
+  bannerScale: 0.56,
+  bannerBorderEnabled: true,
+  bannerBorderColor: "#dceaff",
+  bannerBorderWidth: 2,
 };
 
 export const defaultTrackTextConfig: TrackTextConfig = {

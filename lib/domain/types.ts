@@ -41,6 +41,11 @@ export interface PosterConfig {
   backgroundDimStrength: number;
   beatScaleStrength?: number;
   cameraPunchStrength?: number;
+  parallaxDriftStrength?: number;
+  bannerScale?: number;
+  bannerBorderEnabled?: boolean;
+  bannerBorderColor?: string;
+  bannerBorderWidth?: number;
 }
 
 export interface TrackTextConfig {

@@ -30,6 +30,11 @@ export type TemplateItem = {
     backgroundDimStrength: number;
     beatScaleStrength?: number;
     cameraPunchStrength?: number;
+    parallaxDriftStrength?: number;
+    bannerScale?: number;
+    bannerBorderEnabled?: boolean;
+    bannerBorderColor?: string;
+    bannerBorderWidth?: number;
   };
 };
 
@@ -64,6 +69,11 @@ export type PosterConfigPayload = {
   backgroundDimStrength: number;
   beatScaleStrength: number;
   cameraPunchStrength: number;
+  parallaxDriftStrength: number;
+  bannerScale: number;
+  bannerBorderEnabled: boolean;
+  bannerBorderColor: string;
+  bannerBorderWidth: number;
 };
 
 export type TrackTextConfigPayload = {
@@ -128,6 +138,11 @@ export type LoadProjectResponse = {
     backgroundDimStrength?: number;
     beatScaleStrength?: number;
     cameraPunchStrength?: number;
+    parallaxDriftStrength?: number;
+    bannerScale?: number;
+    bannerBorderEnabled?: boolean;
+    bannerBorderColor?: string;
+    bannerBorderWidth?: number;
   };
   trackTextConfig?: {
     artist?: string;
