@@ -87,6 +87,9 @@ export default function Home() {
   const [equalizerY, setEqualizerY] = useState(0.8);
   const [visualizerType, setVisualizerType] = useState<VisualizerType>("bars");
   const [visualizerBarCount, setVisualizerBarCount] = useState(36);
+  const [equalizerGlowStrength, setEqualizerGlowStrength] = useState(0.9);
+  const [equalizerGlowColor, setEqualizerGlowColor] = useState("#7fd2ff");
+  const [equalizerGlowSpread, setEqualizerGlowSpread] = useState(1);
 
   const [posterCornerRadius, setPosterCornerRadius] = useState(20);
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
@@ -400,6 +403,9 @@ export default function Home() {
       setEqualizerHeight(template.equalizerConfig.height);
       setEqualizerY(template.equalizerConfig.y);
       setVisualizerType(template.equalizerConfig.visualizerType ?? "bars");
+      setEqualizerGlowStrength(template.equalizerConfig.glowStrength ?? 0.9);
+      setEqualizerGlowColor(template.equalizerConfig.glowColor ?? "#7fd2ff");
+      setEqualizerGlowSpread(template.equalizerConfig.glowSpread ?? 1);
       setVisualizerBarCount(
         Math.round(template.equalizerConfig.barCount ?? 36),
       );
@@ -555,6 +561,9 @@ export default function Home() {
             setEqualizerHeight(first.equalizerConfig.height);
             setEqualizerY(first.equalizerConfig.y);
             setVisualizerType(first.equalizerConfig.visualizerType ?? "bars");
+            setEqualizerGlowStrength(first.equalizerConfig.glowStrength ?? 0.9);
+            setEqualizerGlowColor(first.equalizerConfig.glowColor ?? "#7fd2ff");
+            setEqualizerGlowSpread(first.equalizerConfig.glowSpread ?? 1);
             setVisualizerBarCount(
               Math.round(first.equalizerConfig.barCount ?? 36),
             );
@@ -872,6 +881,9 @@ export default function Home() {
           width: equalizerWidth,
           height: equalizerHeight,
           color: equalizerColor,
+          glowStrength: equalizerGlowStrength,
+          glowColor: equalizerGlowColor,
+          glowSpread: equalizerGlowSpread,
           visualizerType,
           barCount: visualizerBarCount,
         },
@@ -921,6 +933,9 @@ export default function Home() {
       cameraPunchStrength,
       clientToken,
       equalizerColor,
+      equalizerGlowColor,
+      equalizerGlowSpread,
+      equalizerGlowStrength,
       equalizerHeight,
       equalizerWidth,
       equalizerY,
@@ -994,6 +1009,9 @@ export default function Home() {
     setEqualizerWidth(data.equalizerConfig.width);
     setEqualizerHeight(data.equalizerConfig.height);
     setEqualizerY(data.equalizerConfig.y);
+    setEqualizerGlowStrength(data.equalizerConfig.glowStrength ?? 0.9);
+    setEqualizerGlowColor(data.equalizerConfig.glowColor ?? "#7fd2ff");
+    setEqualizerGlowSpread(data.equalizerConfig.glowSpread ?? 1);
     setVisualizerType(data.equalizerConfig.visualizerType ?? "bars");
     setVisualizerBarCount(Math.round(data.equalizerConfig.barCount ?? 36));
     setPosterCornerRadius(data.posterConfig?.cornerRadius ?? 20);
@@ -1074,6 +1092,9 @@ export default function Home() {
         width: equalizerWidth,
         height: equalizerHeight,
         color: equalizerColor,
+        glowStrength: equalizerGlowStrength,
+        glowColor: equalizerGlowColor,
+        glowSpread: equalizerGlowSpread,
         visualizerType,
         barCount: visualizerBarCount,
       },
@@ -1303,6 +1324,9 @@ export default function Home() {
             equalizerWidth={equalizerWidth}
             equalizerHeight={equalizerHeight}
             equalizerY={equalizerY}
+            equalizerGlowStrength={equalizerGlowStrength}
+            equalizerGlowColor={equalizerGlowColor}
+            equalizerGlowSpread={equalizerGlowSpread}
             visualizerType={visualizerType}
             visualizerBarCount={visualizerBarCount}
             posterBlurStrength={posterBlurStrength}
@@ -1347,6 +1371,9 @@ export default function Home() {
             onEqualizerWidthChange={setEqualizerWidth}
             onEqualizerHeightChange={setEqualizerHeight}
             onEqualizerYChange={setEqualizerY}
+            onEqualizerGlowStrengthChange={setEqualizerGlowStrength}
+            onEqualizerGlowColorChange={setEqualizerGlowColor}
+            onEqualizerGlowSpreadChange={setEqualizerGlowSpread}
             onVisualizerTypeChange={setVisualizerType}
             onVisualizerBarCountChange={setVisualizerBarCount}
             onPosterBlurStrengthChange={setPosterBlurStrength}
@@ -1410,6 +1437,9 @@ export default function Home() {
             posterBlurStrength={posterBlurStrength}
             backgroundDimStrength={backgroundDimStrength}
             liveEqualizerConfig={liveEqualizerConfig}
+            equalizerGlowStrength={equalizerGlowStrength}
+            equalizerGlowColor={equalizerGlowColor}
+            equalizerGlowSpread={equalizerGlowSpread}
             onPosterFileSelected={(file) =>
               void runAction(() => uploadPoster(file))
             }

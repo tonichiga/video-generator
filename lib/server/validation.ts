@@ -55,7 +55,51 @@ export function parseHexColor(value: unknown): string | null {
   if (typeof value !== "string") {
     return null;
   }
-  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : null;
+
+  const raw = value.trim();
+
+  const hexMatch = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(raw);
+  if (hexMatch) {
+    const hex = hexMatch[1];
+    const r = Number.parseInt(hex.slice(0, 2), 16);
+    const g = Number.parseInt(hex.slice(2, 4), 16);
+    const b = Number.parseInt(hex.slice(4, 6), 16);
+    const a = hex.length === 8 ? Number.parseInt(hex.slice(6, 8), 16) / 255 : 1;
+
+    return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
+  }
+
+  const rgbaMatch =
+    /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i.exec(
+      raw,
+    );
+  if (!rgbaMatch) {
+    return null;
+  }
+
+  const r = Number(rgbaMatch[1]);
+  const g = Number(rgbaMatch[2]);
+  const b = Number(rgbaMatch[3]);
+  const a = rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]);
+
+  if (
+    !Number.isFinite(r) ||
+    !Number.isFinite(g) ||
+    !Number.isFinite(b) ||
+    !Number.isFinite(a)
+  ) {
+    return null;
+  }
+
+  if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+    return null;
+  }
+
+  if (a < 0 || a > 1) {
+    return null;
+  }
+
+  return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a.toFixed(3)})`;
 }
 
 export function parseVisualizerType(

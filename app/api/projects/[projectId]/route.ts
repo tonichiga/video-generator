@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import {
+  defaultEqualizerConfig,
   defaultPosterConfig,
   defaultTrackTextConfig,
 } from "@/lib/domain/defaults";
@@ -254,6 +255,24 @@ export async function PATCH(
     const width = parseNumberInRange(next.width, 0.1, 1);
     const height = parseNumberInRange(next.height, 0.05, 0.4);
     const color = parseHexColor(next.color);
+    const glowStrength =
+      next.glowStrength === undefined
+        ? (loaded.project.equalizerConfig.glowStrength ??
+          defaultEqualizerConfig.glowStrength ??
+          0.9)
+        : parseNumberInRange(next.glowStrength, 0, 6);
+    const glowColor =
+      next.glowColor === undefined
+        ? (loaded.project.equalizerConfig.glowColor ??
+          defaultEqualizerConfig.glowColor ??
+          "#7fd2ff")
+        : parseHexColor(next.glowColor);
+    const glowSpread =
+      next.glowSpread === undefined
+        ? (loaded.project.equalizerConfig.glowSpread ??
+          defaultEqualizerConfig.glowSpread ??
+          1)
+        : parseNumberInRange(next.glowSpread, 0, 4);
     const barCountRaw = parseNumberInRange(next.barCount, 8, 96);
     const barCount = barCountRaw === null ? null : Math.round(barCountRaw);
     const visualizerType =
@@ -266,7 +285,10 @@ export async function PATCH(
       y === null ||
       width === null ||
       height === null ||
-      color === null
+      color === null ||
+      glowStrength === null ||
+      glowColor === null ||
+      glowSpread === null
     ) {
       return errorResponse(
         400,
@@ -281,6 +303,9 @@ export async function PATCH(
       width,
       height,
       color,
+      glowStrength,
+      glowColor,
+      glowSpread,
       visualizerType,
       barCount: barCount ?? loaded.project.equalizerConfig.barCount ?? 36,
     };

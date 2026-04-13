@@ -34,7 +34,7 @@
 ### Рекомендуемые эффекты
 
 - Camera Punch (микро-зум на бит) — SYNC_1_1 — DONE
-- Parallax Drift (дрейф слоев глубины) — SYNC_1_1
+- Parallax Drift (дрейф слоев глубины) — SYNC_1_1 — DONE
 - Spectrum Glow (свечение от high-band энергии) — SYNC_1_1
 - Low-End Shake (легкий shake от баса) — SYNC_1_1
 - Beat Strobe Soft (мягкий импульс яркости/контраста) — SYNC_1_1

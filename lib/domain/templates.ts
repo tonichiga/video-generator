@@ -12,6 +12,7 @@ export const builtInTemplates: Template[] = [
       width: 0.74,
       height: 0.2,
       color: "#00E5FF",
+      glowStrength: 1.1,
       visualizerType: "symmetricBars",
     },
     posterConfig: {
@@ -33,6 +34,7 @@ export const builtInTemplates: Template[] = [
       width: 0.7,
       height: 0.18,
       color: "#FFB347",
+      glowStrength: 0.85,
       visualizerType: "line",
     },
     posterConfig: {
@@ -54,6 +56,7 @@ export const builtInTemplates: Template[] = [
       width: 0.62,
       height: 0.17,
       color: "#5AA9FF",
+      glowStrength: 0.7,
       visualizerType: "dots",
     },
     posterConfig: {
@@ -75,6 +78,7 @@ export const builtInTemplates: Template[] = [
       width: 0.78,
       height: 0.2,
       color: "#FF6B6B",
+      glowStrength: 1,
       visualizerType: "bars",
     },
     posterConfig: {
@@ -96,6 +100,7 @@ export const builtInTemplates: Template[] = [
       width: 0.68,
       height: 0.16,
       color: "#B9C6FF",
+      glowStrength: 0.8,
       visualizerType: "line",
     },
     posterConfig: {

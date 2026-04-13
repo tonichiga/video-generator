@@ -17,11 +17,13 @@ import {
 } from "@/lib/domain/camera-punch";
 import { buildParallaxBackgroundCropExpressions } from "@/lib/domain/parallax-drift";
 import {
+  defaultEqualizerConfig,
   defaultPosterConfig,
   defaultTrackTextConfig,
 } from "@/lib/domain/defaults";
 import { renderWatermarkConfig } from "@/lib/server/env";
 import {
+  getHighBandEnergy,
   normalizeSpectrumBands,
   spectrumFrameIndexAtMs,
 } from "@/lib/domain/spectrum";
@@ -106,7 +108,8 @@ async function resolveFfmpegBinary() {
 }
 
 function parseHexForFfmpeg(color: string) {
-  return color.startsWith("#") ? `0x${color.slice(1)}` : "0xFFFFFF";
+  const parsed = parseColorRgba(color);
+  return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${parsed.a.toFixed(3)})`;
 }
 
 function escapeSvgText(value: string) {
@@ -264,6 +267,9 @@ function getPosterLayerCacheFileName(input: {
   barCount: number;
   beatScaleStrength: number;
   cornerRadiusPx: number;
+  glowStrength: number;
+  glowColor: string;
+  glowSpread: number;
   borderEnabled: boolean;
   borderColor: string;
   borderPx: number;
@@ -297,16 +303,40 @@ function parseTimestampToSeconds(value: string) {
   return hh * 3600 + mm * 60 + ss;
 }
 
-function parseHexRgb(color: string) {
-  const normalized = color.startsWith("#") ? color.slice(1) : color;
-  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
-    return { r: 255, g: 255, b: 255 };
+function parseColorRgba(color: string) {
+  const raw = color.trim();
+  const hexMatch = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(raw);
+  if (hexMatch) {
+    const hex = hexMatch[1];
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const a = hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1;
+    return { r, g, b, a: clampNumber(a, 0, 1) };
   }
 
+  const rgbaMatch =
+    /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i.exec(
+      raw,
+    );
+  if (!rgbaMatch) {
+    return { r: 255, g: 255, b: 255, a: 1 };
+  }
+
+  const r = clampNumber(Number(rgbaMatch[1]) || 255, 0, 255);
+  const g = clampNumber(Number(rgbaMatch[2]) || 255, 0, 255);
+  const b = clampNumber(Number(rgbaMatch[3]) || 255, 0, 255);
+  const a = clampNumber(
+    rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]) || 1,
+    0,
+    1,
+  );
+
   return {
-    r: parseInt(normalized.slice(0, 2), 16),
-    g: parseInt(normalized.slice(2, 4), 16),
-    b: parseInt(normalized.slice(4, 6), 16),
+    r: Math.round(r),
+    g: Math.round(g),
+    b: Math.round(b),
+    a,
   };
 }
 
@@ -647,6 +677,9 @@ async function renderPosterPulseLayer(input: {
   basePosterHeight: number;
   beatScaleStrength: number;
   cornerRadiusPx: number;
+  glowStrength: number;
+  glowColor: string;
+  glowSpread: number;
   borderEnabled: boolean;
   borderColor: string;
   borderPx: number;
@@ -667,6 +700,9 @@ async function renderPosterPulseLayer(input: {
     basePosterHeight,
     beatScaleStrength,
     cornerRadiusPx,
+    glowStrength,
+    glowColor,
+    glowSpread,
     borderEnabled,
     borderColor,
     borderPx,
@@ -712,6 +748,7 @@ async function renderPosterPulseLayer(input: {
   });
 
   const roundedCache = new Map<string, Buffer>();
+  const glowCache = new Map<string, Buffer>();
   const maxCacheEntries = 64;
 
   const getRoundedPoster = async (posterW: number, posterH: number) => {
@@ -775,6 +812,58 @@ async function renderPosterPulseLayer(input: {
     }
   };
 
+  const getPosterGlow = async (
+    posterW: number,
+    posterH: number,
+    glowLevel: number,
+    spreadPxInput: number,
+  ) => {
+    const safeGlowLevel = clampNumber(glowLevel, 0, 5);
+    const safeSpread = Math.max(0, Math.round(spreadPxInput));
+    if (safeGlowLevel <= 0 || safeSpread <= 0) {
+      return null;
+    }
+
+    const alphaBucket = Math.round(safeGlowLevel * 24);
+    const spreadBucket = safeSpread;
+    const cacheKey = `${posterW}x${posterH}:a${alphaBucket}:s${spreadBucket}:c${glowColor}`;
+    const cached = glowCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const spreadPx = safeSpread;
+    const padding = spreadPx * 2;
+    const glowW = Math.max(2, posterW + padding * 2);
+    const glowH = Math.max(2, posterH + padding * 2);
+    const posterX = padding;
+    const posterY = padding;
+    const rectRadius = Math.min(
+      Math.floor(Math.min(posterW, posterH) / 2),
+      Math.max(0, Math.round(cornerRadiusPx)),
+    );
+    const fillAlpha = clampNumber(0.1 + safeGlowLevel * 0.16, 0.08, 0.9);
+    const coreAlpha = clampNumber(fillAlpha + 0.16, 0.12, 0.95);
+    const blurSigma = Math.max(1.2, spreadPx * (0.9 + safeGlowLevel * 0.14));
+    const glowSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${glowW}" height="${glowH}"><rect x="${posterX}" y="${posterY}" width="${posterW}" height="${posterH}" rx="${rectRadius}" ry="${rectRadius}" fill="${glowColor}" fill-opacity="${fillAlpha.toFixed(4)}" /></svg>`;
+    const glowCoreSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${glowW}" height="${glowH}"><rect x="${posterX}" y="${posterY}" width="${posterW}" height="${posterH}" rx="${rectRadius}" ry="${rectRadius}" fill="${glowColor}" fill-opacity="${coreAlpha.toFixed(4)}" /></svg>`;
+    const rendered = await sharp(Buffer.from(glowSvg))
+      .composite([{ input: Buffer.from(glowCoreSvg), blend: "over" }])
+      .blur(blurSigma)
+      .png()
+      .toBuffer();
+
+    glowCache.set(cacheKey, rendered);
+    if (glowCache.size > maxCacheEntries) {
+      const oldestKey = glowCache.keys().next().value;
+      if (typeof oldestKey === "string") {
+        glowCache.delete(oldestKey);
+      }
+    }
+
+    return rendered;
+  };
+
   try {
     for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
       const absoluteMs = timeline.trimInMs + (frameIndex * 1000) / fps;
@@ -784,6 +873,7 @@ async function renderPosterPulseLayer(input: {
         frameStepMs: spectrumFrameStepMs,
         barCount,
       });
+      const highBandEnergy = getHighBandEnergy(values, 0.62);
 
       pulseState = getNextBeatPulseState(pulseState, values, {
         strength: 1,
@@ -799,8 +889,16 @@ async function renderPosterPulseLayer(input: {
         1,
         1.25,
       );
-      const scaledW = toEven(basePosterWidth * safeScale, 16);
-      const scaledH = toEven(basePosterHeight * safeScale, 16);
+      const maxPosterW = Math.max(16, toEven(width, 2));
+      const maxPosterH = Math.max(16, toEven(height, 2));
+      const scaledW = Math.min(
+        toEven(basePosterWidth * safeScale, 16),
+        maxPosterW,
+      );
+      const scaledH = Math.min(
+        toEven(basePosterHeight * safeScale, 16),
+        maxPosterH,
+      );
 
       if (!Number.isFinite(scaledW) || !Number.isFinite(scaledH)) {
         continue;
@@ -809,6 +907,64 @@ async function renderPosterPulseLayer(input: {
       const posterBuffer = await getRoundedPoster(scaledW, scaledH);
       const left = Math.floor((width - scaledW) / 2);
       const top = Math.floor((height - scaledH) / 2);
+      const safeGlowStrength = clampNumber(glowStrength, 0, 6);
+      const glowEnergyThreshold = 0.16;
+      const glowEnergyGate = clampNumber(
+        (highBandEnergy - glowEnergyThreshold) / (1 - glowEnergyThreshold),
+        0,
+        1,
+      );
+      const glowDrive = Math.pow(glowEnergyGate, 0.72);
+      const glowLevel = clampNumber(glowDrive * safeGlowStrength * 2.2, 0, 5);
+      const glowSpreadPxRaw = Math.max(
+        2,
+        Math.round(
+          Math.min(scaledW, scaledH) * 0.05 * clampNumber(glowSpread, 0, 4),
+        ),
+      );
+      const availableOuterPx = Math.max(
+        0,
+        Math.floor(
+          Math.min(
+            left,
+            top,
+            width - (left + scaledW),
+            height - (top + scaledH),
+          ),
+        ),
+      );
+      const glowSpreadPx = Math.min(
+        glowSpreadPxRaw,
+        Math.floor(availableOuterPx / 2),
+      );
+
+      const composites: sharp.OverlayOptions[] = [];
+      if (glowSpreadPx > 0) {
+        const glowBuffer = await getPosterGlow(
+          scaledW,
+          scaledH,
+          glowLevel,
+          glowSpreadPx,
+        );
+        const glowLeft = left - glowSpreadPx * 2;
+        const glowTop = top - glowSpreadPx * 2;
+
+        if (glowBuffer) {
+          composites.push({
+            input: glowBuffer,
+            left: glowLeft,
+            top: glowTop,
+          });
+        }
+      }
+
+      if (left >= 0 && top >= 0 && scaledW <= width && scaledH <= height) {
+        composites.push({
+          input: posterBuffer,
+          left,
+          top,
+        });
+      }
       const frame = await sharp({
         create: {
           width,
@@ -822,13 +978,7 @@ async function renderPosterPulseLayer(input: {
           },
         },
       })
-        .composite([
-          {
-            input: posterBuffer,
-            left,
-            top,
-          },
-        ])
+        .composite(composites)
         .raw()
         .toBuffer();
 
@@ -909,7 +1059,8 @@ async function renderSpectrumVisualizerLayer(input: {
     () => 0.06,
   );
   const frameCount = Math.max(1, Math.round(timeline.clipDurationSec * fps));
-  const color = parseHexRgb(colorHex);
+  const color = parseColorRgba(colorHex);
+  const colorAlpha = clampNumber(color.a, 0, 1);
 
   const args = [
     "-y",
@@ -1022,7 +1173,7 @@ async function renderSpectrumVisualizerLayer(input: {
             to.y,
             color,
             2,
-            245,
+            Math.round(245 * colorAlpha),
           );
         }
 
@@ -1035,7 +1186,7 @@ async function renderSpectrumVisualizerLayer(input: {
             point.y,
             2,
             color,
-            230,
+            Math.round(230 * colorAlpha),
           );
         }
       } else if (
@@ -1059,7 +1210,7 @@ async function renderSpectrumVisualizerLayer(input: {
             barWidth,
             h,
             color,
-            235,
+            Math.round(235 * colorAlpha),
           );
           drawRoundedBar(
             frame,
@@ -1070,7 +1221,7 @@ async function renderSpectrumVisualizerLayer(input: {
             barWidth,
             h,
             color,
-            235,
+            Math.round(235 * colorAlpha),
             "bottom",
           );
         }
@@ -1081,7 +1232,16 @@ async function renderSpectrumVisualizerLayer(input: {
           const x =
             startX + index * (barWidth + gap) + Math.floor(barWidth / 2);
           const y = eqY + eqH - Math.round(value * eqH);
-          drawFilledCircle(frame, width, height, x, y, radius, color, 240);
+          drawFilledCircle(
+            frame,
+            width,
+            height,
+            x,
+            y,
+            radius,
+            color,
+            Math.round(240 * colorAlpha),
+          );
         }
       } else {
         for (let index = 0; index < values.length; index += 1) {
@@ -1089,7 +1249,17 @@ async function renderSpectrumVisualizerLayer(input: {
           const x = startX + index * (barWidth + gap);
           const h = Math.max(3, Math.round(value * eqH));
           const y = eqY + eqH - h;
-          drawRoundedBar(frame, width, height, x, y, barWidth, h, color, 238);
+          drawRoundedBar(
+            frame,
+            width,
+            height,
+            x,
+            y,
+            barWidth,
+            h,
+            color,
+            Math.round(238 * colorAlpha),
+          );
         }
       }
 
@@ -1448,6 +1618,24 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     0,
     Math.min(180, Math.round(project.posterConfig.cornerRadius)),
   );
+  const posterGlowStrength = clampNumber(
+    project.equalizerConfig.glowStrength ??
+      defaultEqualizerConfig.glowStrength ??
+      0.9,
+    0,
+    6,
+  );
+  const posterGlowColor =
+    project.equalizerConfig.glowColor ??
+    defaultEqualizerConfig.glowColor ??
+    "#7fd2ff";
+  const posterGlowSpread = clampNumber(
+    project.equalizerConfig.glowSpread ??
+      defaultEqualizerConfig.glowSpread ??
+      1,
+    0,
+    4,
+  );
   const posterBorderEnabled =
     project.posterConfig.bannerBorderEnabled ??
     defaultPosterConfig.bannerBorderEnabled ??
@@ -1484,6 +1672,9 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       barCount: resolvedBarCount,
       beatScaleStrength: posterBeatScaleStrength,
       cornerRadiusPx: posterCornerRadiusPx,
+      glowStrength: posterGlowStrength,
+      glowColor: posterGlowColor,
+      glowSpread: posterGlowSpread,
       borderEnabled: posterBorderEnabled,
       borderColor: posterBorderColor,
       borderPx: posterBorderPx,
@@ -1702,6 +1893,9 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
         basePosterHeight: posterH,
         beatScaleStrength: posterBeatScaleStrength,
         cornerRadiusPx: posterCornerRadiusPx,
+        glowStrength: posterGlowStrength,
+        glowColor: posterGlowColor,
+        glowSpread: posterGlowSpread,
         borderEnabled: posterBorderEnabled,
         borderColor: posterBorderColor,
         borderPx: posterBorderPx,

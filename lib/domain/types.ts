@@ -31,6 +31,9 @@ export interface EqualizerConfig {
   width: number;
   height: number;
   color: string;
+  glowStrength?: number;
+  glowColor?: string;
+  glowSpread?: number;
   visualizerType?: "bars" | "line" | "dots" | "symmetricBars";
   barCount?: number;
 }

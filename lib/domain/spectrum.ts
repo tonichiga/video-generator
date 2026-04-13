@@ -86,3 +86,33 @@ export function spectrumFrameIndexAtMs(
   const safeStep = Math.max(1, Math.round(frameStepMs));
   return clampNumber(Math.floor(timeMs / safeStep), 0, framesLength - 1);
 }
+
+export function getHighBandEnergy(values: number[], fromRatio = 0.62) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return 0;
+  }
+
+  const safeFromRatio = clampNumber(fromRatio, 0, 0.95);
+  const fromIndex = Math.min(
+    values.length - 1,
+    Math.max(0, Math.floor(values.length * safeFromRatio)),
+  );
+
+  let sum = 0;
+  let count = 0;
+  for (let index = fromIndex; index < values.length; index += 1) {
+    const value = values[index];
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      continue;
+    }
+
+    sum += clampNumber(value, 0, 1);
+    count += 1;
+  }
+
+  if (count === 0) {
+    return 0;
+  }
+
+  return clampNumber(sum / count, 0, 1);
+}

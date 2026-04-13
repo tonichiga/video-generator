@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { getParallaxBackgroundDriftAtMs } from "@/lib/domain/parallax-drift";
+import { getHighBandEnergy } from "@/lib/domain/spectrum";
 
 import { TIMELINE_HEIGHT, TIMELINE_WIDTH } from "@/app/editor/constants";
 import type { TimelineState, VisualizerType } from "@/app/editor/types";
@@ -35,6 +36,9 @@ type PreviewPanelProps = {
     y: number;
     color: string;
   };
+  equalizerGlowStrength: number;
+  equalizerGlowColor: string;
+  equalizerGlowSpread: number;
   onPosterFileSelected: (file: File) => void;
   onBackgroundFileSelected: (file: File) => void;
   visualizerType: VisualizerType;
@@ -86,6 +90,9 @@ export function PreviewPanel({
   posterBlurStrength,
   backgroundDimStrength,
   liveEqualizerConfig,
+  equalizerGlowStrength,
+  equalizerGlowColor,
+  equalizerGlowSpread,
   onPosterFileSelected,
   onBackgroundFileSelected,
   visualizerType,
@@ -287,6 +294,11 @@ export function PreviewPanel({
     image.src = sceneBackgroundUrl;
   }, [sceneBackgroundUrl]);
 
+  const highBandEnergy = useMemo(
+    () => getHighBandEnergy(normalizedVisualizerBars, 0.62),
+    [normalizedVisualizerBars],
+  );
+
   const eqStyle = {
     left: `${(1 - liveEqualizerConfig.width) * 50}%`,
     width: `${liveEqualizerConfig.width * 100}%`,
@@ -359,6 +371,96 @@ export function PreviewPanel({
     width: `${posterSizePercent}%`,
     aspectRatio: "1 / 1",
     maxWidth: "100%",
+  } as CSSProperties;
+
+  function parseColorRgba(color: string) {
+    const raw = color.trim();
+    const hexMatch = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(raw);
+    if (hexMatch) {
+      const hex = hexMatch[1];
+      const r = Number.parseInt(hex.slice(0, 2), 16);
+      const g = Number.parseInt(hex.slice(2, 4), 16);
+      const b = Number.parseInt(hex.slice(4, 6), 16);
+      const a =
+        hex.length === 8 ? Number.parseInt(hex.slice(6, 8), 16) / 255 : 1;
+      return {
+        r,
+        g,
+        b,
+        a: Math.max(0, Math.min(1, a)),
+      };
+    }
+
+    const rgbaMatch =
+      /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i.exec(
+        raw,
+      );
+    if (!rgbaMatch) {
+      return { r: 127, g: 210, b: 255, a: 1 };
+    }
+
+    const r = Math.round(
+      Math.max(0, Math.min(255, Number(rgbaMatch[1]) || 127)),
+    );
+    const g = Math.round(
+      Math.max(0, Math.min(255, Number(rgbaMatch[2]) || 210)),
+    );
+    const b = Math.round(
+      Math.max(0, Math.min(255, Number(rgbaMatch[3]) || 255)),
+    );
+    const a = Math.max(
+      0,
+      Math.min(1, rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]) || 1),
+    );
+    return { r, g, b, a };
+  }
+
+  function colorWithOpacity(color: string, opacity: number) {
+    const parsed = parseColorRgba(color);
+    const alpha = Math.max(0, Math.min(1, opacity)) * parsed.a;
+    return `rgba(${parsed.r},${parsed.g},${parsed.b},${alpha.toFixed(3)})`;
+  }
+
+  const glowEnergyThreshold = 0.16;
+  const glowEnergyGate = Math.max(
+    0,
+    Math.min(
+      1,
+      (highBandEnergy - glowEnergyThreshold) / (1 - glowEnergyThreshold),
+    ),
+  );
+  const glowDrive = Math.pow(glowEnergyGate, 0.72);
+  const glowMix = Math.max(
+    0,
+    Math.min(5, glowDrive * Math.max(0, equalizerGlowStrength) * 2.2),
+  );
+  const glowScale = Math.max(
+    0.9,
+    Math.min(
+      0.98,
+      0.94 + Math.max(0, equalizerGlowSpread) * 0.008 + glowMix * 0.003,
+    ),
+  );
+  const glowBlurPx = Math.max(
+    0,
+    (8 + equalizerGlowSpread * 24 + glowMix * 16) * previewScale,
+  );
+  const glowOuterAlpha = Math.min(0.92, 0.06 + glowMix * 0.17);
+  const glowInnerAlpha = Math.min(0.98, glowOuterAlpha + 0.2);
+  const glowInsetPx = Math.max(
+    1,
+    Math.round((2 + Math.max(0, equalizerGlowSpread) * 1.4) * previewScale),
+  );
+  const posterGlowStyle = {
+    position: "absolute",
+    inset: `${glowInsetPx}px`,
+    borderRadius: `${Math.max(0, previewPosterCornerRadiusPx - glowInsetPx)}px`,
+    transform: `scale(${glowScale.toFixed(4)})`,
+    transformOrigin: "center center",
+    background: "transparent",
+    boxShadow: `0 0 ${(glowBlurPx * 2.6).toFixed(2)}px ${colorWithOpacity(equalizerGlowColor, glowOuterAlpha)}, 0 0 ${(glowBlurPx * 1.4).toFixed(2)}px ${colorWithOpacity(equalizerGlowColor, glowInnerAlpha)}`,
+    pointerEvents: "none",
+    zIndex: 0,
   } as CSSProperties;
 
   const backgroundDriftStyle = {
@@ -513,6 +615,8 @@ export function PreviewPanel({
                 openPosterPicker();
               }}
             >
+              <div style={posterGlowStyle} />
+
               {scenePosterUrl ? (
                 <Image
                   className="scene-poster object-cover w-full h-full"
@@ -521,6 +625,8 @@ export function PreviewPanel({
                   width={1024}
                   height={1024}
                   style={{
+                    position: "relative",
+                    zIndex: 2,
                     borderRadius: `${previewPosterCornerRadiusPx}px`,
                     borderStyle: "solid",
                     borderColor: bannerBorderEnabled

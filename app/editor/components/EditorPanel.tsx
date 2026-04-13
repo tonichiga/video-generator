@@ -21,6 +21,9 @@ type EditorPanelProps = {
   equalizerWidth: number;
   equalizerHeight: number;
   equalizerY: number;
+  equalizerGlowStrength: number;
+  equalizerGlowColor: string;
+  equalizerGlowSpread: number;
   visualizerType: VisualizerType;
   visualizerBarCount: number;
   posterBlurStrength: number;
@@ -65,6 +68,9 @@ type EditorPanelProps = {
   onEqualizerWidthChange: (value: number) => void;
   onEqualizerHeightChange: (value: number) => void;
   onEqualizerYChange: (value: number) => void;
+  onEqualizerGlowStrengthChange: (value: number) => void;
+  onEqualizerGlowColorChange: (value: string) => void;
+  onEqualizerGlowSpreadChange: (value: number) => void;
   onVisualizerTypeChange: (value: VisualizerType) => void;
   onVisualizerBarCountChange: (value: number) => void;
   onPosterBlurStrengthChange: (value: number) => void;
@@ -118,6 +124,66 @@ export function EditorPanel(props: EditorPanelProps) {
 
     return Math.min(max, Math.max(min, parsed));
   }
+
+  function clampAlpha(value: number) {
+    return Math.min(1, Math.max(0, value));
+  }
+
+  function parseColorForControl(color: string) {
+    const raw = color.trim();
+    const hexMatch = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(raw);
+    if (hexMatch) {
+      const hex = hexMatch[1];
+      const alpha =
+        hex.length === 8 ? Number.parseInt(hex.slice(6, 8), 16) / 255 : 1;
+      return {
+        hex: `#${hex.slice(0, 6)}`,
+        alpha: clampAlpha(alpha),
+      };
+    }
+
+    const rgbaMatch =
+      /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i.exec(
+        raw,
+      );
+    if (!rgbaMatch) {
+      return { hex: "#ffffff", alpha: 1 };
+    }
+
+    const r = Math.min(255, Math.max(0, Number(rgbaMatch[1]) || 255));
+    const g = Math.min(255, Math.max(0, Number(rgbaMatch[2]) || 255));
+    const b = Math.min(255, Math.max(0, Number(rgbaMatch[3]) || 255));
+    const a = clampAlpha(
+      rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]) || 1,
+    );
+
+    const hex = `#${Math.round(r).toString(16).padStart(2, "0")}${Math.round(g)
+      .toString(16)
+      .padStart(2, "0")}${Math.round(b).toString(16).padStart(2, "0")}`;
+    return {
+      hex,
+      alpha: a,
+    };
+  }
+
+  function toRgbaFromHex(hexColor: string, alpha: number) {
+    const normalized = hexColor.replace("#", "");
+    if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+      return `rgba(255, 255, 255, ${clampAlpha(alpha).toFixed(3)})`;
+    }
+
+    const r = Number.parseInt(normalized.slice(0, 2), 16);
+    const g = Number.parseInt(normalized.slice(2, 4), 16);
+    const b = Number.parseInt(normalized.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${clampAlpha(alpha).toFixed(3)})`;
+  }
+
+  const equalizerColorControl = parseColorForControl(props.equalizerColor);
+  const glowColorControl = parseColorForControl(props.equalizerGlowColor);
+  const bannerBorderColorControl = parseColorForControl(
+    props.bannerBorderColor,
+  );
+  const trackTextColorControl = parseColorForControl(props.trackTextColor);
 
   function handleTrackDragOver(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -223,13 +289,50 @@ export function EditorPanel(props: EditorPanelProps) {
           <TabsContent value="visual" className="editor-tab-content">
             <label>
               Equalizer color
-              <input
-                type="color"
-                value={props.equalizerColor}
-                onChange={(event) =>
-                  props.onEqualizerColorChange(event.target.value)
-                }
-              />
+              <div className="editor-range-row">
+                <input
+                  type="color"
+                  value={equalizerColorControl.hex}
+                  onChange={(event) =>
+                    props.onEqualizerColorChange(
+                      toRgbaFromHex(
+                        event.target.value,
+                        equalizerColorControl.alpha,
+                      ),
+                    )
+                  }
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={equalizerColorControl.alpha}
+                  onChange={(event) =>
+                    props.onEqualizerColorChange(
+                      toRgbaFromHex(
+                        equalizerColorControl.hex,
+                        Number(event.target.value),
+                      ),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={equalizerColorControl.alpha}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onEqualizerColorChange(
+                        toRgbaFromHex(equalizerColorControl.hex, next),
+                      );
+                    }
+                  }}
+                />
+              </div>
             </label>
 
             <label>
@@ -313,6 +416,113 @@ export function EditorPanel(props: EditorPanelProps) {
                     const next = toClampedNumber(event.target.value, 0, 1);
                     if (next !== null) {
                       props.onEqualizerYChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Spectrum glow ({props.equalizerGlowStrength.toFixed(2)}x)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={6}
+                  step={0.01}
+                  value={props.equalizerGlowStrength}
+                  onChange={(event) =>
+                    props.onEqualizerGlowStrengthChange(
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={6}
+                  step={0.01}
+                  value={props.equalizerGlowStrength}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 6);
+                    if (next !== null) {
+                      props.onEqualizerGlowStrengthChange(next);
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Glow color
+              <div className="editor-range-row">
+                <input
+                  type="color"
+                  value={glowColorControl.hex}
+                  onChange={(event) =>
+                    props.onEqualizerGlowColorChange(
+                      toRgbaFromHex(event.target.value, glowColorControl.alpha),
+                    )
+                  }
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={glowColorControl.alpha}
+                  onChange={(event) =>
+                    props.onEqualizerGlowColorChange(
+                      toRgbaFromHex(
+                        glowColorControl.hex,
+                        Number(event.target.value),
+                      ),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={glowColorControl.alpha}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onEqualizerGlowColorChange(
+                        toRgbaFromHex(glowColorControl.hex, next),
+                      );
+                    }
+                  }}
+                />
+              </div>
+            </label>
+
+            <label>
+              Glow spread ({props.equalizerGlowSpread.toFixed(2)}x)
+              <div className="editor-range-row">
+                <input
+                  type="range"
+                  min={0}
+                  max={4}
+                  step={0.01}
+                  value={props.equalizerGlowSpread}
+                  onChange={(event) =>
+                    props.onEqualizerGlowSpreadChange(
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={4}
+                  step={0.01}
+                  value={props.equalizerGlowSpread}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 4);
+                    if (next !== null) {
+                      props.onEqualizerGlowSpreadChange(next);
                     }
                   }}
                 />
@@ -471,10 +681,47 @@ export function EditorPanel(props: EditorPanelProps) {
                 </select>
                 <input
                   type="color"
-                  value={props.bannerBorderColor}
+                  value={bannerBorderColorControl.hex}
                   onChange={(event) =>
-                    props.onBannerBorderColorChange(event.target.value)
+                    props.onBannerBorderColorChange(
+                      toRgbaFromHex(
+                        event.target.value,
+                        bannerBorderColorControl.alpha,
+                      ),
+                    )
                   }
+                  disabled={!props.bannerBorderEnabled}
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={bannerBorderColorControl.alpha}
+                  onChange={(event) =>
+                    props.onBannerBorderColorChange(
+                      toRgbaFromHex(
+                        bannerBorderColorControl.hex,
+                        Number(event.target.value),
+                      ),
+                    )
+                  }
+                  disabled={!props.bannerBorderEnabled}
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={bannerBorderColorControl.alpha}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onBannerBorderColorChange(
+                        toRgbaFromHex(bannerBorderColorControl.hex, next),
+                      );
+                    }
+                  }}
                   disabled={!props.bannerBorderEnabled}
                 />
               </div>
@@ -657,13 +904,50 @@ export function EditorPanel(props: EditorPanelProps) {
 
             <label>
               Text color
-              <input
-                type="color"
-                value={props.trackTextColor}
-                onChange={(event) =>
-                  props.onTrackTextColorChange(event.target.value)
-                }
-              />
+              <div className="editor-range-row">
+                <input
+                  type="color"
+                  value={trackTextColorControl.hex}
+                  onChange={(event) =>
+                    props.onTrackTextColorChange(
+                      toRgbaFromHex(
+                        event.target.value,
+                        trackTextColorControl.alpha,
+                      ),
+                    )
+                  }
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={trackTextColorControl.alpha}
+                  onChange={(event) =>
+                    props.onTrackTextColorChange(
+                      toRgbaFromHex(
+                        trackTextColorControl.hex,
+                        Number(event.target.value),
+                      ),
+                    )
+                  }
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={trackTextColorControl.alpha}
+                  onChange={(event) => {
+                    const next = toClampedNumber(event.target.value, 0, 1);
+                    if (next !== null) {
+                      props.onTrackTextColorChange(
+                        toRgbaFromHex(trackTextColorControl.hex, next),
+                      );
+                    }
+                  }}
+                />
+              </div>
             </label>
 
             <label>

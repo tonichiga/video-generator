@@ -17,6 +17,9 @@ export const defaultEqualizerConfig: EqualizerConfig = {
   width: 0.7,
   height: 0.18,
   color: "#FFFFFF",
+  glowStrength: 0.9,
+  glowColor: "#7fd2ff",
+  glowSpread: 1,
   visualizerType: "bars",
   barCount: 36,
 };

@@ -21,6 +21,9 @@ export type TemplateItem = {
     width: number;
     height: number;
     color: string;
+    glowStrength?: number;
+    glowColor?: string;
+    glowSpread?: number;
     visualizerType?: VisualizerType;
     barCount?: number;
   };
@@ -59,6 +62,9 @@ export type EqualizerConfigPayload = {
   width: number;
   height: number;
   color: string;
+  glowStrength: number;
+  glowColor: string;
+  glowSpread: number;
   visualizerType: VisualizerType;
   barCount: number;
 };
@@ -129,6 +135,9 @@ export type LoadProjectResponse = {
     width: number;
     height: number;
     y: number;
+    glowStrength?: number;
+    glowColor?: string;
+    glowSpread?: number;
     visualizerType?: VisualizerType;
     barCount?: number;
   };
