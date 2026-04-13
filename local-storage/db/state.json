@@ -2123,6 +2123,90 @@
       "height": 1920,
       "checksum": "prj_xc3vsqlp:1774990550795",
       "createdAt": "2026-03-31T20:55:50.795Z"
+    },
+    {
+      "id": "ast_poster_sqb40svj",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_sqb40svj.png",
+      "mimeType": "image/png",
+      "size": 2066730,
+      "durationSec": null,
+      "width": 1024,
+      "height": 1024,
+      "checksum": "804b73c09eee7a9585b37e918e586caf1af650016b296a02ebd4aa45e51f51a6",
+      "createdAt": "2026-04-11T16:32:50.512Z"
+    },
+    {
+      "id": "ast_track_ijiw860o",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_ijiw860o.wav",
+      "mimeType": "audio/wav",
+      "size": 61505410,
+      "durationSec": 213.56,
+      "width": null,
+      "height": null,
+      "checksum": "20feda3481ccbca7babc9937231f4678d0deb9c1449256be09a36d4c4846a691",
+      "createdAt": "2026-04-11T16:34:16.585Z"
+    },
+    {
+      "id": "ast_track_8hqhzrvg",
+      "kind": "track",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/tracks/ast_track_8hqhzrvg.wav",
+      "mimeType": "audio/wav",
+      "size": 61505410,
+      "durationSec": 213.56,
+      "width": null,
+      "height": null,
+      "checksum": "20feda3481ccbca7babc9937231f4678d0deb9c1449256be09a36d4c4846a691",
+      "createdAt": "2026-04-11T16:34:21.877Z"
+    },
+    {
+      "id": "ast_poster_adzfpwsx",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_adzfpwsx.png",
+      "mimeType": "image/png",
+      "size": 1153587,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "900a0a0728f1ebb8f8e2738be4ab8d9b35936bf9c920d962447833f97c73e636",
+      "createdAt": "2026-04-11T16:34:31.759Z"
+    },
+    {
+      "id": "ast_render_hqomdnp6",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_hqomdnp6.mp4",
+      "mimeType": "video/mp4",
+      "size": 12246817,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_8acjjkjq:1775925337969",
+      "createdAt": "2026-04-11T16:35:37.969Z"
+    },
+    {
+      "id": "ast_poster_yt384mfu",
+      "kind": "poster",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/uploads/posters/ast_poster_yt384mfu.png",
+      "mimeType": "image/png",
+      "size": 1153587,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "900a0a0728f1ebb8f8e2738be4ab8d9b35936bf9c920d962447833f97c73e636",
+      "createdAt": "2026-04-11T16:38:01.797Z"
+    },
+    {
+      "id": "ast_render_alol4x8d",
+      "kind": "render",
+      "filePath": "/Users/chillout/Desktop/Development/video-generator/local-storage/renders/ast_render_alol4x8d.mp4",
+      "mimeType": "video/mp4",
+      "size": 21510371,
+      "durationSec": null,
+      "width": 1080,
+      "height": 1920,
+      "checksum": "prj_8acjjkjq:1775925590588",
+      "createdAt": "2026-04-11T16:39:50.588Z"
     }
   ],
   "analyses": [
@@ -2664,6 +2748,17 @@
       "envelopeSeriesPath": "analysis/an_hemk3j20_envelope.json",
       "spectrumSeriesPath": "analysis/an_hemk3j20_spectrum.json",
       "createdAt": "2026-03-31T20:49:49.590Z"
+    },
+    {
+      "id": "an_7f48d1jl",
+      "trackAssetId": "ast_track_8hqhzrvg",
+      "status": "done",
+      "sampleRate": 44100,
+      "frameStepMs": 33,
+      "bands": 64,
+      "envelopeSeriesPath": "analysis/an_7f48d1jl_envelope.json",
+      "spectrumSeriesPath": "analysis/an_7f48d1jl_spectrum.json",
+      "createdAt": "2026-04-11T16:34:22.293Z"
     }
   ],
   "projects": [
@@ -5126,6 +5221,61 @@
       "keyframes": [],
       "createdAt": "2026-03-31T20:55:27.300Z",
       "updatedAt": "2026-03-31T20:55:28.295Z"
+    },
+    {
+      "id": "prj_8acjjkjq",
+      "clientToken": "cl_gi0cngsj",
+      "name": "My Mix #1",
+      "format": "tiktok",
+      "quality": "fhd",
+      "fps": 30,
+      "trackAssetId": "ast_track_8hqhzrvg",
+      "posterAssetId": "ast_poster_sqb40svj",
+      "backgroundAssetId": null,
+      "renderBackgroundAssetId": "ast_poster_yt384mfu",
+      "analysisId": "an_7f48d1jl",
+      "templateId": "tpl_neon_pulse",
+      "particleConfig": {
+        "preset": "off",
+        "density": 0,
+        "speed": 0.5
+      },
+      "equalizerConfig": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 1,
+        "height": 0.2,
+        "color": "#ce22b7",
+        "visualizerType": "symmetricBars",
+        "barCount": 67
+      },
+      "posterConfig": {
+        "cornerRadius": 24,
+        "blurStrength": 22,
+        "backgroundDimStrength": 0.5,
+        "beatScaleStrength": 1
+      },
+      "trackTextConfig": {
+        "artist": "OMNICORE",
+        "songName": "Up in the Air",
+        "color": "#FFFFFF",
+        "x": 0.5,
+        "y": 0.67,
+        "size": 60,
+        "gap": 12,
+        "align": "center"
+      },
+      "watermarkEnabled": false,
+      "timeline": {
+        "zoom": 1,
+        "scroll": 0,
+        "trimInMs": 0,
+        "trimOutMs": 213471,
+        "playheadMs": 0
+      },
+      "keyframes": [],
+      "createdAt": "2026-04-11T16:34:30.379Z",
+      "updatedAt": "2026-04-11T16:38:01.805Z"
     }
   ],
   "renderJobs": [
@@ -6024,6 +6174,34 @@
       "finishedAt": "2026-03-31T20:55:50.796Z",
       "watermarkApplied": false,
       "createdAt": "2026-03-31T20:55:28.313Z"
+    },
+    {
+      "id": "job_sodkss2a",
+      "projectId": "prj_8acjjkjq",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_hqomdnp6",
+      "outputPath": "renders/ast_render_hqomdnp6.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-04-11T16:34:31.819Z",
+      "finishedAt": "2026-04-11T16:35:37.970Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-04-11T16:34:31.775Z"
+    },
+    {
+      "id": "job_naga0uy6",
+      "projectId": "prj_8acjjkjq",
+      "status": "done",
+      "progress": 100,
+      "outputAssetId": "ast_render_alol4x8d",
+      "outputPath": "renders/ast_render_alol4x8d.mp4",
+      "errorCode": null,
+      "errorMessage": null,
+      "startedAt": "2026-04-11T16:38:01.863Z",
+      "finishedAt": "2026-04-11T16:39:50.589Z",
+      "watermarkApplied": false,
+      "createdAt": "2026-04-11T16:38:01.809Z"
     }
   ]
 }

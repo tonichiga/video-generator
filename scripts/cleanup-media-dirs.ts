@@ -12,7 +12,7 @@ type DirCleanupStat = {
 async function collectStats(dirPath: string): Promise<DirCleanupStat> {
   const entries = await fs
     .readdir(dirPath, { withFileTypes: true })
-    .catch(() => [] as fs.Dirent[]);
+    .catch(() => []);
 
   let fileCount = 0;
   let totalBytes = 0;

@@ -41,4 +41,6 @@ yarn-error.log*
 next-env.d.ts
 local-storage/renders/
 local-storage/uploads/
+local-storage/analysis/
+local-storage/db/state.json
 
