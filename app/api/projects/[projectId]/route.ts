@@ -331,12 +331,30 @@ export async function PATCH(
           defaultPosterConfig.beatScaleStrength ??
           1)
         : parseNumberInRange(next.beatScaleStrength, 0, 5);
+    const beatStrobeSoftStrength =
+      next.beatStrobeSoftStrength === undefined
+        ? (loaded.project.posterConfig.beatStrobeSoftStrength ??
+          defaultPosterConfig.beatStrobeSoftStrength ??
+          0)
+        : parseNumberInRange(next.beatStrobeSoftStrength, 0, 3);
+    const beatStrobeSoftColor =
+      next.beatStrobeSoftColor === undefined
+        ? (loaded.project.posterConfig.beatStrobeSoftColor ??
+          defaultPosterConfig.beatStrobeSoftColor ??
+          "#ffffff")
+        : parseHexColor(next.beatStrobeSoftColor);
     const cameraPunchStrength =
       next.cameraPunchStrength === undefined
         ? (loaded.project.posterConfig.cameraPunchStrength ??
           defaultPosterConfig.cameraPunchStrength ??
           0)
         : parseNumberInRange(next.cameraPunchStrength, 0, 3);
+    const lowEndShakeStrength =
+      next.lowEndShakeStrength === undefined
+        ? (loaded.project.posterConfig.lowEndShakeStrength ??
+          defaultPosterConfig.lowEndShakeStrength ??
+          0)
+        : parseNumberInRange(next.lowEndShakeStrength, 0, 3);
     const parallaxDriftStrength =
       next.parallaxDriftStrength === undefined
         ? (loaded.project.posterConfig.parallaxDriftStrength ??
@@ -375,7 +393,10 @@ export async function PATCH(
       blurStrength === null ||
       backgroundDimStrength === null ||
       beatScaleStrength === null ||
+      beatStrobeSoftStrength === null ||
+      beatStrobeSoftColor === null ||
       cameraPunchStrength === null ||
+      lowEndShakeStrength === null ||
       parallaxDriftStrength === null ||
       bannerScale === null ||
       bannerBorderEnabled === null ||
@@ -394,7 +415,10 @@ export async function PATCH(
       blurStrength,
       backgroundDimStrength,
       beatScaleStrength,
+      beatStrobeSoftStrength,
+      beatStrobeSoftColor,
       cameraPunchStrength,
+      lowEndShakeStrength,
       parallaxDriftStrength,
       bannerScale,
       bannerBorderEnabled,

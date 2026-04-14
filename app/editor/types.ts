@@ -32,7 +32,10 @@ export type TemplateItem = {
     blurStrength: number;
     backgroundDimStrength: number;
     beatScaleStrength?: number;
+    beatStrobeSoftStrength?: number;
+    beatStrobeSoftColor?: string;
     cameraPunchStrength?: number;
+    lowEndShakeStrength?: number;
     parallaxDriftStrength?: number;
     bannerScale?: number;
     bannerBorderEnabled?: boolean;
@@ -74,7 +77,10 @@ export type PosterConfigPayload = {
   blurStrength: number;
   backgroundDimStrength: number;
   beatScaleStrength: number;
+  beatStrobeSoftStrength: number;
+  beatStrobeSoftColor: string;
   cameraPunchStrength: number;
+  lowEndShakeStrength: number;
   parallaxDriftStrength: number;
   bannerScale: number;
   bannerBorderEnabled: boolean;
@@ -146,7 +152,10 @@ export type LoadProjectResponse = {
     blurStrength?: number;
     backgroundDimStrength?: number;
     beatScaleStrength?: number;
+    beatStrobeSoftStrength?: number;
+    beatStrobeSoftColor?: string;
     cameraPunchStrength?: number;
+    lowEndShakeStrength?: number;
     parallaxDriftStrength?: number;
     bannerScale?: number;
     bannerBorderEnabled?: boolean;

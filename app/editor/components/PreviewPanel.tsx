@@ -10,8 +10,11 @@ import {
 } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { getBeatStrobeSoftAmountAtMs } from "@/lib/domain/beat-strobe-soft";
+import { getLowEndShakeOffsetAtMs } from "@/lib/domain/low-end-shake";
 import { getParallaxBackgroundDriftAtMs } from "@/lib/domain/parallax-drift";
-import { getHighBandEnergy } from "@/lib/domain/spectrum";
+import { getHighBandEnergy, getLowBandEnergy } from "@/lib/domain/spectrum";
 
 import { TIMELINE_HEIGHT, TIMELINE_WIDTH } from "@/app/editor/constants";
 import type { TimelineState, VisualizerType } from "@/app/editor/types";
@@ -45,7 +48,6 @@ type PreviewPanelProps = {
   normalizedVisualizerBars: number[];
   equalizerLineD: string;
   posterCornerRadius: number;
-  bannerScale: number;
   bannerBorderEnabled: boolean;
   bannerBorderColor: string;
   bannerBorderWidth: number;
@@ -59,18 +61,19 @@ type PreviewPanelProps = {
   trackTextAlign: "left" | "center" | "right";
   posterPulseScale: number;
   cameraPunchScale: number;
+  beatStrobeSoftStrength: number;
+  beatStrobeSoftColor: string;
+  lowEndShakeStrength: number;
   parallaxDriftStrength: number;
   previewTimeMs: number;
   renderWidth: number;
   renderHeight: number;
+  bannerScale: number;
 };
 
 type PreviewTimelinePanelProps = {
   previewTimelineEnabled: boolean;
   isPlaying: boolean;
-  onTogglePlayback: () => void;
-  onSeekTo: (value: number) => void;
-  onCutToSelection: (trimInMs: number, trimOutMs: number) => void;
   timeline: TimelineState;
   trackDurationMs: number;
   trimInX: number;
@@ -78,6 +81,9 @@ type PreviewTimelinePanelProps = {
   playheadX: number;
   waveformValues: number[];
   onUpdateTrim: (trimInMs: number, trimOutMs: number) => void;
+  onTogglePlayback: () => void;
+  onSeekTo: (timeMs: number) => void;
+  onCutToSelection: (a: number, b: number) => void;
 };
 
 export function PreviewPanel({
@@ -113,11 +119,17 @@ export function PreviewPanel({
   trackTextAlign,
   posterPulseScale,
   cameraPunchScale,
+  beatStrobeSoftStrength,
+  beatStrobeSoftColor,
+  lowEndShakeStrength,
   parallaxDriftStrength,
   previewTimeMs,
   renderWidth,
   renderHeight,
 }: PreviewPanelProps) {
+  const previewPanelRef = useRef<HTMLElement | null>(null);
+  const previewColumnRef = useRef<HTMLDivElement | null>(null);
+  const sceneShellRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
@@ -130,6 +142,21 @@ export function PreviewPanel({
     string | null
   >(null);
   const [sceneHeightPx, setSceneHeightPx] = useState(0);
+  const [sceneShellSize, setSceneShellSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const panel = previewPanelRef.current;
+    if (!panel) {
+      return;
+    }
+
+    const column = panel.closest(".editor-preview-column");
+    if (!(column instanceof HTMLDivElement)) {
+      return;
+    }
+
+    previewColumnRef.current = column;
+  }, []);
 
   useEffect(() => {
     if (!sceneRef.current || typeof ResizeObserver === "undefined") {
@@ -144,6 +171,25 @@ export function PreviewPanel({
     });
 
     observer.observe(sceneRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!sceneShellRef.current || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setSceneShellSize({
+          width: Math.max(1, Math.round(entry.contentRect.width)),
+          height: Math.max(1, Math.round(entry.contentRect.height)),
+        });
+      }
+    });
+
+    observer.observe(sceneShellRef.current);
     return () => observer.disconnect();
   }, []);
 
@@ -192,12 +238,63 @@ export function PreviewPanel({
     return "";
   }, [posterAssetId, posterPreviewUrl]);
 
-  const sceneStyle = {
-    aspectRatio: previewAspectRatio,
-    "--scene-accent-a": sceneAccentA,
-    "--scene-accent-b": sceneAccentB,
-    "--scene-accent-c": sceneAccentC,
-  } as CSSProperties;
+  const sceneStyle = useMemo(
+    () =>
+      ({
+        aspectRatio: previewAspectRatio,
+        "--scene-accent-a": sceneAccentA,
+        "--scene-accent-b": sceneAccentB,
+        "--scene-accent-c": sceneAccentC,
+      }) as CSSProperties,
+    [previewAspectRatio, sceneAccentA, sceneAccentB, sceneAccentC],
+  );
+
+  const previewRatio = useMemo(() => {
+    const [rawW = "9", rawH = "16"] = previewAspectRatio
+      .split("/")
+      .map((part) => part.trim());
+    const ratioW = Number(rawW);
+    const ratioH = Number(rawH);
+
+    if (
+      Number.isFinite(ratioW) &&
+      Number.isFinite(ratioH) &&
+      ratioW > 0 &&
+      ratioH > 0
+    ) {
+      return ratioW / ratioH;
+    }
+
+    return Math.max(0.0001, renderWidth / Math.max(1, renderHeight));
+  }, [previewAspectRatio, renderHeight, renderWidth]);
+
+  const sceneFitStyle = useMemo(() => {
+    if (sceneShellSize.width < 48 || sceneShellSize.height < 48) {
+      return {
+        ...sceneStyle,
+        width: "100%",
+        height: "auto",
+      } as CSSProperties;
+    }
+
+    const shellW = Math.max(1, sceneShellSize.width);
+    const shellH = Math.max(1, sceneShellSize.height);
+    const shellRatio = shellW / shellH;
+
+    if (shellRatio > previewRatio) {
+      return {
+        ...sceneStyle,
+        width: `${Math.round(shellH * previewRatio)}px`,
+        height: `${shellH}px`,
+      } as CSSProperties;
+    }
+
+    return {
+      ...sceneStyle,
+      width: `${shellW}px`,
+      height: `${Math.round(shellW / previewRatio)}px`,
+    } as CSSProperties;
+  }, [previewRatio, sceneShellSize.height, sceneShellSize.width, sceneStyle]);
 
   const drawBackgroundCanvas = useCallback(() => {
     const canvas = backgroundCanvasRef.current;
@@ -207,7 +304,7 @@ export function PreviewPanel({
     }
 
     const width = Math.max(1, Math.round(renderWidth));
-    const height = Math.max(1, Math.round(renderHeight));
+    const height = Math.max(1, Math.round(width / previewRatio));
 
     if (canvas.width !== width) {
       canvas.width = width;
@@ -253,7 +350,7 @@ export function PreviewPanel({
       ctx.fillStyle = `rgba(0, 0, 0, ${dimOpacity})`;
       ctx.fillRect(0, 0, width, height);
     }
-  }, [backgroundDimStrength, posterBlurStrength, renderHeight, renderWidth]);
+  }, [backgroundDimStrength, posterBlurStrength, previewRatio, renderWidth]);
 
   useEffect(() => {
     drawBackgroundRef.current = drawBackgroundCanvas;
@@ -296,6 +393,10 @@ export function PreviewPanel({
 
   const highBandEnergy = useMemo(
     () => getHighBandEnergy(normalizedVisualizerBars, 0.62),
+    [normalizedVisualizerBars],
+  );
+  const lowBandEnergy = useMemo(
+    () => getLowBandEnergy(normalizedVisualizerBars, 0.24),
     [normalizedVisualizerBars],
   );
 
@@ -359,10 +460,40 @@ export function PreviewPanel({
     marginTop: `${previewGapPx}px`,
   } as CSSProperties;
 
+  const posterShakeOffset = useMemo(
+    () =>
+      getLowEndShakeOffsetAtMs({
+        timeMs: previewTimeMs,
+        strength: lowEndShakeStrength,
+        lowBandEnergy,
+        baseHeightPx: renderHeight,
+      }),
+    [lowBandEnergy, lowEndShakeStrength, previewTimeMs, renderHeight],
+  );
+
   const posterWrapStyle = {
-    transform: `scale(${posterPulseScale.toFixed(4)})`,
+    transform: `translate(${posterShakeOffset.x.toFixed(2)}px, ${posterShakeOffset.y.toFixed(2)}px) scale(${posterPulseScale.toFixed(4)})`,
     transformOrigin: "center center",
     transition: "transform 75ms linear",
+  } as CSSProperties;
+
+  const beatStrobeAmount = useMemo(
+    () =>
+      getBeatStrobeSoftAmountAtMs({
+        timeMs: previewTimeMs,
+        strength: beatStrobeSoftStrength,
+        lowBandEnergy,
+      }),
+    [beatStrobeSoftStrength, lowBandEnergy, previewTimeMs],
+  );
+
+  const beatStrobeOverlayStyle = {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    background: colorWithOpacity(beatStrobeSoftColor, beatStrobeAmount),
+    mixBlendMode: "screen",
+    zIndex: 12,
   } as CSSProperties;
 
   const posterSizePercent = Math.max(20, Math.min(80, bannerScale * 100));
@@ -517,8 +648,66 @@ export function PreviewPanel({
     event.target.value = "";
   }
 
+  function handleResizeStart(event: ReactPointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const column = previewColumnRef.current;
+    if (!column) {
+      return;
+    }
+
+    const startX = event.clientX;
+    const startWidth = column.getBoundingClientRect().width;
+    const minWidth = 260;
+
+    const workspace = column.closest(".editor-workspace");
+    let maxWidth = Math.round(window.innerWidth * 0.78);
+
+    if (workspace instanceof HTMLDivElement) {
+      const workspaceWidth = workspace.clientWidth;
+      const MIN_EDITOR_PANEL_WIDTH = 560;
+      const RESERVED_GAP = 16;
+      maxWidth = Math.max(
+        minWidth,
+        workspaceWidth - MIN_EDITOR_PANEL_WIDTH - RESERVED_GAP,
+      );
+    }
+
+    function getMaxWidthByCanvasHeight() {
+      const shell = sceneShellRef.current;
+      const shellHeight = shell?.clientHeight ?? 0;
+      if (shellHeight <= 0) {
+        return maxWidth;
+      }
+
+      // Stop horizontal resize once the scene would exceed shell height
+      // at current aspect ratio (e.g. 9:16 or 16:9).
+      return Math.max(minWidth, Math.floor(shellHeight * previewRatio));
+    }
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      const delta = startX - moveEvent.clientX;
+      const maxWidthByCanvasHeight = getMaxWidthByCanvasHeight();
+      const allowedMaxWidth = Math.min(maxWidth, maxWidthByCanvasHeight);
+      const nextWidth = Math.max(
+        minWidth,
+        Math.min(allowedMaxWidth, startWidth + delta),
+      );
+      column.style.width = `${Math.round(nextWidth)}px`;
+    };
+
+    const onPointerUp = () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  }
+
   return (
-    <section className="preview-panel">
+    <section ref={previewPanelRef} className="preview-panel">
       <h2>Layer Preview</h2>
       <input
         ref={backgroundFileInputRef}
@@ -536,128 +725,147 @@ export function PreviewPanel({
         title="Select poster image"
         onChange={handlePosterChange}
       />
-      <div
-        ref={sceneRef}
-        onClick={openBackgroundPicker}
-        className="scene"
-        style={sceneStyle}
-      >
-        <canvas
-          ref={backgroundCanvasRef}
-          className="scene-bg-canvas"
-          style={backgroundDriftStyle}
-        />
-
-        <div style={scenePunchStyle}>
-          <div className="scene-eq" style={eqStyle}>
-            {visualizerType === "line" ? (
-              <svg viewBox="0 0 100 100" className="scene-eq-line" role="img">
-                <path
-                  d={equalizerLineD}
-                  stroke={liveEqualizerConfig.color}
-                  strokeWidth="2.8"
-                  fill="none"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              </svg>
-            ) : visualizerType === "symmetricBars" ? (
-              <div className="scene-eq-symmetric-bars">
-                {normalizedVisualizerBars.map((value, index) => (
-                  <span key={index} className="scene-eq-symmetric-col">
-                    <span
-                      className="scene-eq-symmetric-segment scene-eq-symmetric-segment--top"
-                      style={{
-                        height: visualizerSymmetricBarHeight(value),
-                        backgroundColor: liveEqualizerConfig.color,
-                      }}
-                    />
-                    <span
-                      className="scene-eq-symmetric-segment scene-eq-symmetric-segment--bottom"
-                      style={{
-                        height: visualizerSymmetricBarHeight(value),
-                        backgroundColor: liveEqualizerConfig.color,
-                      }}
-                    />
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className={`scene-eq-bars scene-eq-bars--${visualizerType}`}>
-                {normalizedVisualizerBars.map((value, index) => (
-                  <span
-                    key={index}
-                    className="scene-eq-bar"
-                    style={{
-                      height: `${Math.max(8, Math.round(value * 100))}%`,
-                      backgroundColor: liveEqualizerConfig.color,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="scene-poster-wrap cursor-pointer hover:brightness-110">
-            <div
-              className="absolute inset-0"
-              onClick={(event) => {
-                event.stopPropagation();
-                openBackgroundPicker();
-              }}
+      <div className="preview-scene-shell-wrap">
+        <div ref={sceneShellRef} className="preview-scene-shell">
+          <div
+            ref={sceneRef}
+            onClick={openBackgroundPicker}
+            className="scene"
+            style={sceneFitStyle}
+          >
+            <canvas
+              ref={backgroundCanvasRef}
+              className="scene-bg-canvas"
+              style={backgroundDriftStyle}
             />
 
-            <div
-              className="relative z-10"
-              style={posterBoxStyle}
-              onClick={(event) => {
-                event.stopPropagation();
-                openPosterPicker();
-              }}
-            >
-              <div style={posterGlowStyle} />
+            <div style={scenePunchStyle}>
+              <div className="scene-eq" style={eqStyle}>
+                {visualizerType === "line" ? (
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="scene-eq-line"
+                    role="img"
+                  >
+                    <path
+                      d={equalizerLineD}
+                      stroke={liveEqualizerConfig.color}
+                      strokeWidth="2.8"
+                      fill="none"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                ) : visualizerType === "symmetricBars" ? (
+                  <div className="scene-eq-symmetric-bars">
+                    {normalizedVisualizerBars.map((value, index) => (
+                      <span key={index} className="scene-eq-symmetric-col">
+                        <span
+                          className="scene-eq-symmetric-segment scene-eq-symmetric-segment--top"
+                          style={{
+                            height: visualizerSymmetricBarHeight(value),
+                            backgroundColor: liveEqualizerConfig.color,
+                          }}
+                        />
+                        <span
+                          className="scene-eq-symmetric-segment scene-eq-symmetric-segment--bottom"
+                          style={{
+                            height: visualizerSymmetricBarHeight(value),
+                            backgroundColor: liveEqualizerConfig.color,
+                          }}
+                        />
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className={`scene-eq-bars scene-eq-bars--${visualizerType}`}
+                  >
+                    {normalizedVisualizerBars.map((value, index) => (
+                      <span
+                        key={index}
+                        className="scene-eq-bar"
+                        style={{
+                          height: `${Math.max(8, Math.round(value * 100))}%`,
+                          backgroundColor: liveEqualizerConfig.color,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
 
-              {scenePosterUrl ? (
-                <Image
-                  className="scene-poster object-cover w-full h-full"
-                  src={scenePosterUrl}
-                  alt="Poster preview"
-                  width={1024}
-                  height={1024}
-                  style={{
-                    position: "relative",
-                    zIndex: 2,
-                    borderRadius: `${previewPosterCornerRadiusPx}px`,
-                    borderStyle: "solid",
-                    borderColor: bannerBorderEnabled
-                      ? bannerBorderColor
-                      : "transparent",
-                    borderWidth: bannerBorderEnabled
-                      ? `${previewBannerBorderWidthPx}px`
-                      : "0px",
+              <div className="scene-poster-wrap cursor-pointer hover:brightness-110">
+                <div
+                  className="absolute inset-0"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openBackgroundPicker();
                   }}
-                  unoptimized
                 />
-              ) : (
-                <div className="border w-full h-full rounded-2xl flex items-center justify-center">
-                  +
+
+                <div
+                  className="relative z-10"
+                  style={posterBoxStyle}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openPosterPicker();
+                  }}
+                >
+                  <div style={posterGlowStyle} />
+
+                  {scenePosterUrl ? (
+                    <Image
+                      className="scene-poster object-cover w-full h-full"
+                      src={scenePosterUrl}
+                      alt="Poster preview"
+                      width={1024}
+                      height={1024}
+                      style={{
+                        position: "relative",
+                        zIndex: 2,
+                        borderRadius: `${previewPosterCornerRadiusPx}px`,
+                        borderStyle: "solid",
+                        borderColor: bannerBorderEnabled
+                          ? bannerBorderColor
+                          : "transparent",
+                        borderWidth: bannerBorderEnabled
+                          ? `${previewBannerBorderWidthPx}px`
+                          : "0px",
+                      }}
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="border w-full h-full rounded-2xl flex items-center justify-center">
+                      +
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              <div className="scene-track-text" style={trackTextStyle}>
+                <p className="scene-track-text-artist" style={trackArtistStyle}>
+                  {artistName || "Unknown Artist"}
+                </p>
+                <p
+                  className="scene-track-text-song text-nowrap"
+                  style={trackSongStyle}
+                >
+                  {songName || "Untitled Track"}
+                </p>
+              </div>
+
+              <div style={beatStrobeOverlayStyle} />
             </div>
           </div>
-
-          <div className="scene-track-text" style={trackTextStyle}>
-            <p className="scene-track-text-artist" style={trackArtistStyle}>
-              {artistName || "Unknown Artist"}
-            </p>
-            <p
-              className="scene-track-text-song text-nowrap"
-              style={trackSongStyle}
-            >
-              {songName || "Untitled Track"}
-            </p>
-          </div>
         </div>
+        <div
+          className="preview-scene-resize-handle"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize Layer Preview from left edge"
+          onPointerDown={handleResizeStart}
+        />
       </div>
       <p className="layer-note">
         Layer order: blurred poster background, live equalizer, center poster.
@@ -813,6 +1021,14 @@ export function PreviewTimelinePanel({
     return Math.min(max, Math.max(min, parsed));
   }
 
+  function toSliderNumber(value: number | readonly number[]) {
+    if (Array.isArray(value)) {
+      return value[0] ?? 0;
+    }
+
+    return value;
+  }
+
   if (!previewTimelineEnabled) {
     return (
       <section className="timeline-panel timeline-panel--dock">
@@ -952,14 +1168,13 @@ export function PreviewTimelinePanel({
         <label>
           Trim in ({formatMs(timeline.trimInMs)})
           <div className="timeline-slider-row">
-            <input
-              type="range"
+            <Slider
               min={0}
               max={Math.max(1, timeline.trimOutMs - 1)}
               step={10}
-              value={timeline.trimInMs}
-              onChange={(event) => {
-                onUpdateTrim(Number(event.target.value), timeline.trimOutMs);
+              value={[timeline.trimInMs]}
+              onValueChange={(nextValue) => {
+                onUpdateTrim(toSliderNumber(nextValue), timeline.trimOutMs);
               }}
             />
             <input
@@ -984,14 +1199,13 @@ export function PreviewTimelinePanel({
         <label>
           Trim out ({formatMs(timeline.trimOutMs)})
           <div className="timeline-slider-row">
-            <input
-              type="range"
+            <Slider
               min={Math.min(trackDurationMs, timeline.trimInMs + 1)}
               max={trackDurationMs}
               step={10}
-              value={timeline.trimOutMs}
-              onChange={(event) => {
-                onUpdateTrim(timeline.trimInMs, Number(event.target.value));
+              value={[timeline.trimOutMs]}
+              onValueChange={(nextValue) => {
+                onUpdateTrim(timeline.trimInMs, toSliderNumber(nextValue));
               }}
             />
             <input

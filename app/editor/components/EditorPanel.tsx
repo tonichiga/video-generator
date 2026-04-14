@@ -1,5 +1,13 @@
 import { type DragEvent, type FormEvent, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { VISUALIZER_TYPE_OPTIONS } from "@/app/editor/constants";
@@ -30,7 +38,10 @@ type EditorPanelProps = {
   backgroundDimStrength: number;
   posterCornerRadius: number;
   posterBeatScaleStrength: number;
+  beatStrobeSoftStrength: number;
+  beatStrobeSoftColor: string;
   cameraPunchStrength: number;
+  lowEndShakeStrength: number;
   parallaxDriftStrength: number;
   bannerScale: number;
   bannerBorderEnabled: boolean;
@@ -77,7 +88,10 @@ type EditorPanelProps = {
   onBackgroundDimStrengthChange: (value: number) => void;
   onPosterCornerRadiusChange: (value: number) => void;
   onPosterBeatScaleStrengthChange: (value: number) => void;
+  onBeatStrobeSoftStrengthChange: (value: number) => void;
+  onBeatStrobeSoftColorChange: (value: string) => void;
   onCameraPunchStrengthChange: (value: number) => void;
+  onLowEndShakeStrengthChange: (value: number) => void;
   onParallaxDriftStrengthChange: (value: number) => void;
   onBannerScaleChange: (value: number) => void;
   onBannerBorderEnabledChange: (value: boolean) => void;
@@ -180,10 +194,134 @@ export function EditorPanel(props: EditorPanelProps) {
 
   const equalizerColorControl = parseColorForControl(props.equalizerColor);
   const glowColorControl = parseColorForControl(props.equalizerGlowColor);
+  const beatStrobeColorControl = parseColorForControl(
+    props.beatStrobeSoftColor,
+  );
   const bannerBorderColorControl = parseColorForControl(
     props.bannerBorderColor,
   );
   const trackTextColorControl = parseColorForControl(props.trackTextColor);
+
+  function toSliderNumber(value: number | readonly number[]) {
+    if (Array.isArray(value)) {
+      return value[0] ?? 0;
+    }
+
+    return value;
+  }
+
+  function renderRangeControl({
+    value,
+    min,
+    max,
+    step,
+    onChange,
+    disabled = false,
+    round = false,
+  }: {
+    value: number;
+    min: number;
+    max: number;
+    step: number;
+    onChange: (value: number) => void;
+    disabled?: boolean;
+    round?: boolean;
+  }) {
+    return (
+      <div className="editor-range-row">
+        <Slider
+          min={min}
+          max={max}
+          step={step}
+          value={[value]}
+          disabled={disabled}
+          onValueChange={(nextValue) => {
+            const next = toSliderNumber(nextValue);
+            onChange(round ? Math.round(next) : next);
+          }}
+        />
+        <input
+          type="number"
+          title="Value"
+          aria-label="Value"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          disabled={disabled}
+          onChange={(event) => {
+            const next = toClampedNumber(event.target.value, min, max);
+            if (next !== null) {
+              onChange(round ? Math.round(next) : next);
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  function renderColorControl({
+    control,
+    onChange,
+    disabled = false,
+  }: {
+    control: { hex: string; alpha: number };
+    onChange: (value: string) => void;
+    disabled?: boolean;
+  }) {
+    return (
+      <div className="editor-color-control">
+        <div className="editor-color-head">
+          <input
+            type="color"
+            value={control.hex}
+            disabled={disabled}
+            title="Color"
+            aria-label="Color"
+            onChange={(event) =>
+              onChange(toRgbaFromHex(event.target.value, control.alpha))
+            }
+          />
+          <span className="editor-color-code">{control.hex.toUpperCase()}</span>
+          <span className="editor-opacity-pill">
+            {Math.round(control.alpha * 100)}%
+          </span>
+        </div>
+        <div className="editor-opacity-row">
+          <Slider
+            className="editor-opacity-slider"
+            min={0}
+            max={1}
+            step={0.01}
+            value={[control.alpha]}
+            disabled={disabled}
+            title="Opacity slider"
+            aria-label="Opacity slider"
+            onValueChange={(nextValue) =>
+              onChange(toRgbaFromHex(control.hex, toSliderNumber(nextValue)))
+            }
+          />
+          <input
+            className="editor-opacity-number"
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={control.alpha}
+            disabled={disabled}
+            title="Opacity"
+            aria-label="Opacity"
+            onChange={(event) => {
+              const next = toClampedNumber(event.target.value, 0, 1);
+              if (next !== null) {
+                onChange(toRgbaFromHex(control.hex, next));
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   function handleTrackDragOver(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -245,640 +383,342 @@ export function EditorPanel(props: EditorPanelProps) {
 
             <label>
               Format
-              <select
+              <Select
                 value={props.format}
-                onChange={(event) =>
-                  props.onFormatChange(event.target.value as Format)
-                }
+                onValueChange={(value) => props.onFormatChange(value as Format)}
               >
-                <option value="tiktok">TikTok 9:16</option>
-                <option value="youtube">YouTube 16:9</option>
-              </select>
+                <SelectTrigger size="sm" className="w-full">
+                  <SelectValue placeholder="Format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tiktok">TikTok 9:16</SelectItem>
+                  <SelectItem value="youtube">YouTube 16:9</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
 
             <label>
               Quality
-              <select
+              <Select
                 value={props.quality}
-                onChange={(event) =>
-                  props.onQualityChange(event.target.value as Quality)
+                onValueChange={(value) =>
+                  props.onQualityChange(value as Quality)
                 }
               >
-                <option value="hd">HD</option>
-                <option value="fhd">FHD</option>
-              </select>
+                <SelectTrigger size="sm" className="w-full">
+                  <SelectValue placeholder="Quality" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hd">HD</SelectItem>
+                  <SelectItem value="fhd">FHD</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
 
             <label>
               Template
-              <select
-                value={props.selectedTemplateId ?? ""}
-                onChange={(event) =>
-                  props.onTemplateChange(event.target.value || null)
+              <Select
+                value={props.selectedTemplateId ?? "__none"}
+                onValueChange={(value) =>
+                  props.onTemplateChange(value === "__none" ? null : value)
                 }
               >
-                {props.templates.map((tpl) => (
-                  <option key={tpl.id} value={tpl.id}>
-                    {tpl.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger size="sm" className="w-full">
+                  <SelectValue placeholder="Template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">None</SelectItem>
+                  {props.templates.map((tpl) => (
+                    <SelectItem key={tpl.id} value={tpl.id}>
+                      {tpl.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </label>
           </TabsContent>
 
           <TabsContent value="visual" className="editor-tab-content">
-            <label>
-              Equalizer color
-              <div className="editor-range-row">
-                <input
-                  type="color"
-                  value={equalizerColorControl.hex}
-                  onChange={(event) =>
-                    props.onEqualizerColorChange(
-                      toRgbaFromHex(
-                        event.target.value,
-                        equalizerColorControl.alpha,
-                      ),
-                    )
-                  }
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={equalizerColorControl.alpha}
-                  onChange={(event) =>
-                    props.onEqualizerColorChange(
-                      toRgbaFromHex(
-                        equalizerColorControl.hex,
-                        Number(event.target.value),
-                      ),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={equalizerColorControl.alpha}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onEqualizerColorChange(
-                        toRgbaFromHex(equalizerColorControl.hex, next),
-                      );
-                    }
-                  }}
-                />
-              </div>
-            </label>
+            <div className="editor-feature-group editor-feature-group--colors">
+              <h4>Color Controls</h4>
+              <div className="editor-feature-fields">
+                <label>
+                  Equalizer color
+                  {renderColorControl({
+                    control: equalizerColorControl,
+                    onChange: props.onEqualizerColorChange,
+                  })}
+                </label>
 
-            <label>
-              Equalizer width
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0.1}
-                  max={1}
-                  step={0.01}
-                  value={props.equalizerWidth}
-                  onChange={(event) =>
-                    props.onEqualizerWidthChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0.1}
-                  max={1}
-                  step={0.01}
-                  value={props.equalizerWidth}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0.1, 1);
-                    if (next !== null) {
-                      props.onEqualizerWidthChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Glow color
+                  {renderColorControl({
+                    control: glowColorControl,
+                    onChange: props.onEqualizerGlowColorChange,
+                  })}
+                </label>
 
-            <label>
-              Equalizer height
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0.05}
-                  max={0.4}
-                  step={0.01}
-                  value={props.equalizerHeight}
-                  onChange={(event) =>
-                    props.onEqualizerHeightChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0.05}
-                  max={0.4}
-                  step={0.01}
-                  value={props.equalizerHeight}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0.05, 0.4);
-                    if (next !== null) {
-                      props.onEqualizerHeightChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Beat strobe color
+                  {renderColorControl({
+                    control: beatStrobeColorControl,
+                    onChange: props.onBeatStrobeSoftColorChange,
+                  })}
+                </label>
 
-            <label>
-              Equalizer Y
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={props.equalizerY}
-                  onChange={(event) =>
-                    props.onEqualizerYChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={props.equalizerY}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onEqualizerYChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Text color
+                  {renderColorControl({
+                    control: trackTextColorControl,
+                    onChange: props.onTrackTextColorChange,
+                  })}
+                </label>
 
-            <label>
-              Spectrum glow ({props.equalizerGlowStrength.toFixed(2)}x)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={6}
-                  step={0.01}
-                  value={props.equalizerGlowStrength}
-                  onChange={(event) =>
-                    props.onEqualizerGlowStrengthChange(
-                      Number(event.target.value),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={6}
-                  step={0.01}
-                  value={props.equalizerGlowStrength}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 6);
-                    if (next !== null) {
-                      props.onEqualizerGlowStrengthChange(next);
-                    }
-                  }}
-                />
+                <label>
+                  Banner border
+                  <div className="editor-range-row">
+                    <Select
+                      value={props.bannerBorderEnabled ? "on" : "off"}
+                      onValueChange={(value) =>
+                        props.onBannerBorderEnabledChange(value === "on")
+                      }
+                    >
+                      <SelectTrigger size="sm" className="w-full">
+                        <SelectValue placeholder="Border" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="on">Enabled</SelectItem>
+                        <SelectItem value="off">Disabled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {renderColorControl({
+                    control: bannerBorderColorControl,
+                    onChange: props.onBannerBorderColorChange,
+                    disabled: !props.bannerBorderEnabled,
+                  })}
+                </label>
               </div>
-            </label>
+            </div>
 
-            <label>
-              Glow color
-              <div className="editor-range-row">
-                <input
-                  type="color"
-                  value={glowColorControl.hex}
-                  onChange={(event) =>
-                    props.onEqualizerGlowColorChange(
-                      toRgbaFromHex(event.target.value, glowColorControl.alpha),
-                    )
-                  }
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={glowColorControl.alpha}
-                  onChange={(event) =>
-                    props.onEqualizerGlowColorChange(
-                      toRgbaFromHex(
-                        glowColorControl.hex,
-                        Number(event.target.value),
-                      ),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={glowColorControl.alpha}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onEqualizerGlowColorChange(
-                        toRgbaFromHex(glowColorControl.hex, next),
-                      );
+            <div className="editor-feature-group">
+              <h4>Equalizer</h4>
+              <div className="editor-feature-fields">
+                <label>
+                  Equalizer width
+                  {renderRangeControl({
+                    value: props.equalizerWidth,
+                    min: 0.1,
+                    max: 1,
+                    step: 0.01,
+                    onChange: props.onEqualizerWidthChange,
+                  })}
+                </label>
+
+                <label>
+                  Equalizer height
+                  {renderRangeControl({
+                    value: props.equalizerHeight,
+                    min: 0.05,
+                    max: 0.4,
+                    step: 0.01,
+                    onChange: props.onEqualizerHeightChange,
+                  })}
+                </label>
+
+                <label>
+                  Equalizer Y
+                  {renderRangeControl({
+                    value: props.equalizerY,
+                    min: 0,
+                    max: 1,
+                    step: 0.01,
+                    onChange: props.onEqualizerYChange,
+                  })}
+                </label>
+
+                <label>
+                  Visualizer type
+                  <Select
+                    value={props.visualizerType}
+                    onValueChange={(value) =>
+                      props.onVisualizerTypeChange(value as VisualizerType)
                     }
-                  }}
-                />
-              </div>
-            </label>
+                  >
+                    <SelectTrigger size="sm" className="w-full">
+                      <SelectValue placeholder="Visualizer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VISUALIZER_TYPE_OPTIONS.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </label>
 
-            <label>
-              Glow spread ({props.equalizerGlowSpread.toFixed(2)}x)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={4}
-                  step={0.01}
-                  value={props.equalizerGlowSpread}
-                  onChange={(event) =>
-                    props.onEqualizerGlowSpreadChange(
-                      Number(event.target.value),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={4}
-                  step={0.01}
-                  value={props.equalizerGlowSpread}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 4);
-                    if (next !== null) {
-                      props.onEqualizerGlowSpreadChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Visualizer bar count ({props.visualizerBarCount})
+                  {renderRangeControl({
+                    value: props.visualizerBarCount,
+                    min: 8,
+                    max: 96,
+                    step: 1,
+                    onChange: props.onVisualizerBarCountChange,
+                    round: true,
+                  })}
+                </label>
 
-            <label>
-              Visualizer type
-              <select
-                value={props.visualizerType}
-                onChange={(event) =>
-                  props.onVisualizerTypeChange(
-                    event.target.value as VisualizerType,
-                  )
-                }
-              >
-                {VISUALIZER_TYPE_OPTIONS.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <label>
+                  Spectrum glow ({props.equalizerGlowStrength.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.equalizerGlowStrength,
+                    min: 0,
+                    max: 6,
+                    step: 0.01,
+                    onChange: props.onEqualizerGlowStrengthChange,
+                  })}
+                </label>
 
-            <label>
-              Visualizer bar count ({props.visualizerBarCount})
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={8}
-                  max={96}
-                  step={1}
-                  value={props.visualizerBarCount}
-                  onChange={(event) =>
-                    props.onVisualizerBarCountChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={8}
-                  max={96}
-                  step={1}
-                  value={props.visualizerBarCount}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 8, 96);
-                    if (next !== null) {
-                      props.onVisualizerBarCountChange(Math.round(next));
-                    }
-                  }}
-                />
+                <label>
+                  Glow spread ({props.equalizerGlowSpread.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.equalizerGlowSpread,
+                    min: 0,
+                    max: 4,
+                    step: 0.01,
+                    onChange: props.onEqualizerGlowSpreadChange,
+                  })}
+                </label>
               </div>
-            </label>
+            </div>
 
-            <label>
-              Background blur
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={8}
-                  max={36}
-                  step={1}
-                  value={props.posterBlurStrength}
-                  onChange={(event) =>
-                    props.onPosterBlurStrengthChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={8}
-                  max={36}
-                  step={1}
-                  value={props.posterBlurStrength}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 8, 36);
-                    if (next !== null) {
-                      props.onPosterBlurStrengthChange(Math.round(next));
-                    }
-                  }}
-                />
-              </div>
-            </label>
+            <div className="editor-feature-group">
+              <h4>Poster & Background</h4>
+              <div className="editor-feature-fields">
+                <label>
+                  Background blur
+                  {renderRangeControl({
+                    value: props.posterBlurStrength,
+                    min: 8,
+                    max: 36,
+                    step: 1,
+                    onChange: props.onPosterBlurStrengthChange,
+                    round: true,
+                  })}
+                </label>
 
-            <label>
-              Background dim ({Math.round(props.backgroundDimStrength * 100)}%)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={0.85}
-                  step={0.01}
-                  value={props.backgroundDimStrength}
-                  onChange={(event) =>
-                    props.onBackgroundDimStrengthChange(
-                      Number(event.target.value),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={0.85}
-                  step={0.01}
-                  value={props.backgroundDimStrength}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 0.85);
-                    if (next !== null) {
-                      props.onBackgroundDimStrengthChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Background dim (
+                  {Math.round(props.backgroundDimStrength * 100)}%)
+                  {renderRangeControl({
+                    value: props.backgroundDimStrength,
+                    min: 0,
+                    max: 0.85,
+                    step: 0.01,
+                    onChange: props.onBackgroundDimStrengthChange,
+                  })}
+                </label>
 
-            <label>
-              Banner size ({Math.round(props.bannerScale * 100)}%)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0.2}
-                  max={0.8}
-                  step={0.01}
-                  value={props.bannerScale}
-                  onChange={(event) =>
-                    props.onBannerScaleChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0.2}
-                  max={0.8}
-                  step={0.01}
-                  value={props.bannerScale}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0.2, 0.8);
-                    if (next !== null) {
-                      props.onBannerScaleChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Banner size ({Math.round(props.bannerScale * 100)}%)
+                  {renderRangeControl({
+                    value: props.bannerScale,
+                    min: 0.2,
+                    max: 0.8,
+                    step: 0.01,
+                    onChange: props.onBannerScaleChange,
+                  })}
+                </label>
 
-            <label>
-              Banner border
-              <div className="editor-range-row">
-                <select
-                  value={props.bannerBorderEnabled ? "on" : "off"}
-                  onChange={(event) =>
-                    props.onBannerBorderEnabledChange(
-                      event.target.value === "on",
-                    )
-                  }
-                >
-                  <option value="on">Enabled</option>
-                  <option value="off">Disabled</option>
-                </select>
-                <input
-                  type="color"
-                  value={bannerBorderColorControl.hex}
-                  onChange={(event) =>
-                    props.onBannerBorderColorChange(
-                      toRgbaFromHex(
-                        event.target.value,
-                        bannerBorderColorControl.alpha,
-                      ),
-                    )
-                  }
-                  disabled={!props.bannerBorderEnabled}
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={bannerBorderColorControl.alpha}
-                  onChange={(event) =>
-                    props.onBannerBorderColorChange(
-                      toRgbaFromHex(
-                        bannerBorderColorControl.hex,
-                        Number(event.target.value),
-                      ),
-                    )
-                  }
-                  disabled={!props.bannerBorderEnabled}
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={bannerBorderColorControl.alpha}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onBannerBorderColorChange(
-                        toRgbaFromHex(bannerBorderColorControl.hex, next),
-                      );
-                    }
-                  }}
-                  disabled={!props.bannerBorderEnabled}
-                />
-              </div>
-            </label>
+                <label>
+                  Banner border width
+                  {renderRangeControl({
+                    value: props.bannerBorderWidth,
+                    min: 0,
+                    max: 12,
+                    step: 1,
+                    onChange: props.onBannerBorderWidthChange,
+                    disabled: !props.bannerBorderEnabled,
+                    round: true,
+                  })}
+                </label>
 
-            <label>
-              Banner border width
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={12}
-                  step={1}
-                  value={props.bannerBorderWidth}
-                  onChange={(event) =>
-                    props.onBannerBorderWidthChange(Number(event.target.value))
-                  }
-                  disabled={!props.bannerBorderEnabled}
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={12}
-                  step={1}
-                  value={props.bannerBorderWidth}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 12);
-                    if (next !== null) {
-                      props.onBannerBorderWidthChange(Math.round(next));
-                    }
-                  }}
-                  disabled={!props.bannerBorderEnabled}
-                />
+                <label>
+                  Poster corner radius
+                  {renderRangeControl({
+                    value: props.posterCornerRadius,
+                    min: 6,
+                    max: 40,
+                    step: 1,
+                    onChange: props.onPosterCornerRadiusChange,
+                    round: true,
+                  })}
+                </label>
               </div>
-            </label>
+            </div>
 
-            <label>
-              Poster corner radius
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={6}
-                  max={40}
-                  step={1}
-                  value={props.posterCornerRadius}
-                  onChange={(event) =>
-                    props.onPosterCornerRadiusChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={6}
-                  max={40}
-                  step={1}
-                  value={props.posterCornerRadius}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 6, 40);
-                    if (next !== null) {
-                      props.onPosterCornerRadiusChange(Math.round(next));
-                    }
-                  }}
-                />
-              </div>
-            </label>
+            <div className="editor-feature-group">
+              <h4>Motion FX</h4>
+              <div className="editor-feature-fields">
+                <label>
+                  Beat scale strength (
+                  {props.posterBeatScaleStrength.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.posterBeatScaleStrength,
+                    min: 0,
+                    max: 5,
+                    step: 0.05,
+                    onChange: props.onPosterBeatScaleStrengthChange,
+                  })}
+                </label>
 
-            <label>
-              Beat scale strength ({props.posterBeatScaleStrength.toFixed(2)}x)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={5}
-                  step={0.05}
-                  value={props.posterBeatScaleStrength}
-                  onChange={(event) =>
-                    props.onPosterBeatScaleStrengthChange(
-                      Number(event.target.value),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={5}
-                  step={0.05}
-                  value={props.posterBeatScaleStrength}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 5);
-                    if (next !== null) {
-                      props.onPosterBeatScaleStrengthChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Camera punch ({props.cameraPunchStrength.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.cameraPunchStrength,
+                    min: 0,
+                    max: 3,
+                    step: 0.05,
+                    onChange: props.onCameraPunchStrengthChange,
+                  })}
+                </label>
 
-            <label>
-              Camera punch ({props.cameraPunchStrength.toFixed(2)}x)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={3}
-                  step={0.05}
-                  value={props.cameraPunchStrength}
-                  onChange={(event) =>
-                    props.onCameraPunchStrengthChange(
-                      Number(event.target.value),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={3}
-                  step={0.05}
-                  value={props.cameraPunchStrength}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 3);
-                    if (next !== null) {
-                      props.onCameraPunchStrengthChange(next);
-                    }
-                  }}
-                />
-              </div>
-            </label>
+                <label>
+                  Beat strobe soft ({props.beatStrobeSoftStrength.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.beatStrobeSoftStrength,
+                    min: 0,
+                    max: 3,
+                    step: 0.05,
+                    onChange: props.onBeatStrobeSoftStrengthChange,
+                  })}
+                </label>
 
-            <label>
-              Parallax drift ({props.parallaxDriftStrength.toFixed(2)}x)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={3}
-                  step={0.05}
-                  value={props.parallaxDriftStrength}
-                  onChange={(event) =>
-                    props.onParallaxDriftStrengthChange(
-                      Number(event.target.value),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={3}
-                  step={0.05}
-                  value={props.parallaxDriftStrength}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 3);
-                    if (next !== null) {
-                      props.onParallaxDriftStrengthChange(next);
-                    }
-                  }}
-                />
+                <label>
+                  Low-end shake ({props.lowEndShakeStrength.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.lowEndShakeStrength,
+                    min: 0,
+                    max: 3,
+                    step: 0.05,
+                    onChange: props.onLowEndShakeStrengthChange,
+                  })}
+                </label>
+
+                <label>
+                  Parallax drift ({props.parallaxDriftStrength.toFixed(2)}x)
+                  {renderRangeControl({
+                    value: props.parallaxDriftStrength,
+                    min: 0,
+                    max: 3,
+                    step: 0.05,
+                    onChange: props.onParallaxDriftStrengthChange,
+                  })}
+                </label>
               </div>
-            </label>
+            </div>
           </TabsContent>
 
           <TabsContent value="text" className="editor-tab-content">
@@ -903,183 +743,70 @@ export function EditorPanel(props: EditorPanelProps) {
             </label>
 
             <label>
-              Text color
-              <div className="editor-range-row">
-                <input
-                  type="color"
-                  value={trackTextColorControl.hex}
-                  onChange={(event) =>
-                    props.onTrackTextColorChange(
-                      toRgbaFromHex(
-                        event.target.value,
-                        trackTextColorControl.alpha,
-                      ),
-                    )
-                  }
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={trackTextColorControl.alpha}
-                  onChange={(event) =>
-                    props.onTrackTextColorChange(
-                      toRgbaFromHex(
-                        trackTextColorControl.hex,
-                        Number(event.target.value),
-                      ),
-                    )
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={trackTextColorControl.alpha}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onTrackTextColorChange(
-                        toRgbaFromHex(trackTextColorControl.hex, next),
-                      );
-                    }
-                  }}
-                />
-              </div>
-            </label>
-
-            <label>
               Text align
-              <select
+              <Select
                 value={props.trackTextAlign}
-                onChange={(event) =>
+                onValueChange={(value) =>
                   props.onTrackTextAlignChange(
-                    event.target.value as "left" | "center" | "right",
+                    value as "left" | "center" | "right",
                   )
                 }
               >
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-              </select>
+                <SelectTrigger size="sm" className="w-full">
+                  <SelectValue placeholder="Text align" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
 
             <label>
               Text X ({props.trackTextX.toFixed(2)})
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={props.trackTextX}
-                  onChange={(event) =>
-                    props.onTrackTextXChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={props.trackTextX}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onTrackTextXChange(next);
-                    }
-                  }}
-                />
-              </div>
+              {renderRangeControl({
+                value: props.trackTextX,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                onChange: props.onTrackTextXChange,
+              })}
             </label>
 
             <label>
               Text Y ({props.trackTextY.toFixed(2)})
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={props.trackTextY}
-                  onChange={(event) =>
-                    props.onTrackTextYChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={props.trackTextY}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 1);
-                    if (next !== null) {
-                      props.onTrackTextYChange(next);
-                    }
-                  }}
-                />
-              </div>
+              {renderRangeControl({
+                value: props.trackTextY,
+                min: 0,
+                max: 1,
+                step: 0.01,
+                onChange: props.onTrackTextYChange,
+              })}
             </label>
 
             <label>
               Text size ({Math.round(props.trackTextSize)} px)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={14}
-                  max={120}
-                  step={1}
-                  value={props.trackTextSize}
-                  onChange={(event) =>
-                    props.onTrackTextSizeChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={14}
-                  max={120}
-                  step={1}
-                  value={props.trackTextSize}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 14, 120);
-                    if (next !== null) {
-                      props.onTrackTextSizeChange(Math.round(next));
-                    }
-                  }}
-                />
-              </div>
+              {renderRangeControl({
+                value: props.trackTextSize,
+                min: 14,
+                max: 120,
+                step: 1,
+                onChange: props.onTrackTextSizeChange,
+                round: true,
+              })}
             </label>
 
             <label>
               Text gap ({Math.round(props.trackTextGap)} px)
-              <div className="editor-range-row">
-                <input
-                  type="range"
-                  min={0}
-                  max={120}
-                  step={1}
-                  value={props.trackTextGap}
-                  onChange={(event) =>
-                    props.onTrackTextGapChange(Number(event.target.value))
-                  }
-                />
-                <input
-                  type="number"
-                  min={0}
-                  max={120}
-                  step={1}
-                  value={props.trackTextGap}
-                  onChange={(event) => {
-                    const next = toClampedNumber(event.target.value, 0, 120);
-                    if (next !== null) {
-                      props.onTrackTextGapChange(Math.round(next));
-                    }
-                  }}
-                />
-              </div>
+              {renderRangeControl({
+                value: props.trackTextGap,
+                min: 0,
+                max: 120,
+                step: 1,
+                onChange: props.onTrackTextGapChange,
+                round: true,
+              })}
             </label>
           </TabsContent>
 

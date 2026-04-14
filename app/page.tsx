@@ -95,7 +95,10 @@ export default function Home() {
   const [posterBlurStrength, setPosterBlurStrength] = useState(20);
   const [backgroundDimStrength, setBackgroundDimStrength] = useState(0.48);
   const [posterBeatScaleStrength, setPosterBeatScaleStrength] = useState(1);
+  const [beatStrobeSoftStrength, setBeatStrobeSoftStrength] = useState(0);
+  const [beatStrobeSoftColor, setBeatStrobeSoftColor] = useState("#ffffff");
   const [cameraPunchStrength, setCameraPunchStrength] = useState(0);
+  const [lowEndShakeStrength, setLowEndShakeStrength] = useState(0);
   const [parallaxDriftStrength, setParallaxDriftStrength] = useState(0);
   const [bannerScale, setBannerScale] = useState(0.56);
   const [bannerBorderEnabled, setBannerBorderEnabled] = useState(true);
@@ -414,7 +417,14 @@ export default function Home() {
       setPosterBlurStrength(template.posterConfig.blurStrength);
       setBackgroundDimStrength(template.posterConfig.backgroundDimStrength);
       setPosterBeatScaleStrength(template.posterConfig.beatScaleStrength ?? 1);
+      setBeatStrobeSoftStrength(
+        template.posterConfig.beatStrobeSoftStrength ?? 0,
+      );
+      setBeatStrobeSoftColor(
+        template.posterConfig.beatStrobeSoftColor ?? "#ffffff",
+      );
       setCameraPunchStrength(template.posterConfig.cameraPunchStrength ?? 0);
+      setLowEndShakeStrength(template.posterConfig.lowEndShakeStrength ?? 0);
       setParallaxDriftStrength(
         template.posterConfig.parallaxDriftStrength ?? 0,
       );
@@ -573,7 +583,14 @@ export default function Home() {
             setPosterBeatScaleStrength(
               first.posterConfig.beatScaleStrength ?? 1,
             );
+            setBeatStrobeSoftStrength(
+              first.posterConfig.beatStrobeSoftStrength ?? 0,
+            );
+            setBeatStrobeSoftColor(
+              first.posterConfig.beatStrobeSoftColor ?? "#ffffff",
+            );
             setCameraPunchStrength(first.posterConfig.cameraPunchStrength ?? 0);
+            setLowEndShakeStrength(first.posterConfig.lowEndShakeStrength ?? 0);
             setParallaxDriftStrength(
               first.posterConfig.parallaxDriftStrength ?? 0,
             );
@@ -897,7 +914,10 @@ export default function Home() {
           blurStrength: posterBlurStrength,
           backgroundDimStrength,
           beatScaleStrength: posterBeatScaleStrength,
+          beatStrobeSoftStrength,
+          beatStrobeSoftColor,
           cameraPunchStrength,
+          lowEndShakeStrength,
           parallaxDriftStrength,
           bannerScale,
           bannerBorderEnabled,
@@ -930,6 +950,8 @@ export default function Home() {
       bannerBorderEnabled,
       bannerBorderWidth,
       bannerScale,
+      beatStrobeSoftColor,
+      beatStrobeSoftStrength,
       cameraPunchStrength,
       clientToken,
       equalizerColor,
@@ -945,6 +967,7 @@ export default function Home() {
       posterBeatScaleStrength,
       posterBlurStrength,
       posterCornerRadius,
+      lowEndShakeStrength,
       parallaxDriftStrength,
       projectName,
       quality,
@@ -1018,7 +1041,10 @@ export default function Home() {
     setPosterBlurStrength(data.posterConfig?.blurStrength ?? 20);
     setBackgroundDimStrength(data.posterConfig?.backgroundDimStrength ?? 0.48);
     setPosterBeatScaleStrength(data.posterConfig?.beatScaleStrength ?? 1);
+    setBeatStrobeSoftStrength(data.posterConfig?.beatStrobeSoftStrength ?? 0);
+    setBeatStrobeSoftColor(data.posterConfig?.beatStrobeSoftColor ?? "#ffffff");
     setCameraPunchStrength(data.posterConfig?.cameraPunchStrength ?? 0);
+    setLowEndShakeStrength(data.posterConfig?.lowEndShakeStrength ?? 0);
     setParallaxDriftStrength(data.posterConfig?.parallaxDriftStrength ?? 0);
     setBannerScale(data.posterConfig?.bannerScale ?? 0.56);
     setBannerBorderEnabled(data.posterConfig?.bannerBorderEnabled ?? true);
@@ -1108,7 +1134,10 @@ export default function Home() {
         blurStrength: posterBlurStrength,
         backgroundDimStrength,
         beatScaleStrength: posterBeatScaleStrength,
+        beatStrobeSoftStrength,
+        beatStrobeSoftColor,
         cameraPunchStrength,
+        lowEndShakeStrength,
         parallaxDriftStrength,
         bannerScale,
         bannerBorderEnabled,
@@ -1333,7 +1362,10 @@ export default function Home() {
             backgroundDimStrength={backgroundDimStrength}
             posterCornerRadius={posterCornerRadius}
             posterBeatScaleStrength={posterBeatScaleStrength}
+            beatStrobeSoftStrength={beatStrobeSoftStrength}
+            beatStrobeSoftColor={beatStrobeSoftColor}
             cameraPunchStrength={cameraPunchStrength}
+            lowEndShakeStrength={lowEndShakeStrength}
             parallaxDriftStrength={parallaxDriftStrength}
             bannerScale={bannerScale}
             bannerBorderEnabled={bannerBorderEnabled}
@@ -1380,7 +1412,10 @@ export default function Home() {
             onBackgroundDimStrengthChange={setBackgroundDimStrength}
             onPosterCornerRadiusChange={setPosterCornerRadius}
             onPosterBeatScaleStrengthChange={setPosterBeatScaleStrength}
+            onBeatStrobeSoftStrengthChange={setBeatStrobeSoftStrength}
+            onBeatStrobeSoftColorChange={setBeatStrobeSoftColor}
             onCameraPunchStrengthChange={setCameraPunchStrength}
+            onLowEndShakeStrengthChange={setLowEndShakeStrength}
             onParallaxDriftStrengthChange={setParallaxDriftStrength}
             onBannerScaleChange={setBannerScale}
             onBannerBorderEnabledChange={setBannerBorderEnabled}
@@ -1464,6 +1499,9 @@ export default function Home() {
             trackTextAlign={trackTextAlign}
             posterPulseScale={posterPulseScale}
             cameraPunchScale={cameraPunchScale}
+            beatStrobeSoftStrength={beatStrobeSoftStrength}
+            beatStrobeSoftColor={beatStrobeSoftColor}
+            lowEndShakeStrength={lowEndShakeStrength}
             parallaxDriftStrength={parallaxDriftStrength}
             previewTimeMs={timeline.playheadMs ?? timeline.trimInMs}
             renderWidth={renderResolution.width}

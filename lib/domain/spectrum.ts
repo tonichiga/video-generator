@@ -116,3 +116,33 @@ export function getHighBandEnergy(values: number[], fromRatio = 0.62) {
 
   return clampNumber(sum / count, 0, 1);
 }
+
+export function getLowBandEnergy(values: number[], toRatio = 0.22) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return 0;
+  }
+
+  const safeToRatio = clampNumber(toRatio, 0.05, 1);
+  const endIndexExclusive = Math.max(
+    1,
+    Math.min(values.length, Math.ceil(values.length * safeToRatio)),
+  );
+
+  let sum = 0;
+  let count = 0;
+  for (let index = 0; index < endIndexExclusive; index += 1) {
+    const value = values[index];
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      continue;
+    }
+
+    sum += clampNumber(value, 0, 1);
+    count += 1;
+  }
+
+  if (count === 0) {
+    return 0;
+  }
+
+  return clampNumber(sum / count, 0, 1);
+}

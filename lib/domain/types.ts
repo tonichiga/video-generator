@@ -43,7 +43,10 @@ export interface PosterConfig {
   blurStrength: number;
   backgroundDimStrength: number;
   beatScaleStrength?: number;
+  beatStrobeSoftStrength?: number;
+  beatStrobeSoftColor?: string;
   cameraPunchStrength?: number;
+  lowEndShakeStrength?: number;
   parallaxDriftStrength?: number;
   bannerScale?: number;
   bannerBorderEnabled?: boolean;

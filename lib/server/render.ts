@@ -15,6 +15,8 @@ import {
   buildCameraPunchScaleExpression,
   detectCameraPunchBeatsMs,
 } from "@/lib/domain/camera-punch";
+import { getBeatStrobeSoftAmountAtMs } from "@/lib/domain/beat-strobe-soft";
+import { getLowEndShakeOffsetAtMs } from "@/lib/domain/low-end-shake";
 import { buildParallaxBackgroundCropExpressions } from "@/lib/domain/parallax-drift";
 import {
   defaultEqualizerConfig,
@@ -24,6 +26,7 @@ import {
 import { renderWatermarkConfig } from "@/lib/server/env";
 import {
   getHighBandEnergy,
+  getLowBandEnergy,
   normalizeSpectrumBands,
   spectrumFrameIndexAtMs,
 } from "@/lib/domain/spectrum";
@@ -61,8 +64,7 @@ type SpectrumSeries = {
 };
 
 const activeRenderProcesses = new Map<string, ChildProcess>();
-const RENDER_LAYER_CACHE_VERSION =
-  "2026-03-31-viz-preview-parity-beat-pulse-v6";
+const RENDER_LAYER_CACHE_VERSION = "2026-04-14-beat-strobe-soft-v1";
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
@@ -266,6 +268,7 @@ function getPosterLayerCacheFileName(input: {
   basePosterHeight: number;
   barCount: number;
   beatScaleStrength: number;
+  lowEndShakeStrength: number;
   cornerRadiusPx: number;
   glowStrength: number;
   glowColor: string;
@@ -285,6 +288,31 @@ function getPosterLayerCacheFileName(input: {
     .slice(0, 16);
 
   return `poster_${hash}.mov`;
+}
+
+function getBeatStrobeLayerCacheFileName(input: {
+  analysisId: string;
+  trimInMs: number;
+  trimOutMs: number;
+  width: number;
+  height: number;
+  fps: number;
+  durationSec: number;
+  barCount: number;
+  beatStrobeSoftStrength: number;
+  beatStrobeSoftColor: string;
+}) {
+  const hash = createHash("sha1")
+    .update(
+      JSON.stringify({
+        version: RENDER_LAYER_CACHE_VERSION,
+        ...input,
+      }),
+    )
+    .digest("hex")
+    .slice(0, 16);
+
+  return `strobe_${hash}.mov`;
 }
 
 function parseTimestampToSeconds(value: string) {
@@ -676,6 +704,7 @@ async function renderPosterPulseLayer(input: {
   basePosterWidth: number;
   basePosterHeight: number;
   beatScaleStrength: number;
+  lowEndShakeStrength: number;
   cornerRadiusPx: number;
   glowStrength: number;
   glowColor: string;
@@ -699,6 +728,7 @@ async function renderPosterPulseLayer(input: {
     basePosterWidth,
     basePosterHeight,
     beatScaleStrength,
+    lowEndShakeStrength,
     cornerRadiusPx,
     glowStrength,
     glowColor,
@@ -873,6 +903,7 @@ async function renderPosterPulseLayer(input: {
         frameStepMs: spectrumFrameStepMs,
         barCount,
       });
+      const lowBandEnergy = getLowBandEnergy(values, 0.24);
       const highBandEnergy = getHighBandEnergy(values, 0.62);
 
       pulseState = getNextBeatPulseState(pulseState, values, {
@@ -905,8 +936,26 @@ async function renderPosterPulseLayer(input: {
       }
 
       const posterBuffer = await getRoundedPoster(scaledW, scaledH);
-      const left = Math.floor((width - scaledW) / 2);
-      const top = Math.floor((height - scaledH) / 2);
+      const shakeOffset = getLowEndShakeOffsetAtMs({
+        timeMs: absoluteMs,
+        strength: lowEndShakeStrength,
+        lowBandEnergy,
+        baseHeightPx: height,
+      });
+      const left = Math.round(
+        clampNumber(
+          Math.floor((width - scaledW) / 2) + shakeOffset.x,
+          0,
+          Math.max(0, width - scaledW),
+        ),
+      );
+      const top = Math.round(
+        clampNumber(
+          Math.floor((height - scaledH) / 2) + shakeOffset.y,
+          0,
+          Math.max(0, height - scaledH),
+        ),
+      );
       const safeGlowStrength = clampNumber(glowStrength, 0, 6);
       const glowEnergyThreshold = 0.16;
       const glowEnergyGate = clampNumber(
@@ -1368,6 +1417,142 @@ async function hasUsableCacheFile(filePath: string, minSizeBytes = 4096) {
   return stats.size >= minSizeBytes;
 }
 
+async function renderBeatStrobeLayer(input: {
+  renderJobId: string;
+  ffmpegBinary: string;
+  outputPath: string;
+  width: number;
+  height: number;
+  fps: number;
+  timeline: ReturnType<typeof resolveSceneTimeline>;
+  spectrumFrameStepMs: number;
+  spectrumValues: number[][];
+  barCount: number;
+  beatStrobeSoftStrength: number;
+  beatStrobeSoftColor: string;
+}) {
+  const {
+    renderJobId,
+    ffmpegBinary,
+    outputPath,
+    width,
+    height,
+    fps,
+    timeline,
+    spectrumFrameStepMs,
+    spectrumValues,
+    barCount,
+    beatStrobeSoftStrength,
+    beatStrobeSoftColor,
+  } = input;
+  const strobeColor = parseColorRgba(beatStrobeSoftColor);
+
+  const normalizedFrames = spectrumValues.map((row) =>
+    normalizeSpectrumBands(row ?? [], barCount),
+  );
+  const frameCount = Math.max(1, Math.round(timeline.clipDurationSec * fps));
+  const rowSize = width * 4;
+  const frameBuffer = Buffer.alloc(width * height * 4);
+  const alphaRow = Buffer.alloc(rowSize);
+
+  const args = [
+    "-y",
+    "-f",
+    "rawvideo",
+    "-pix_fmt",
+    "rgba",
+    "-s",
+    `${width}x${height}`,
+    "-r",
+    String(fps),
+    "-i",
+    "-",
+    "-an",
+    "-c:v",
+    "qtrle",
+    "-pix_fmt",
+    "argb",
+    "-t",
+    String(timeline.clipDurationSec),
+    outputPath,
+  ];
+
+  const ffmpeg = spawn(ffmpegBinary, args, {
+    stdio: ["pipe", "ignore", "pipe"],
+  });
+  activeRenderProcesses.set(renderJobId, ffmpeg);
+
+  let stderr = "";
+  ffmpeg.stderr.on("data", (chunk) => {
+    stderr += chunk.toString();
+  });
+
+  const writeFrame = async (frame: Buffer) => {
+    if (!ffmpeg.stdin.write(frame)) {
+      await new Promise<void>((resolve, reject) => {
+        ffmpeg.stdin.once("drain", resolve);
+        ffmpeg.stdin.once("error", reject);
+      });
+    }
+  };
+
+  try {
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+      const absoluteMs = timeline.trimInMs + (frameIndex * 1000) / fps;
+      const values = buildResponsiveSpectrumFrame({
+        frames: normalizedFrames,
+        absoluteMs,
+        frameStepMs: spectrumFrameStepMs,
+        barCount,
+      });
+      const lowBandEnergy = getLowBandEnergy(values, 0.24);
+      const amount = getBeatStrobeSoftAmountAtMs({
+        timeMs: absoluteMs,
+        strength: beatStrobeSoftStrength,
+        lowBandEnergy,
+      });
+      const alpha = Math.round(
+        clampNumber(amount * strobeColor.a, 0, 0.45) * 255,
+      );
+
+      alphaRow.fill(0);
+      for (let x = 0; x < width; x += 1) {
+        const offset = x * 4;
+        alphaRow[offset] = strobeColor.r;
+        alphaRow[offset + 1] = strobeColor.g;
+        alphaRow[offset + 2] = strobeColor.b;
+        alphaRow[offset + 3] = alpha;
+      }
+
+      for (let y = 0; y < height; y += 1) {
+        alphaRow.copy(frameBuffer, y * rowSize);
+      }
+
+      await writeFrame(frameBuffer);
+    }
+  } finally {
+    ffmpeg.stdin.end();
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    ffmpeg.once("error", reject);
+    ffmpeg.once("close", (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+
+      reject(
+        new Error(
+          `FFmpeg strobe layer failed with code ${code}: ${stderr.slice(
+            -1400,
+          )}`,
+        ),
+      );
+    });
+  });
+}
+
 export async function runRenderJob({ renderJobId }: StartRenderInput) {
   console.info("[render] job started", { renderJobId });
   const current = await getRenderJobById(renderJobId);
@@ -1549,6 +1734,24 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
     0,
     5,
   );
+  const posterBeatStrobeSoftStrength = clampNumber(
+    project.posterConfig.beatStrobeSoftStrength ??
+      defaultPosterConfig.beatStrobeSoftStrength ??
+      0,
+    0,
+    3,
+  );
+  const posterBeatStrobeSoftColor =
+    project.posterConfig.beatStrobeSoftColor ??
+    defaultPosterConfig.beatStrobeSoftColor ??
+    "#ffffff";
+  const posterLowEndShakeStrength = clampNumber(
+    project.posterConfig.lowEndShakeStrength ??
+      defaultPosterConfig.lowEndShakeStrength ??
+      0,
+    0,
+    3,
+  );
   const cameraPunchStrength = clampNumber(
     project.posterConfig.cameraPunchStrength ??
       defaultPosterConfig.cameraPunchStrength ??
@@ -1671,6 +1874,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       basePosterHeight: posterH,
       barCount: resolvedBarCount,
       beatScaleStrength: posterBeatScaleStrength,
+      lowEndShakeStrength: posterLowEndShakeStrength,
       cornerRadiusPx: posterCornerRadiusPx,
       glowStrength: posterGlowStrength,
       glowColor: posterGlowColor,
@@ -1678,6 +1882,21 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       borderEnabled: posterBorderEnabled,
       borderColor: posterBorderColor,
       borderPx: posterBorderPx,
+    }),
+  );
+  const beatStrobeLayerPath = path.join(
+    getStorageDirs().renders,
+    getBeatStrobeLayerCacheFileName({
+      analysisId: analysis.id,
+      trimInMs: sceneTimeline.trimInMs,
+      trimOutMs: sceneTimeline.trimOutMs,
+      width,
+      height,
+      fps,
+      durationSec: sceneTimeline.clipDurationSec,
+      barCount: resolvedBarCount,
+      beatStrobeSoftStrength: posterBeatStrobeSoftStrength,
+      beatStrobeSoftColor: posterBeatStrobeSoftColor,
     }),
   );
   const baseLayerFilterGraph = usePreparedBackground
@@ -1762,13 +1981,15 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       `[baseZoomed]crop=${width}:${height}:x='${bgParallax.x}':y='${bgParallax.y}'[base]`,
       `[2:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[vizKeyed]`,
       `[3:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[posterTop]`,
-      `[4:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[textOverlay]`,
+      `[4:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[strobeTop]`,
+      `[5:v]format=rgba,scale='trunc(iw*${scaleExpr}/2)*2':'trunc(ih*${scaleExpr}/2)*2'[textOverlay]`,
     ];
 
     filterGraph.push(
       `[base][vizKeyed]overlay=(W-w)/2:(H-h)/2:format=auto[scene1]`,
       `[scene1][posterTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene2]`,
-      `[scene2][textOverlay]overlay=(W-w)/2:(H-h)/2:format=auto[vout]`,
+      `[scene2][strobeTop]overlay=(W-w)/2:(H-h)/2:format=auto[scene3]`,
+      `[scene3][textOverlay]overlay=(W-w)/2:(H-h)/2:format=auto[vout]`,
     );
 
     return filterGraph.join(";");
@@ -1789,6 +2010,8 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
       visualizerLayerPath,
       "-i",
       posterLayerPath,
+      "-i",
+      beatStrobeLayerPath,
       "-loop",
       "1",
       "-t",
@@ -1833,12 +2056,15 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
   const hasCachedVisualizerLayer =
     await hasUsableCacheFile(visualizerLayerPath);
   const hasCachedPosterLayer = await hasUsableCacheFile(posterLayerPath);
+  const hasCachedBeatStrobeLayer =
+    await hasUsableCacheFile(beatStrobeLayerPath);
 
   console.info("[render] layer cache", {
     renderJobId,
     base: hasCachedBaseLayer ? "hit" : "miss",
     visualizer: hasCachedVisualizerLayer ? "hit" : "miss",
     poster: hasCachedPosterLayer ? "hit" : "miss",
+    strobe: hasCachedBeatStrobeLayer ? "hit" : "miss",
   });
 
   try {
@@ -1892,6 +2118,7 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
         basePosterWidth: toEven(posterW, 16),
         basePosterHeight: posterH,
         beatScaleStrength: posterBeatScaleStrength,
+        lowEndShakeStrength: posterLowEndShakeStrength,
         cornerRadiusPx: posterCornerRadiusPx,
         glowStrength: posterGlowStrength,
         glowColor: posterGlowColor,
@@ -1899,6 +2126,23 @@ export async function runRenderJob({ renderJobId }: StartRenderInput) {
         borderEnabled: posterBorderEnabled,
         borderColor: posterBorderColor,
         borderPx: posterBorderPx,
+      });
+    }
+
+    if (!hasCachedBeatStrobeLayer) {
+      await renderBeatStrobeLayer({
+        renderJobId,
+        ffmpegBinary,
+        outputPath: beatStrobeLayerPath,
+        width,
+        height,
+        fps,
+        timeline: sceneTimeline,
+        spectrumFrameStepMs: spectrum.frameStepMs,
+        spectrumValues: spectrum.values ?? [],
+        barCount: resolvedBarCount,
+        beatStrobeSoftStrength: posterBeatStrobeSoftStrength,
+        beatStrobeSoftColor: posterBeatStrobeSoftColor,
       });
     }
 

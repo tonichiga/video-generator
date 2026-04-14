@@ -271,10 +271,22 @@ export async function POST(request: Request) {
       next.beatScaleStrength === undefined
         ? (defaultPosterConfig.beatScaleStrength ?? 1)
         : parseNumberInRange(next.beatScaleStrength, 0, 5);
+    const beatStrobeSoftStrength =
+      next.beatStrobeSoftStrength === undefined
+        ? (defaultPosterConfig.beatStrobeSoftStrength ?? 0)
+        : parseNumberInRange(next.beatStrobeSoftStrength, 0, 3);
+    const beatStrobeSoftColor =
+      next.beatStrobeSoftColor === undefined
+        ? (defaultPosterConfig.beatStrobeSoftColor ?? "#ffffff")
+        : parseHexColor(next.beatStrobeSoftColor);
     const cameraPunchStrength =
       next.cameraPunchStrength === undefined
         ? (defaultPosterConfig.cameraPunchStrength ?? 0)
         : parseNumberInRange(next.cameraPunchStrength, 0, 3);
+    const lowEndShakeStrength =
+      next.lowEndShakeStrength === undefined
+        ? (defaultPosterConfig.lowEndShakeStrength ?? 0)
+        : parseNumberInRange(next.lowEndShakeStrength, 0, 3);
     const parallaxDriftStrength =
       next.parallaxDriftStrength === undefined
         ? (defaultPosterConfig.parallaxDriftStrength ?? 0)
@@ -303,7 +315,10 @@ export async function POST(request: Request) {
       blurStrength === null ||
       backgroundDimStrength === null ||
       beatScaleStrength === null ||
+      beatStrobeSoftStrength === null ||
+      beatStrobeSoftColor === null ||
       cameraPunchStrength === null ||
+      lowEndShakeStrength === null ||
       parallaxDriftStrength === null ||
       bannerScale === null ||
       bannerBorderEnabled === null ||
@@ -322,7 +337,10 @@ export async function POST(request: Request) {
       blurStrength,
       backgroundDimStrength,
       beatScaleStrength,
+      beatStrobeSoftStrength,
+      beatStrobeSoftColor,
       cameraPunchStrength,
+      lowEndShakeStrength,
       parallaxDriftStrength,
       bannerScale,
       bannerBorderEnabled,
